@@ -9,6 +9,12 @@ interface ImportMetaEnv {
   readonly VITE_OIDC_CLIENT_ID: string;
   /** Public origin of the SPA itself, used for OIDC redirect URIs. */
   readonly VITE_PUBLIC_ORIGIN: string;
+  /**
+   * Dot-path into the ID token claims at which the roles array lives.
+   * Defaults to "realm_access.roles" (Keycloak convention). Override for
+   * other IdPs — e.g. "roles" for a flat claim, or a namespaced URI for Auth0.
+   */
+  readonly VITE_OIDC_ROLES_CLAIM?: string;
 }
 
 interface ImportMeta {

@@ -15,17 +15,19 @@ import PrimeVue from "primevue/config";
 
 import App from "./App.vue";
 import { router } from "./router";
+import { useAuthStore } from "./stores/auth";
 import "./styles/main.css";
 
 const app = createApp(App);
+const pinia = createPinia();
 
-app.use(createPinia());
+app.use(pinia);
 app.use(router);
 app.use(VueQueryPlugin);
-app.use(PrimeVue, {
-  // TODO: configure theme tokens to match the agreed visual design once
-  // Claude Design produces it. Defaults are fine for scaffolding.
-  ripple: false,
-});
+app.use(PrimeVue, { ripple: false });
 
-app.mount("#app");
+// Hydrate any persisted OIDC session before mounting so the router guard sees
+// the real authenticated state on first navigation (avoids a flash of
+// "redirect to login" on reload).
+const auth = useAuthStore(pinia);
+void auth.loadStoredUser().finally(() => app.mount("#app"));

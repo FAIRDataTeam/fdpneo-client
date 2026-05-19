@@ -13,6 +13,7 @@ import { sampleDeployment } from "@/data/sampleRecord";
 import AppLogo from "./AppLogo.vue";
 import AppIcon from "./AppIcon.vue";
 import ThemeToggle from "./ThemeToggle.vue";
+import UserMenu from "./UserMenu.vue";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -23,14 +24,8 @@ function submit() {
   void router.push({ name: "search", query: q ? { q } : {} });
 }
 
-function initialsOf(s: string): string {
-  return (
-    s
-      .split(/\s+/)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .slice(0, 2)
-      .join("") || "?"
-  );
+function startSignIn() {
+  void auth.login(router.currentRoute.value.fullPath);
 }
 
 defineProps<{ variant?: "default" | "minimal" }>();
@@ -56,16 +51,14 @@ defineProps<{ variant?: "default" | "minimal" }>();
       <span class="kbd mono">⌘K</span>
     </form>
     <ThemeToggle />
-    <button v-if="!auth.isAuthenticated" class="btn ghost" @click="auth.login()">
+    <button v-if="!auth.isAuthenticated" class="btn ghost" @click="startSignIn">
       Sign in
     </button>
     <template v-else>
       <button class="btn">
         <AppIcon name="plus" :size="14" /> Create
       </button>
-      <RouterLink to="/dashboard" class="avatar" aria-label="My dashboard">
-        {{ initialsOf(auth.user?.profile?.name || auth.user?.profile?.email || "?") }}
-      </RouterLink>
+      <UserMenu />
     </template>
   </header>
 </template>
@@ -135,20 +128,5 @@ header {
 .kbd {
   font-size: 11px;
   color: var(--muted-2);
-}
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 1;
-  border: 1px solid var(--accent-line);
-  text-decoration: none;
 }
 </style>

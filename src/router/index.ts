@@ -10,6 +10,7 @@
  */
 
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -81,11 +82,22 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
-  // TODO: route guard implementation pending the auth store (TASKS.md task 1.1).
-  // For now the guard is a no-op; routes marked `requiresAuth` are accessible
-  // and any 401s from the API surface in-view rather than at the router.
+router.beforeEach(async (to) => {
   if (typeof to.meta.title === "string") {
     document.title = `${to.meta.title} — FAIR Data Point`;
   }
+
+  if (!to.meta.requiresAuth) return true;
+
+  const auth = useAuthStore();
+  if (auth.isAuthenticated) return true;
+
+  // Stash where the user was headed so the callback view can return them.
+  // Pinia carries this in memory only — a hard reload after callback will
+  // drop them on `/` instead, which is acceptable per CLAUDE.md (no browser
+  // storage for app state).
+  auth.setIntendedRedirect(to.fullPath);
+  await auth.login(to.fullPath);
+  // login() initiates an external redirect; cancel the in-app navigation.
+  return false;
 });
