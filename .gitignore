@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/install-state.gz
+
+# Build output
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+
+# Testing
+coverage/
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Editors
+.vscode/*.local.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Operating system
+Thumbs.db
+desktop.ini
+
+# TypeScript incremental build info (also covered by node_modules/ but explicit
+# here so any future out-of-tree tsBuildInfoFile path is still ignored)
+*.tsbuildinfo
+
+# Claude Code local state
+.claude/local/
+.claude/cache/

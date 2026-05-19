@@ -1,0 +1,337 @@
+/*
+ * FDP Neo — design tokens + base utilities.
+ *
+ * Ported from the Claude Design handoff bundle (tokens.css). Values are the
+ * authoritative source of truth; component scoped styles consume these via
+ * CSS custom properties so light/dark swap is mechanical.
+ */
+
+:root {
+  /* light palette */
+  --paper: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #f4f2ec;
+  --line: #e6e2d8;
+  --line-strong: #d5cfc0;
+  --ink: #14181f;
+  --ink-2: #2a2f38;
+  --muted: #6b7280;
+  --muted-2: #8a8f99;
+
+  /* accent: FAIR brand slate-blue, refined */
+  --accent: #2d5b89;
+  --accent-deep: #1f4567;
+  --accent-soft: #e8eef5;
+  --accent-line: #c1d0e0;
+
+  /* signal: warm rust for highlights, badges, charts */
+  --signal: #b5532a;
+  --signal-soft: #f6e8dd;
+
+  /* status */
+  --ok: #2f7a4a;
+  --ok-soft: #e1f0e5;
+  --warn: #8a6b0a;
+  --warn-soft: #f6efd3;
+
+  /* type scales */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* radii */
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 12px;
+  --r-4: 18px;
+
+  /* shadow */
+  --shadow-1: 0 1px 0 rgba(20, 24, 31, 0.04), 0 1px 2px rgba(20, 24, 31, 0.04);
+  --shadow-2: 0 4px 16px rgba(20, 24, 31, 0.06), 0 1px 2px rgba(20, 24, 31, 0.04);
+
+  font-family: var(--font-sans);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.theme-dark {
+  --paper: #0b0e13;
+  --surface: #141821;
+  --surface-2: #1a1f2a;
+  --line: #232a37;
+  --line-strong: #2e3645;
+  --ink: #e8e5de;
+  --ink-2: #c8c6bf;
+  --muted: #8a93a0;
+  --muted-2: #6a7280;
+
+  --accent: #7aa5d4;
+  --accent-deep: #5489bc;
+  --accent-soft: #1a2738;
+  --accent-line: #2a3d58;
+
+  --signal: #e08858;
+  --signal-soft: #2b1e16;
+
+  --ok: #6bb58a;
+  --ok-soft: #142a1e;
+  --warn: #d9b257;
+  --warn-soft: #2a220e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* utility */
+.mono {
+  font-family: var(--font-mono);
+}
+.serif {
+  font-family: var(--font-serif);
+}
+.muted {
+  color: var(--muted);
+}
+.ink-2 {
+  color: var(--ink-2);
+}
+
+/* hairline shared in many frames */
+.hr {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 0;
+}
+
+/* chips, pills, badges */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font: 500 12px/1 var(--font-sans);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.chip.accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.chip.signal {
+  background: var(--signal-soft);
+  color: var(--signal);
+  border-color: transparent;
+}
+.chip.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+  border-color: transparent;
+}
+.chip.outline {
+  background: transparent;
+}
+.chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+/* buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--r-2);
+  font: 500 13px/1 var(--font-sans);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.btn:hover {
+  background: var(--surface-2);
+}
+.btn.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.btn.primary:hover {
+  background: var(--ink-2);
+}
+.btn.accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn.accent:hover {
+  background: var(--accent-deep);
+}
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+.btn.ghost:hover {
+  background: var(--surface-2);
+}
+.btn.sm {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* tag/pill for type indicators */
+.type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.type-tag .sq {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.type-tag .sq.dataset {
+  background: var(--signal);
+}
+.type-tag .sq.catalog {
+  background: var(--accent);
+}
+.type-tag .sq.distribution {
+  background: var(--ok);
+}
+.type-tag .sq.biobank {
+  background: #6e4a8e;
+}
+.type-tag .sq.publication {
+  background: #1f6f8e;
+}
+.type-tag .sq.fdp {
+  background: var(--ink);
+}
+
+/* basic input shell */
+.input {
+  height: 36px;
+  width: 100%;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  font: 400 13px/1 var(--font-sans);
+  color: var(--ink);
+}
+.input::placeholder {
+  color: var(--muted-2);
+}
+.input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* tree node */
+.tree {
+  font-size: 13px;
+}
+.tree .node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--ink-2);
+  cursor: default;
+}
+.tree .node:hover {
+  background: var(--surface-2);
+}
+.tree .node.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+.tree .node .caret {
+  width: 12px;
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.tree .node .label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree .node .count {
+  font: 500 11px/1 var(--font-mono);
+  color: var(--muted);
+}
+.tree .children {
+  margin-left: 12px;
+  border-left: 1px solid var(--line);
+  padding-left: 8px;
+}
+
+/* "view as" turtle viewer */
+.code {
+  font: 400 12px/1.55 var(--font-mono);
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  padding: 14px 16px;
+  white-space: pre;
+  overflow: hidden;
+}
+.code .k {
+  color: var(--accent);
+}
+.code .s {
+  color: var(--signal);
+}
+.code .c {
+  color: var(--muted);
+}
+.code .p {
+  color: var(--ink);
+}
+
+/* focus-visible accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-1);
+}
