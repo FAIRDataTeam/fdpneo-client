@@ -82,7 +82,7 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to) => {
+router.beforeEach((to) => {
   if (typeof to.meta.title === "string") {
     document.title = `${to.meta.title} — FAIR Data Point`;
   }
@@ -92,12 +92,10 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (auth.isAuthenticated) return true;
 
-  // Stash where the user was headed so the callback view can return them.
-  // Pinia carries this in memory only — a hard reload after callback will
-  // drop them on `/` instead, which is acceptable per CLAUDE.md (no browser
-  // storage for app state).
-  auth.setIntendedRedirect(to.fullPath);
-  await auth.login(to.fullPath);
-  // login() initiates an external redirect; cancel the in-app navigation.
+  // Kick off the IdP redirect. The auth store rides the `returnTo` in the
+  // OIDC `state` parameter so it survives the round-trip back to
+  // /auth/callback even on a hard reload. Cancel this in-app navigation so
+  // the protected view never paints.
+  void auth.login(to.fullPath);
   return false;
 });
