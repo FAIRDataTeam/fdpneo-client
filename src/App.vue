@@ -13,6 +13,7 @@ import { watchEffect } from "vue";
 import { RouterView } from "vue-router";
 import AppHeader from "@/components/shared/AppHeader.vue";
 import AppFooter from "@/components/shared/AppFooter.vue";
+import AppErrorBoundary from "@/components/shared/AppErrorBoundary.vue";
 import { useThemeStore } from "@/stores/theme";
 import { usePrefersDark } from "@/composables/usePrefersDark";
 
@@ -26,7 +27,9 @@ watchEffect(() => theme.setSystemPrefersDark(prefersDark.value));
   <div class="shell">
     <AppHeader />
     <main class="main">
-      <RouterView />
+      <AppErrorBoundary v-slot="{ remountKey }">
+        <RouterView :key="remountKey" />
+      </AppErrorBoundary>
     </main>
     <AppFooter />
   </div>

@@ -75,6 +75,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/AuthCallbackView.vue"),
     meta: { title: "Signing in…" },
   },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "not-found",
+    component: () => import("@/views/NotFoundView.vue"),
+    meta: { title: "Not found" },
+  },
 ];
 
 export const router = createRouter({
