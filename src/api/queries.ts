@@ -13,4 +13,7 @@ export const queryKeys = {
   tree: () => ["tree"] as const,
   search: (query: string, facets: FacetSelection) => ["search", query, facets] as const,
   stewardRecords: () => ["steward-records"] as const,
+  metricsOverview: (range: string) => ["metrics", "overview", range] as const,
+  resourceMetrics: (resourceId: string, range: string) =>
+    ["metrics", "resource", resourceId, range] as const,
 };
