@@ -7,12 +7,18 @@
  */
 import { computed } from "vue";
 import { useCatalogs } from "@/composables/useCatalogs";
+import { useRepository } from "@/composables/useRepository";
+import { useAuthStore } from "@/stores/auth";
 import { sampleDeployment } from "@/data/sampleRecord";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
 import MetaItem from "@/components/metadata/MetaItem.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+const auth = useAuthStore();
+const { data: repo } = useRepository();
 const { data: catalogs, isLoading } = useCatalogs();
+const repoTitle = computed(() => repo.value?.title || sampleDeployment.name);
+const repoDescription = computed(() => repo.value?.description || "");
 const catalogCount = computed(() => catalogs.value?.length ?? 0);
 const totalRecords = computed(() =>
   (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0),
@@ -24,12 +30,16 @@ const totalRecords = computed(() =>
     <div class="hero__inner">
       <div class="hero__copy">
         <div class="eyebrow mono">FAIR Data Point</div>
-        <h1>{{ sampleDeployment.name }}</h1>
-        <p>
+        <h1>{{ repoTitle }}</h1>
+        <p v-if="repoDescription">{{ repoDescription }}</p>
+        <p v-else>
           Open metadata for cohort, imaging, biobank and registry data maintained by
           Erasmus MC researchers. Browse the catalogs, search across records, or query
           the SPARQL endpoint.
         </p>
+        <RouterLink v-if="auth.isSteward" to="/repository/edit" class="btn sm edit-repo">
+          <AppIcon name="edit" :size="12" /> Edit repository
+        </RouterLink>
       </div>
       <aside class="hero__card">
         <MetaItem label="Catalogs">{{ catalogCount }} · {{ totalRecords }} records</MetaItem>
@@ -101,6 +111,12 @@ const totalRecords = computed(() =>
   line-height: 1.55;
   color: var(--ink-2);
   max-width: 560px;
+}
+.edit-repo {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .hero__card {
   padding: 18px;

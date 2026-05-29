@@ -85,6 +85,15 @@ export const useAuthStore = defineStore("auth", () => {
     user.value ? extractRoles(user.value.profile, getRolesClaim()) : [],
   );
 
+  function hasRole(role: string): boolean {
+    return roles.value.includes(role);
+  }
+
+  // Modify/create on metadata is governed by the bundled FDP offer, which
+  // grants those actions to the "steward" role; "admin" implies steward.
+  const isSteward = computed(() => hasRole("steward") || hasRole("admin"));
+  const isAdmin = computed(() => hasRole("admin"));
+
   function setIntendedRedirect(path: string | null): void {
     intendedRedirect.value = path;
   }
@@ -164,6 +173,9 @@ export const useAuthStore = defineStore("auth", () => {
     isAuthenticated,
     accessToken,
     roles,
+    hasRole,
+    isSteward,
+    isAdmin,
     error,
     intendedRedirect,
     login,

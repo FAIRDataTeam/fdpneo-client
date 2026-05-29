@@ -46,6 +46,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "My metadata", requiresAuth: true },
   },
   {
+    path: "/repository/edit",
+    name: "repository-edit",
+    component: () => import("@/views/RepositoryEditView.vue"),
+    meta: { title: "Edit repository", requiresAuth: true },
+  },
+  {
     path: "/sparql",
     name: "sparql",
     component: () => import("@/views/SparqlPlaygroundView.vue"),

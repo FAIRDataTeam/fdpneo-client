@@ -195,6 +195,193 @@ References: ADR-0002, server architecture §11.
 
 ---
 
+## Gap analysis vs. the legacy client
+
+The phases above cover browsing, querying, the visual editors, and metrics —
+all essentially **read** surfaces (plus the standalone editors). Comparing
+against the legacy reference client
+([FAIRDataTeam/FAIRDataPoint-client](https://github.com/FAIRDataTeam/FAIRDataPoint-client))
+surfaced a large missing area: **metadata authoring and administration**. The
+new client today has *no write path at all* — `RecordEditView` holds local
+draft refs that never save, the steward dashboard is fixture-backed, and there
+are zero create/update/delete mutations. This is why a logged-in admin sees no
+way to edit the repository metadata or create catalogs/datasets.
+
+Each task below notes whether the **new server already supports it**. Endpoints
+that don't exist yet are coordination items for `fdp-server`, not client-only
+work — don't fake them client-side.
+
+| Legacy feature | New server support | Task |
+| --- | --- | --- |
+| Create / edit / delete entities | ✅ POST/PUT/PATCH/DELETE + per-type SHACL `/spec` | Phase 7 |
+| Edit repository (root) metadata | ✅ PUT/PATCH on `/` | Phase 7 |
+| SHACL-driven entity forms (`ShaclForm`) | ⚠️ shapes exist; `/spec` endpoint not yet reliably served | 7.5 |
+| "My metadata" tree, publication state | ⚠️ listing via SPARQL; no `/meta/state` | 7.6, 9.1 |
+| Membership / sharing (`/members`) | ❌ deferred to server v1.x | 9.2 |
+| User management | ❌ no `/users` (identities live in the IdP) | 9.3 |
+| API keys / personal tokens | ❌ no endpoint | 9.4 |
+| Metadata-schema lifecycle (import/release/version) | ❌ profile-bundle driven, no mgmt API | 9.5 |
+| Resource-definition admin | ❌ profile-driven, no API | 9.6 |
+| Instance settings / branding | ❌ no endpoint | 9.7 |
+| FDP Index (registry of connected FDPs) | ❌ no endpoint (separate service) | 9.8 |
+| Reset to defaults | ❌ no endpoint | 9.9 |
+
+---
+
+## Phase 7 — Metadata authoring (CRUD)  ← highest priority; server-supported
+
+This is the functionality a steward/admin most obviously expects and the new
+client entirely lacks. The server speaks LDP: a record's path id *is* its URL
+(`dataset/ad-cohort-2024` → `/dataset/ad-cohort-2024`).
+
+### 7.1 Write layer in the API client — ⏳ partially done (landed with Phase 8)
+- `src/api/records.ts` already provides `readGraph`/`putGraph`/`deleteGraph` with
+  ETag/`If-Match` and error normalisation, plus `serializeTurtle`/`setLiteral`/
+  `setIri` in `rdf.ts`. Still to do for full 7.1: `PATCH` (SPARQL-update) wrapper,
+  TanStack `useMutation` composables, and query-key invalidation helpers.
+- Add typed mutation wrappers to `src/api/` over the LDP write verbs:
+  - **Create**: `POST /{containerType}` (e.g. `POST /catalog`) with the new
+    record's RDF body; the server mints the IRI and returns `Location`.
+  - **Replace**: `PUT /{id}` with the full RDF graph.
+  - **Patch**: `PATCH /{id}` with a SPARQL `application/sparql-update` body
+    (the LDP router's PATCH path) for field-level edits.
+  - **Delete**: `DELETE /{id}`.
+- Expose these as TanStack `useMutation` composables that invalidate the
+  relevant query keys (`record`, `catalogs`, `tree`, `steward-records`).
+- **Concurrency**: reads return an `ETag`; `PUT`/`PATCH`/`DELETE` require
+  `If-Match`. Capture the ETag on read and send it back; surface `412`
+  (precondition failed) as a "this record changed since you opened it" prompt.
+- Serialize the editor model → Turtle with `n3` (mirror the read mapper in
+  `src/api/rdf.ts`; keep the round-trip lossless for supported fields).
+
+References: server LDP router (`fdp.metadata.ldp.router`), `If-Match`/ETag
+semantics; CLAUDE.md (OpenAPI types are the contract).
+
+### 7.2 Create flow
+- "New…" affordance on the repository and catalog views to create a child of
+  the right type (catalog under repo; dataset/data-service under catalog;
+  distribution under dataset), gated on the steward/admin role.
+- `views/EntityCreateView.vue` + a form built from the DCAT profile fields
+  (title, description, publisher, license, keywords, theme, isPartOf, …);
+  set `dct:isPartOf` to the parent automatically.
+- On submit: serialize → `POST` → follow `Location` → route to the new record.
+- Surface server SHACL / profile validation errors (`fdp.validation.*`
+  envelope with `violations[]`) inline on the offending fields — do not
+  replicate validation client-side (CLAUDE.md).
+
+### 7.3 Edit flow
+- Wire `RecordEditView.vue`'s existing draft refs to a real save via 7.1
+  (PATCH for field edits, PUT for full replace). Remove the "once the API
+  lands" placeholder.
+- Optimistic update or invalidate-on-success; handle `412` conflicts.
+- Role-gate the edit affordances (the route is already `requiresAuth`).
+
+### 7.4 Delete flow
+- Delete a record with a confirmation dialog; explain the LDP rule that a
+  non-empty container can't be deleted until its children are removed, and
+  surface the server's error if it refuses.
+
+### 7.5 SHACL-driven dynamic forms (supersedes the hardcoded 7.2 form)
+- Render create/edit forms from the resource type's SHACL shape instead of
+  hardcoded field lists — the legacy client's `ShaclForm`/`FormGenerator`
+  pattern (datatype → input, `sh:minCount`/`maxCount` → required/repeatable,
+  `sh:in` → select, `sh:nodeKind IRI` → IRI picker).
+- **Server dependency**: needs a reliable "shape for type X" response. The
+  documented `/{type}/{id}/spec` and `/spec` are currently served by the LDP
+  catch-all (401/404) rather than a real handler — coordinate with the server
+  to expose member shapes, or read the bundled profile shapes. Until then,
+  7.2's typed forms stand in.
+
+### 7.6 Steward "My metadata"
+- Replace the fixture in `useStewardRecords` with a real listing of records the
+  signed-in user can modify (SPARQL over the catalogs/datasets the user owns,
+  or a server "my records" endpoint if one is added).
+- Show publication state per row once 9.1 exists; link rows to edit/create.
+
+---
+
+## Phase 8 — Repository (root) administration  ✅ COMPLETED (2026-05-29)
+
+### 8.1 Edit the repository metadata — ✅ done
+- The admin's first expectation (and former dead-end) is editing the FDP /
+  repository node itself (title, description, publisher, rights/offer link).
+- `/` supports `GET`/`PUT`/`PATCH`/`DELETE` — wired an admin/steward-gated edit
+  form for the root resource.
+
+**Delivered:**
+- Write layer `src/api/records.ts` (`readGraph` with ETag, `putGraph`/`deleteGraph`
+  with `If-Match`, error-envelope normalisation) — this is the core of task 7.1,
+  reusable by Phase 7.
+- RDF write helpers in `src/api/rdf.ts` (`setLiteral`/`setIri`/`serializeTurtle`)
+  for lossless read-modify-write.
+- `RepositoryEditView.vue` at `/repository/edit` (gated; server enforces too) —
+  read root + ETag → edit title/description/publisher → PUT with `If-Match`;
+  preserves type + rights triples; surfaces `412` conflicts and validation errors.
+- Auth role helpers (`hasRole`/`isSteward`/`isAdmin`); browse hero now shows the
+  real repository title/description (`useRepository`) + an admin "Edit repository"
+  link instead of the fixture name.
+- **Server fix (fdp-server):** authorization keyed on the raw request IRI, so the
+  repository root (addressed as `.../` but stored at the no-slash IRI) failed to
+  resolve its own `dct:rights` and writes were default-denied even for stewards.
+  `_enforce` now normalises via `record_graph_uri` (+ regression test).
+- Verified end-to-end: steward PUT to `/` → 200 with type/rights preserved; stale
+  ETag → 412. Client gate green; server router/policy tests pass.
+
+---
+
+## Phase 9 — Collaboration, accounts & instance admin (BLOCKED on server)
+
+These legacy-client features depend on `fdp-server` endpoints that **do not
+exist in the current OpenAPI**. Each needs a coordinated server change first;
+listed so they aren't forgotten. Do not stub them against absent endpoints.
+
+### 9.1 Publication state & versioning
+- Draft → published workflow and version history (legacy `EntityView` state +
+  `VersionInfoTable`). Server: `/meta`, `/meta/state` are noted as deferred to
+  v1.x in `fdp.metadata.openapi`.
+
+### 9.2 Record membership / sharing
+- Per-record user roles (legacy `EntitySettings` + `memberships` API). Server:
+  `/members`, `/members/{userUuid}` deferred to v1.x.
+
+### 9.3 User management (admin)
+- List / create / edit users and roles (legacy `Users`, `UserCreate`,
+  `UserDetail`). Server: no `/users` API — identities live in the IdP
+  (Keycloak). Decide whether this belongs in the client at all or stays an IdP
+  admin task; if in-client, the server needs a users facade.
+
+### 9.4 API keys / personal access tokens
+- Legacy `ApiKeys`. Server: no token-issuing endpoint.
+
+### 9.5 Metadata-schema lifecycle
+- Import / version / release / update SHACL schemas (legacy `Schemas`,
+  `SchemaDetail`, `SchemaRelease`, `SchemasImport`). Server: shapes come from
+  the deployment profile bundle; no management API. Distinct from Phase 4
+  (which *authors* a schema) — this is the schema *lifecycle*. Resolve the
+  overlap when both are scheduled.
+
+### 9.6 Resource-definition configuration
+- Manage the resource type hierarchy / URL prefixes (legacy
+  `ResourceDefinitions`). Server: profile-driven, no API.
+
+### 9.7 Instance settings & branding
+- Deployment title, theme, custom forms, links (legacy `FdpSettings`). Server:
+  no settings endpoint.
+
+### 9.8 FDP Index
+- Registry of connected FAIR Data Points: ping, list, per-FDP detail, settings
+  (legacy `IndexDetail`, `IndexPing`, `IndexSettings`). Server: no endpoint;
+  the Index is typically a separate service.
+
+### 9.9 Reset to defaults
+- Legacy `ResetToDefaults`. Server: no endpoint.
+
+### 9.10 User profile page
+- View/edit the signed-in user's profile (legacy `Profile`). Mostly IdP-backed;
+  scope depends on 9.3.
+
+---
+
 ## Open items
 
 - Theme tokens and final design system (likely arrives via Claude Design

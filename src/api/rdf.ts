@@ -8,7 +8,7 @@
  * than invented — the components already treat them as optional.
  */
 
-import { Parser, Store, DataFactory } from "n3";
+import { Parser, Store, Writer, DataFactory } from "n3";
 import type { Distribution, FdpRecord } from "@/data/sampleRecord";
 import type { RecordKind } from "@/types/record";
 
@@ -51,6 +51,31 @@ export function one(store: Store, subject: string, predicate: string): string | 
 /** All objects of `subject predicate` as strings. */
 export function many(store: Store, subject: string, predicate: string): string[] {
   return store.getObjects(namedNode(subject), namedNode(predicate), null).map((o) => o.value);
+}
+
+/** Replace all `subject predicate` triples with a single string literal (or remove if empty). */
+export function setLiteral(store: Store, subject: string, predicate: string, value: string): void {
+  store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
+  const v = value.trim();
+  if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), DataFactory.literal(v)));
+}
+
+/** Replace all `subject predicate` triples with a single IRI object (or remove if empty). */
+export function setIri(store: Store, subject: string, predicate: string, iri: string): void {
+  store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
+  const v = iri.trim();
+  if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), namedNode(v)));
+}
+
+/** Serialize a store to Turtle, preserving every triple (used for read-modify-write). */
+export function serializeTurtle(store: Store): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const writer = new Writer({
+      prefixes: { dcterms: NS.dct, dcat: NS.dcat, rdf: NS.rdf, ldp: "http://www.w3.org/ns/ldp#" },
+    });
+    writer.addQuads(store.getQuads(null, null, null, null));
+    writer.end((err, result) => (err ? reject(err) : resolve(result)));
+  });
 }
 
 const TYPE_MAP: Record<string, { kind: RecordKind; label: string }> = {

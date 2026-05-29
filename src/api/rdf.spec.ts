@@ -7,7 +7,18 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { iriToId, licenseLabel, mapRecord, shortLabel, distributionIris } from "./rdf";
+import {
+  iriToId,
+  licenseLabel,
+  mapRecord,
+  shortLabel,
+  distributionIris,
+  parseTurtle,
+  one,
+  setLiteral,
+  setIri,
+  serializeTurtle,
+} from "./rdf";
 
 const DATASET_TTL = `
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
@@ -103,5 +114,43 @@ describe("rdf helpers", () => {
     expect(distributionIris(DATASET_TTL, IRI)).toEqual([
       "http://localhost:8000/distribution/ad-csv",
     ]);
+  });
+});
+
+describe("graph mutation + serialization (read-modify-write)", () => {
+  const ROOT = "http://localhost:8000";
+  const REPO_TTL = `
+@prefix dcterms: <http://purl.org/dc/terms/> .
+<http://localhost:8000> a <http://www.w3.org/ns/ldp#BasicContainer>, <https://w3id.org/fdp/o#Repository> ;
+  dcterms:rights <https://w3id.org/fdp/profiles/default/offers/public-read-steward-modify> ;
+  dcterms:title "default" .
+`;
+
+  it("setLiteral replaces a value while preserving other triples", async () => {
+    const store = parseTurtle(REPO_TTL);
+    setLiteral(store, ROOT, "http://purl.org/dc/terms/title", "Erasmus MC FDP");
+    setLiteral(store, ROOT, "http://purl.org/dc/terms/description", "Open research metadata");
+    setIri(store, ROOT, "http://purl.org/dc/terms/publisher", "https://erasmusmc.nl");
+
+    expect(one(store, ROOT, "http://purl.org/dc/terms/title")).toBe("Erasmus MC FDP");
+    // unrelated triples survive
+    expect(one(store, ROOT, "http://purl.org/dc/terms/rights")).toBe(
+      "https://w3id.org/fdp/profiles/default/offers/public-read-steward-modify",
+    );
+
+    const ttl = await serializeTurtle(store);
+    const round = parseTurtle(ttl);
+    expect(one(round, ROOT, "http://purl.org/dc/terms/title")).toBe("Erasmus MC FDP");
+    expect(one(round, ROOT, "http://purl.org/dc/terms/description")).toBe("Open research metadata");
+    expect(one(round, ROOT, "http://purl.org/dc/terms/publisher")).toBe("https://erasmusmc.nl");
+    expect(one(round, ROOT, "http://purl.org/dc/terms/rights")).toBe(
+      "https://w3id.org/fdp/profiles/default/offers/public-read-steward-modify",
+    );
+  });
+
+  it("setLiteral with an empty value removes the predicate", () => {
+    const store = parseTurtle(REPO_TTL);
+    setLiteral(store, ROOT, "http://purl.org/dc/terms/title", "   ");
+    expect(one(store, ROOT, "http://purl.org/dc/terms/title")).toBeUndefined();
   });
 });

@@ -52,6 +52,20 @@ describe("auth store", () => {
     expect(store.roles).toHaveLength(0);
   });
 
+  it("derives role helpers (admin implies steward)", () => {
+    installMockManager();
+    const store = useAuthStore();
+    store.user = makeUser({ profile: { realm_access: { roles: ["admin"] } } });
+    expect(store.isAdmin).toBe(true);
+    expect(store.isSteward).toBe(true); // admin implies steward
+    expect(store.hasRole("admin")).toBe(true);
+    expect(store.hasRole("nope")).toBe(false);
+
+    store.user = makeUser({ profile: { realm_access: { roles: ["steward"] } } });
+    expect(store.isAdmin).toBe(false);
+    expect(store.isSteward).toBe(true);
+  });
+
   it("handleCallback returns the redirectTo carried through OIDC state", async () => {
     const mgr = installMockManager();
     const u = makeUser({});
