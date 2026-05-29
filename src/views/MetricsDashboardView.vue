@@ -2,18 +2,21 @@
 /**
  * Metrics dashboard.
  *
- * Renders only what the server's anonymous metrics API returns
- * (architecture §11). The route is public, but the steward "Your resources"
- * section appears once authenticated.
+ * Renders exactly what the server's `/metrics/*` API reports: request counts,
+ * unique visitors, average latency, HTTP status classes, top resources (by
+ * IRI), and country-code aggregates. It deliberately does NOT show a
+ * views/downloads/queries split, period-over-period deltas, or human resource
+ * titles — the server doesn't provide them.
  *
- * Visual posture deliberately doesn't mirror Google-Analytics-style
- * dashboards — that aesthetic implies tracking the FDP doesn't actually do.
- * The "Privacy posture" disclosure makes the boundary explicit.
+ * The endpoints require authentication, so anonymous visitors see a sign-in
+ * prompt rather than empty panels. The "Privacy posture" disclosure makes the
+ * collection boundary explicit.
  */
 import { computed, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMetricsOverview, useResourceMetrics } from "@/composables/useMetrics";
-import type { TimeRange } from "@/data/sampleMetrics";
+import { apiBase } from "@/api/rdf";
+import type { TimeRange } from "@/api/metrics";
 import KpiCard from "@/components/metrics/KpiCard.vue";
 import TimeSeriesChart from "@/components/metrics/TimeSeriesChart.vue";
 import TopRecordsList from "@/components/metrics/TopRecordsList.vue";
@@ -26,15 +29,18 @@ const range = ref<TimeRange>("30d");
 
 const { data: overview, isLoading } = useMetricsOverview(range);
 
-// Stewards land on their most-owned record by default. When the API is in,
-// drive this from a "my records" endpoint sorted by ownership.
-const focusResource = ref("ad-cohort-2024");
+// Stewards land on a representative resource by default. When a "my records"
+// endpoint exists, drive this from ownership.
+const focusResource = ref(`${apiBase()}/dataset/ad-cohort-2024`);
 const focusResourceRef = computed(() => focusResource.value);
 const { data: resource } = useResourceMetrics(focusResourceRef, range);
 
 const numberFmt = new Intl.NumberFormat();
 function fmt(n: number): string {
   return numberFmt.format(n);
+}
+function latency(ms: number | null): string {
+  return ms === null ? "—" : `${Math.round(ms)} ms`;
 }
 </script>
 
@@ -55,32 +61,27 @@ function fmt(n: number): string {
       </div>
     </header>
 
-    <div v-if="isLoading" class="loading">Loading metrics…</div>
+    <div v-if="!auth.isAuthenticated" class="signin">
+      <h2>Sign in to view metrics</h2>
+      <p>Usage metrics are available to authenticated users.</p>
+      <button class="btn primary" @click="auth.login('/metrics')">Sign in</button>
+    </div>
+
+    <div v-else-if="isLoading" class="loading">Loading metrics…</div>
 
     <template v-else-if="overview">
       <section class="kpis">
-        <KpiCard
-          label="Views"
-          :value="fmt(overview.kpis.totalViews)"
-          :delta="overview.deltas.totalViewsPct"
-        />
-        <KpiCard
-          label="Downloads"
-          :value="fmt(overview.kpis.totalDownloads)"
-          :delta="overview.deltas.totalDownloadsPct"
-        />
+        <KpiCard label="Requests" :value="fmt(overview.kpis.requests)" />
         <KpiCard
           label="Unique visitors"
           :value="fmt(overview.kpis.uniqueVisitors)"
-          :delta="overview.deltas.uniqueVisitorsPct"
           hint="rotates daily"
         />
+        <KpiCard label="Avg latency" :value="latency(overview.kpis.avgLatencyMs)" />
         <KpiCard
-          label="Query latency"
-          :value="`${overview.kpis.avgQueryLatencyMs} ms`"
-          :delta="overview.deltas.avgQueryLatencyMsDelta"
-          delta-unit="ms"
-          :delta-is-good="overview.deltas.avgQueryLatencyMsDelta < 0"
+          label="4xx + 5xx"
+          :value="fmt(overview.kpis.errors)"
+          hint="error responses"
         />
       </section>
 
@@ -88,7 +89,7 @@ function fmt(n: number): string {
         <article class="panel chart-panel">
           <header class="panel__head">
             <h2>Activity over time</h2>
-            <span class="muted small">Views, downloads, queries</span>
+            <span class="muted small">Requests · unique visitors</span>
           </header>
           <TimeSeriesChart :points="overview.series" />
         </article>
@@ -104,22 +105,22 @@ function fmt(n: number): string {
 
       <section class="panel">
         <header class="panel__head">
-          <h2>Most-viewed records</h2>
-          <span class="muted small">Top {{ overview.topRecords.length }} in this range</span>
+          <h2>Most-requested resources</h2>
+          <span class="muted small">Top {{ overview.topResources.length }} in this range</span>
         </header>
-        <TopRecordsList :rows="overview.topRecords" />
+        <TopRecordsList :rows="overview.topResources" />
       </section>
 
-      <section v-if="auth.isAuthenticated && resource" class="panel">
+      <section v-if="resource" class="panel">
         <header class="panel__head">
-          <h2>Your resources</h2>
-          <span class="muted small mono">{{ resource.resourceId }}</span>
+          <h2>Resource detail</h2>
+          <span class="muted small mono">{{ resource.resourceIri }}</span>
         </header>
         <div class="resource__summary">
-          <KpiCard label="Views" :value="fmt(resource.totalViews)" />
-          <KpiCard label="Downloads" :value="fmt(resource.totalDownloads)" />
+          <KpiCard label="Requests" :value="fmt(resource.requests)" />
+          <KpiCard label="Unique visitors" :value="fmt(resource.uniqueVisitors)" />
         </div>
-        <TimeSeriesChart :points="resource.series" :fields="['views', 'downloads']" />
+        <TimeSeriesChart :points="resource.series" />
       </section>
     </template>
   </section>
@@ -236,6 +237,29 @@ h1 {
   padding: 60px 20px;
   color: var(--muted);
   text-align: center;
+}
+.signin {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.signin h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--ink);
+}
+.signin p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.signin .btn.primary {
+  margin-top: 8px;
 }
 
 @media (max-width: 1100px) {

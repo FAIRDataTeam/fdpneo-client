@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { TopRecordRow } from "@/data/sampleMetrics";
+import type { TopResourceRow } from "@/api/metrics";
 import TypeTag from "@/components/shared/TypeTag.vue";
 
-defineProps<{ rows: TopRecordRow[] }>();
+defineProps<{ rows: TopResourceRow[] }>();
 </script>
 
 <template>
@@ -11,15 +11,15 @@ defineProps<{ rows: TopRecordRow[] }>();
       <span class="rank mono">{{ String(i + 1).padStart(2, "0") }}</span>
       <div class="meta">
         <TypeTag :kind="r.type">{{ r.typeLabel }}</TypeTag>
-        <RouterLink :to="`/records/${r.id}`" class="title">{{ r.title }}</RouterLink>
+        <RouterLink :to="`/records/${r.id}`" class="title mono">{{ r.label }}</RouterLink>
       </div>
       <div class="stat">
-        <div class="stat__value mono">{{ r.views }}</div>
-        <div class="stat__label">views</div>
+        <div class="stat__value mono">{{ r.requests }}</div>
+        <div class="stat__label">req</div>
       </div>
       <div class="stat">
-        <div class="stat__value mono">{{ r.downloads }}</div>
-        <div class="stat__label">dl</div>
+        <div class="stat__value mono">{{ r.visitors }}</div>
+        <div class="stat__label">visitors</div>
       </div>
     </li>
   </ol>

@@ -1,20 +1,21 @@
 <script setup lang="ts">
 /**
- * Line chart for the views/downloads/queries time series. Token-driven
- * colours so the chart respects the active theme.
+ * Line chart for the requests / unique-visitors daily series. Token-driven
+ * colours so the chart respects the active theme. These are the only two
+ * series the server reports per day.
  */
 import { computed, onMounted, ref, watchEffect } from "vue";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { registerCharts } from "@/charts/register";
-import type { TimeSeriesPoint } from "@/data/sampleMetrics";
+import type { MetricsPoint } from "@/api/metrics";
 
 registerCharts();
 
 const props = defineProps<{
-  points: TimeSeriesPoint[];
-  /** Which series to render. Defaults to all three. */
-  fields?: Array<"views" | "downloads" | "queries">;
+  points: MetricsPoint[];
+  /** Which series to render. Defaults to both. */
+  fields?: Array<"requests" | "visitors">;
 }>();
 
 const tokens = ref({ ink: "#14181F", muted: "#6b7280", line: "#e6e2d8", accent: "#2D5B89", ok: "#2F7A4A", signal: "#B5532A" });
@@ -41,12 +42,11 @@ if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") 
   obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 }
 
-const fields = computed(() => props.fields ?? (["views", "downloads", "queries"] as const));
+const fields = computed(() => props.fields ?? (["requests", "visitors"] as const));
 
 const series = {
-  views: { label: "Views", color: () => tokens.value.accent },
-  downloads: { label: "Downloads", color: () => tokens.value.ok },
-  queries: { label: "Queries", color: () => tokens.value.signal },
+  requests: { label: "Requests", color: () => tokens.value.accent },
+  visitors: { label: "Unique visitors", color: () => tokens.value.ok },
 } as const;
 
 const labels = computed(() =>

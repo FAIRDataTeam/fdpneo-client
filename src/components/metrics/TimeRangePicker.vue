@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TimeRange } from "@/data/sampleMetrics";
+import type { TimeRange } from "@/api/metrics";
 
 const props = defineProps<{ modelValue: TimeRange }>();
 const emit = defineEmits<{ (e: "update:modelValue", v: TimeRange): void }>();

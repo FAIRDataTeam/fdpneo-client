@@ -4,7 +4,7 @@
  * server reports — finer-grained geolocation is deliberately not collected.
  */
 import { computed } from "vue";
-import type { CountryRow } from "@/data/sampleMetrics";
+import type { CountryRow } from "@/api/metrics";
 
 const props = defineProps<{ rows: CountryRow[] }>();
 
