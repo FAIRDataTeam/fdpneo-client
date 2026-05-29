@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
             "vendor-flow": ["@vue-flow/core", "@vue-flow/background", "@vue-flow/controls"],
             "vendor-rdf": ["n3"],
             "vendor-charts": ["chart.js", "vue-chartjs"],
+            "vendor-monaco": ["monaco-editor"],
           },
         },
       },
