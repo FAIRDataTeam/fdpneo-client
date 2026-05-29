@@ -1,18 +1,31 @@
 /**
  * End-to-end render of the c-focus dataset detail view.
  *
- * Uses the fixture-backed `useRecord` so no network is involved. Asserts the
- * title, four stats, the three distributions and three related records all
- * render from the fixture.
+ * `useRecord` now fetches over the network, so we mock it with the shared
+ * fixture: this test exercises the view's rendering, not the data layer
+ * (the RDF mapping is covered directly in `src/api/rdf.spec.ts`). Asserts the
+ * title, the stats, distributions and related records render from the record.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { createRouter, createMemoryHistory } from "vue-router";
 import { VueQueryPlugin } from "@tanstack/vue-query";
 import RecordDetailView from "./RecordDetailView.vue";
 import { sampleRecord } from "@/data/sampleRecord";
+
+vi.mock("@/composables/useRecord", async () => {
+  const { ref } = await import("vue");
+  const { sampleRecord: fixture } = await import("@/data/sampleRecord");
+  return {
+    useRecord: () => ({
+      data: ref(fixture),
+      isLoading: ref(false),
+      isError: ref(false),
+    }),
+  };
+});
 
 describe("RecordDetailView (c-focus)", () => {
   it("renders the fixture record end-to-end", async () => {

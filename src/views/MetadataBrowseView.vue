@@ -5,14 +5,18 @@
  * Hero block (eyebrow + serif title + lede + info card) on top, catalog grid
  * below. Reuses the same primitives as the record detail.
  */
+import { computed } from "vue";
 import { useCatalogs } from "@/composables/useCatalogs";
-import { sampleDeployment, sampleCatalogs } from "@/data/sampleRecord";
+import { sampleDeployment } from "@/data/sampleRecord";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
 import MetaItem from "@/components/metadata/MetaItem.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const { data: catalogs, isLoading } = useCatalogs();
-const totalRecords = sampleCatalogs.reduce((s, c) => s + c.distributions, 0);
+const catalogCount = computed(() => catalogs.value?.length ?? 0);
+const totalRecords = computed(() =>
+  (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0),
+);
 </script>
 
 <template>
@@ -28,7 +32,7 @@ const totalRecords = sampleCatalogs.reduce((s, c) => s + c.distributions, 0);
         </p>
       </div>
       <aside class="hero__card">
-        <MetaItem label="Catalogs">{{ sampleCatalogs.length }} · {{ totalRecords }} records</MetaItem>
+        <MetaItem label="Catalogs">{{ catalogCount }} · {{ totalRecords }} records</MetaItem>
         <div class="gap" />
         <MetaItem label="Conforms to" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
         <div class="gap" />
