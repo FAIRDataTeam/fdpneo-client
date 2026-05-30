@@ -228,7 +228,7 @@ work — don't fake them client-side.
 
 ---
 
-## Phase 7 — Metadata authoring (CRUD)  ✅ COMPLETE (2026-05-29); 7.5 deferred to server
+## Phase 7 — Metadata authoring (CRUD)  ✅ COMPLETE (2026-05-30)
 
 This is the functionality a steward/admin most obviously expects and the new
 client entirely lacked. The server speaks LDP: a record's path id *is* its URL
@@ -301,8 +301,21 @@ semantics; CLAUDE.md (OpenAPI types are the contract).
 - Delete from the edit view with a confirmation dialog; ETag-guarded; server
   errors (e.g. non-empty container) surfaced via the parsed envelope.
 
-### 7.5 SHACL-driven dynamic forms (supersedes the hardcoded 7.2 form) — ⏳ deferred
-- The config-driven `EntityForm` (7.2) stands in for now.
+### 7.5 SHACL-driven dynamic forms (supersedes the hardcoded 7.2 form) — ✅ done
+- Built on **fdp-server task 2.6** (`GET /{type}/spec`, now implemented).
+- `useEntityShape(type)` fetches the type's SHACL NodeShape; `fieldsFromShape`
+  (in `entityForms.ts`) parses `sh:property` constraints into `FieldSpec[]`:
+  `sh:datatype` → text/textarea/keywords, `sh:nodeKind sh:IRI` → iri/iris,
+  `sh:maxCount 1` → single vs repeatable, `sh:minCount ≥ 1` → required, `sh:name`/
+  `sh:description` → label/help. Excludes structural/managed/policy predicates
+  (`isPartOf`, `rights`, `issued`, `modified`) and skips non-simple nodes
+  (`contactPoint`).
+- `EntityCreateView`/`EntityEditView` now drive `EntityForm` from the shape, with
+  the static `EntitySpec.fields` as a fallback if `/spec` is unavailable. Forms now
+  expose the full per-type field set (e.g. dataset gains creator, identifier,
+  language, landingPage, theme, distribution) instead of the static six.
+- Remaining niceties (not blocking): datatype-specific inputs (number/date) and
+  `sh:in` → select (no enums in the bundled profile yet).
 - Render create/edit forms from the resource type's SHACL shape instead of
   hardcoded field lists — the legacy client's `ShaclForm`/`FormGenerator`
   pattern (datatype → input, `sh:minCount`/`maxCount` → required/repeatable,

@@ -7,6 +7,7 @@ import {
   typeForId,
   emptyModel,
   parseKeywords,
+  fieldsFromShape,
 } from "./entityForms";
 import { NS, parseTurtle, one, many } from "./rdf";
 
@@ -92,5 +93,43 @@ describe("modelFromTurtle / applyEditTurtle (read-modify-write)", () => {
     // untouched triples survive
     expect(many(store, DATASET, `${NS.rdf}type`)).toContain(`${NS.dcat}Dataset`);
     expect(one(store, DATASET, `${NS.dct}isPartOf`)).toBe(CATALOG);
+  });
+});
+
+describe("fieldsFromShape (SHACL → form fields, 7.5)", () => {
+  const SHAPE = `
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+dcat:Dataset a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:property [ sh:path dcterms:title ; sh:datatype xsd:string ; sh:minCount 1 ; sh:name "title" ] ,
+    [ sh:path dcterms:description ; sh:datatype xsd:string ] ,
+    [ sh:path dcat:keyword ; sh:datatype xsd:string ] ,
+    [ sh:path dcterms:license ; sh:nodeKind sh:IRI ; sh:maxCount 1 ] ,
+    [ sh:path dcat:theme ; sh:nodeKind sh:IRI ] ,
+    [ sh:path dcterms:isPartOf ; sh:nodeKind sh:IRI ; sh:maxCount 1 ] ,
+    [ sh:path dcterms:modified ; sh:datatype xsd:dateTime ; sh:maxCount 1 ] ,
+    [ sh:path dcat:contactPoint ] .
+`;
+  const fields = fieldsFromShape(SHAPE, `${NS.dcat}Dataset`);
+  const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
+
+  it("orders title then description then the rest, and excludes structural/managed/blank-node fields", () => {
+    expect(fields.map((f) => f.key)).toEqual(["title", "description", "keyword", "license", "theme"]);
+  });
+
+  it("maps datatype/nodeKind/cardinality to the right kinds", () => {
+    expect(byKey.title?.kind).toBe("text");
+    expect(byKey.title?.required).toBe(true);
+    expect(byKey.description?.kind).toBe("textarea");
+    expect(byKey.keyword?.kind).toBe("keywords"); // repeatable literal
+    expect(byKey.license?.kind).toBe("iri"); // single IRI
+    expect(byKey.theme?.kind).toBe("iris"); // repeatable IRI
+  });
+
+  it("returns [] when the shape isn't present (caller falls back to the static spec)", () => {
+    expect(fieldsFromShape("@prefix x: <http://x/> . x:a x:b x:c .", `${NS.dcat}Dataset`)).toEqual([]);
   });
 });

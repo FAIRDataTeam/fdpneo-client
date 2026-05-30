@@ -9,7 +9,7 @@
  * relationships, the form fields, and the RDF ↔ model mapping.
  */
 
-import { Store } from "n3";
+import { Store, DataFactory, type Quad_Object, type Term } from "n3";
 import {
   NS,
   addType,
@@ -18,13 +18,15 @@ import {
   parseTurtle,
   serializeTurtle,
   setIri,
+  setIris,
   setLiteral,
   setLiterals,
+  shortLabel,
 } from "./rdf";
 
 export type EntityType = "catalog" | "dataset" | "distribution" | "data-service";
 
-export type FieldKind = "text" | "textarea" | "iri" | "keywords";
+export type FieldKind = "text" | "textarea" | "iri" | "keywords" | "iris";
 
 export interface FieldSpec {
   key: string;
@@ -108,10 +110,12 @@ export function typeForId(id: string): EntityType | null {
   return prefix in ENTITY_SPECS ? (prefix as EntityType) : null;
 }
 
+const isMulti = (kind: FieldKind): boolean => kind === "keywords" || kind === "iris";
+
 /** An empty model for a create form. */
 export function emptyModel(spec: EntitySpec): EntityModel {
   const model: EntityModel = {};
-  for (const f of spec.fields) model[f.key] = f.kind === "keywords" ? [] : "";
+  for (const f of spec.fields) model[f.key] = isMulti(f.kind) ? [] : "";
   return model;
 }
 
@@ -120,7 +124,7 @@ export function modelFromTurtle(turtle: string, iri: string, spec: EntitySpec): 
   const store = parseTurtle(turtle);
   const model: EntityModel = {};
   for (const f of spec.fields) {
-    model[f.key] = f.kind === "keywords" ? many(store, iri, f.predicate) : (one(store, iri, f.predicate) ?? "");
+    model[f.key] = isMulti(f.kind) ? many(store, iri, f.predicate) : (one(store, iri, f.predicate) ?? "");
   }
   return model;
 }
@@ -128,13 +132,12 @@ export function modelFromTurtle(turtle: string, iri: string, spec: EntitySpec): 
 function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityModel): void {
   for (const f of spec.fields) {
     const value = model[f.key];
-    if (f.kind === "keywords") {
-      setLiterals(store, iri, f.predicate, Array.isArray(value) ? value : []);
-    } else if (f.kind === "iri") {
-      setIri(store, iri, f.predicate, typeof value === "string" ? value : "");
-    } else {
-      setLiteral(store, iri, f.predicate, typeof value === "string" ? value : "");
-    }
+    const list = Array.isArray(value) ? value : [];
+    const scalar = typeof value === "string" ? value : "";
+    if (f.kind === "keywords") setLiterals(store, iri, f.predicate, list);
+    else if (f.kind === "iris") setIris(store, iri, f.predicate, list);
+    else if (f.kind === "iri") setIri(store, iri, f.predicate, scalar);
+    else setLiteral(store, iri, f.predicate, scalar);
   }
 }
 
@@ -173,4 +176,84 @@ export function parseKeywords(input: string): string[] {
     .split(",")
     .map((k) => k.trim())
     .filter(Boolean);
+}
+
+// --- SHACL-driven fields (TASKS 7.5) --------------------------------------
+
+const SH = "http://www.w3.org/ns/shacl#";
+const sh = (local: string) => DataFactory.namedNode(`${SH}${local}`);
+
+// Predicates the dynamic form omits: structural (set on create), server-managed
+// timestamps, and access policy (its own editor).
+const SHACL_EXCLUDED = new Set<string>([
+  `${NS.dct}isPartOf`,
+  `${NS.dct}rights`,
+  `${NS.dct}issued`,
+  `${NS.dct}modified`,
+]);
+
+// The bundled DCAT shapes set `sh:maxCount 1` on only some properties, so a
+// strict "no maxCount ⇒ repeatable" reading would render conceptually-single
+// literals (title/description/identifier) as multi-value inputs. Treat these
+// well-known literals as single regardless; everything else follows maxCount.
+const SHACL_SINGLE_LITERALS = new Set<string>([
+  `${NS.dct}title`,
+  `${NS.dct}description`,
+  `${NS.dct}identifier`,
+]);
+
+/**
+ * Derive form fields from a resource type's SHACL NodeShape (from
+ * `GET /{type}/spec`). Maps `sh:property` constraints onto `FieldSpec`s:
+ * datatype → text/textarea/keywords, `sh:nodeKind sh:IRI` → iri/iris,
+ * `sh:maxCount 1` → single vs repeatable, `sh:minCount ≥ 1` → required.
+ * Property shapes that aren't simple fields (no datatype and not an IRI, e.g.
+ * `dcat:contactPoint`) are skipped, as are excluded predicates. Returns `[]`
+ * if the shape can't be found, so callers can fall back to the static spec.
+ */
+export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
+  const store = parseTurtle(turtle);
+  let shape: Term | null =
+    store.getSubjects(sh("targetClass"), DataFactory.namedNode(classIri), null)[0] ?? null;
+  if (!shape && store.getQuads(DataFactory.namedNode(classIri), sh("property"), null, null).length) {
+    shape = DataFactory.namedNode(classIri);
+  }
+  if (!shape) return [];
+
+  const first = (p: Quad_Object, local: string): string | undefined =>
+    store.getObjects(p, sh(local), null)[0]?.value;
+
+  const fields: FieldSpec[] = [];
+  for (const p of store.getObjects(shape, sh("property"), null)) {
+    const path = store.getObjects(p, sh("path"), null)[0]?.value;
+    if (!path || SHACL_EXCLUDED.has(path)) continue;
+    const datatype = first(p, "datatype");
+    const nodeKind = first(p, "nodeKind");
+    if (!datatype && nodeKind !== `${SH}IRI`) continue; // not a simple field
+
+    const single = first(p, "maxCount") === "1" || SHACL_SINGLE_LITERALS.has(path);
+    const minCount = first(p, "minCount");
+    const required = minCount !== undefined && Number(minCount) >= 1;
+
+    let kind: FieldKind;
+    if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
+    else if (!single) kind = "keywords";
+    else kind = path === `${NS.dct}description` ? "textarea" : "text";
+
+    const field: FieldSpec = {
+      key: shortLabel(path),
+      predicate: path,
+      label: first(p, "name") || shortLabel(path),
+      kind,
+    };
+    if (required) field.required = true;
+    const description = first(p, "description");
+    if (description) field.help = description;
+    fields.push(field);
+  }
+
+  const rank = (f: FieldSpec) =>
+    f.predicate === `${NS.dct}title` ? 0 : f.predicate === `${NS.dct}description` ? 1 : 2;
+  fields.sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label));
+  return fields;
 }

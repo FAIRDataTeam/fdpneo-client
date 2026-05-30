@@ -16,12 +16,13 @@ function asText(key: string): string {
   return typeof v === "string" ? v : "";
 }
 
-function keywordsText(): string {
-  const v = model.value.keywords;
+function asList(key: string): string {
+  const v = model.value[key];
   return Array.isArray(v) ? v.join(", ") : "";
 }
 
 const fields = computed(() => props.spec.fields);
+
 </script>
 
 <template>
@@ -40,12 +41,12 @@ const fields = computed(() => props.spec.fields);
       />
 
       <input
-        v-else-if="f.kind === 'keywords'"
+        v-else-if="f.kind === 'keywords' || f.kind === 'iris'"
         type="text"
-        :value="keywordsText()"
-        :placeholder="f.placeholder"
+        :value="asList(f.key)"
+        :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'comma-separated IRIs' : 'comma-separated')"
         :aria-label="f.label"
-        @input="model.keywords = parseKeywords(($event.target as HTMLInputElement).value)"
+        @input="model[f.key] = parseKeywords(($event.target as HTMLInputElement).value)"
       />
 
       <input

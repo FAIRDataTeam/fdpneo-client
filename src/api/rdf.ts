@@ -76,6 +76,15 @@ export function setLiterals(store: Store, subject: string, predicate: string, va
   }
 }
 
+/** Replace all `subject predicate` triples with one IRI object per non-empty value. */
+export function setIris(store: Store, subject: string, predicate: string, iris: string[]): void {
+  store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
+  for (const raw of iris) {
+    const v = raw.trim();
+    if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), namedNode(v)));
+  }
+}
+
 /** Set the rdf:type of a subject (additive — does not remove existing types). */
 export function addType(store: Store, subject: string, classIri: string): void {
   store.addQuad(DataFactory.quad(namedNode(subject), namedNode(`${NS.rdf}type`), namedNode(classIri)));

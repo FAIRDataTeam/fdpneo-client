@@ -17,7 +17,9 @@ import {
   specFor,
   typeForId,
   type EntityModel,
+  type EntitySpec,
 } from "@/api/entityForms";
+import { useEntityShape } from "@/composables/useEntityShape";
 import { useCreateRecord, recordExists } from "@/composables/useRecordMutations";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import EntityForm from "@/components/metadata/EntityForm.vue";
@@ -28,23 +30,36 @@ const auth = useAuthStore();
 const create = useCreateRecord();
 
 const type = computed(() => typeForId(String(route.params.type)));
-const spec = computed(() => (type.value ? specFor(type.value) : null));
 const parentIri = computed(() => {
   const p = route.query.parent;
   return typeof p === "string" && p ? p : null;
 });
 
-const model = ref<EntityModel>(spec.value ? emptyModel(spec.value) : {});
+// Fields come from the type's SHACL shape (7.5), falling back to the static spec.
+const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(type);
+const spec = computed<EntitySpec | null>(() => {
+  if (!type.value) return null;
+  const base = specFor(type.value);
+  const fields = shapeFields.value?.length ? shapeFields.value : base.fields;
+  return { ...base, fields };
+});
+
+const model = ref<EntityModel>({});
 const slug = ref("");
 const error = ref<ParsedError | null>(null);
 const submitting = ref(false);
 
-// Reset the form if the create type changes (route component reuse).
-watch(spec, (s) => {
-  model.value = s ? emptyModel(s) : {};
-  slug.value = "";
-  error.value = null;
-});
+// (Re)build the empty model once the spec (incl. shape-derived fields) settles
+// or the create type changes.
+watch(
+  spec,
+  (s) => {
+    model.value = s ? emptyModel(s) : {};
+    slug.value = "";
+    error.value = null;
+  },
+  { immediate: true },
+);
 
 function slugify(input: string): string {
   return input
@@ -99,11 +114,13 @@ function clientError(title: string, message: string): ParsedError {
       <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
     </div>
 
-    <div v-else-if="!spec" class="notice">
+    <div v-else-if="!type" class="notice">
       <h2>Unknown type</h2>
       <p>"{{ route.params.type }}" is not a creatable resource type.</p>
       <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
     </div>
+
+    <div v-else-if="shapeLoading || !spec" class="notice">Loading form…</div>
 
     <template v-else>
       <header class="head">

@@ -7,7 +7,7 @@
  * triples the form doesn't manage). Stale ETag → 412 conflict; the server also
  * enforces steward-modify so this gate is UX only.
  */
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
@@ -18,7 +18,9 @@ import {
   specFor,
   typeForId,
   type EntityModel,
+  type EntitySpec,
 } from "@/api/entityForms";
+import { useEntityShape } from "@/composables/useEntityShape";
 import { useUpdateRecord, useDeleteRecord } from "@/composables/useRecordMutations";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import EntityForm from "@/components/metadata/EntityForm.vue";
@@ -34,34 +36,55 @@ const id = computed(() => {
   return Array.isArray(raw) ? raw.join("/") : String(raw);
 });
 const type = computed(() => typeForId(id.value));
-const spec = computed(() => (type.value ? specFor(type.value) : null));
 const iri = computed(() => `${apiBase()}/${id.value}`);
 
+// Fields from the type's SHACL shape (7.5), falling back to the static spec.
+const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(type);
+const spec = computed<EntitySpec | null>(() => {
+  if (!type.value) return null;
+  const base = specFor(type.value);
+  const fields = shapeFields.value?.length ? shapeFields.value : base.fields;
+  return { ...base, fields };
+});
+
 const model = ref<EntityModel>({});
-const loading = ref(true);
+const recordLoaded = ref(false);
 const saving = ref(false);
 const saved = ref(false);
 const error = ref<ParsedError | null>(null);
+
+// Loading until both the record and the shape have resolved.
+const loading = computed(() => !recordLoaded.value || (shapeLoading.value && !!type.value));
 
 let rawTurtle = "";
 let etag: string | null = null;
 
 onMounted(async () => {
-  if (!auth.isSteward || !spec.value) {
-    loading.value = false;
+  if (!auth.isSteward || !type.value) {
+    recordLoaded.value = true;
     return;
   }
   try {
     const res = await readGraph(id.value);
     rawTurtle = res.turtle;
     etag = res.etag;
-    model.value = modelFromTurtle(rawTurtle, iri.value, spec.value);
   } catch (e) {
     error.value = parseFdpError(e);
   } finally {
-    loading.value = false;
+    recordLoaded.value = true;
   }
 });
+
+// Build the model once the record is read and the shape (fields) has settled.
+watch(
+  [recordLoaded, shapeLoading, spec],
+  () => {
+    if (recordLoaded.value && !shapeLoading.value && spec.value && rawTurtle) {
+      model.value = modelFromTurtle(rawTurtle, iri.value, spec.value);
+    }
+  },
+  { immediate: true },
+);
 
 async function save() {
   if (!spec.value || saving.value) return;
