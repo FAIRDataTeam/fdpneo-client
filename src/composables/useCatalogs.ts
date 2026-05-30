@@ -12,14 +12,17 @@ import { iriToId, NS } from "@/api/rdf";
 import { sparqlSelect, value } from "@/api/sparql";
 import type { CatalogSummary } from "@/data/sampleRecord";
 
-const CATALOGS_QUERY = `SELECT ?c ?title ?desc ?modified (COUNT(DISTINCT ?ds) AS ?n) WHERE {
+// Count children via their `dct:isPartOf` back-link (across their own named
+// graphs) rather than the catalog's forward `dcat:dataset` links — the latter
+// aren't maintained when a child is created, so isPartOf reflects reality.
+const CATALOGS_QUERY = `SELECT ?c ?title ?desc ?modified (COUNT(DISTINCT ?child) AS ?n) WHERE {
   GRAPH ?c {
     ?c a <${NS.dcat}Catalog> ;
        <${NS.dct}title> ?title .
     OPTIONAL { ?c <${NS.dct}description> ?desc }
     OPTIONAL { ?c <${NS.dct}modified> ?modified }
-    OPTIONAL { ?c <${NS.dcat}dataset> ?ds }
   }
+  OPTIONAL { GRAPH ?child { ?child <${NS.dct}isPartOf> ?c } }
 } GROUP BY ?c ?title ?desc ?modified ORDER BY ?title`;
 
 async function fetchCatalogs(): Promise<CatalogSummary[]> {

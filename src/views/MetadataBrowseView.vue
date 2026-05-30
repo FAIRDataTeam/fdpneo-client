@@ -10,12 +10,16 @@ import { useCatalogs } from "@/composables/useCatalogs";
 import { useRepository } from "@/composables/useRepository";
 import { useAuthStore } from "@/stores/auth";
 import { sampleDeployment } from "@/data/sampleRecord";
+import { apiBase } from "@/api/rdf";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
 import MetaItem from "@/components/metadata/MetaItem.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const auth = useAuthStore();
 const { data: repo } = useRepository();
+const newCatalogLink = computed(
+  () => `/create/catalog?parent=${encodeURIComponent(apiBase())}`,
+);
 const { data: catalogs, isLoading } = useCatalogs();
 const repoTitle = computed(() => repo.value?.title || sampleDeployment.name);
 const repoDescription = computed(() => repo.value?.description || "");
@@ -60,6 +64,9 @@ const totalRecords = computed(() =>
     <div class="catalogs__inner">
       <div class="catalogs__head">
         <h2>Catalogs</h2>
+        <RouterLink v-if="auth.isSteward" :to="newCatalogLink" class="btn sm new-catalog">
+          <AppIcon name="plus" :size="12" /> New catalog
+        </RouterLink>
         <div class="sort">
           <span>Sort: most recent</span>
           <AppIcon name="chevron-d" :size="12" />
@@ -150,6 +157,13 @@ const totalRecords = computed(() =>
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+.new-catalog {
+  margin-left: auto;
+  margin-right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .catalogs__head h2 {
   margin: 0;

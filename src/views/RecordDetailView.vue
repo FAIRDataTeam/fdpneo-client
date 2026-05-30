@@ -4,12 +4,15 @@
  *
  * No permanent tree (the container browser is summoned on demand from the
  * SecondaryNav). Editorial single-column hero on the left, sticky meta card
- * on the right. Same primitives drive the steward edit variant in
- * RecordEditView.vue.
+ * on the right. Stewards get inline Edit / "New child" actions; editing itself
+ * lives in EntityEditView.vue.
  */
 import { computed, toRef } from "vue";
 import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
+import { useAuthStore } from "@/stores/auth";
+import { apiBase } from "@/api/rdf";
+import { specFor, typeForId } from "@/api/entityForms";
 import SecondaryNav from "@/components/metadata/SecondaryNav.vue";
 import RecordHero from "@/components/metadata/RecordHero.vue";
 import StatStrip from "@/components/metadata/StatStrip.vue";
@@ -17,14 +20,26 @@ import SectionTitle from "@/components/shared/SectionTitle.vue";
 import PropList from "@/components/metadata/PropList.vue";
 import DistributionList from "@/components/metadata/DistributionList.vue";
 import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
+import AppIcon from "@/components/shared/AppIcon.vue";
 
 const route = useRoute();
+const auth = useAuthStore();
 const id = computed(() => {
   const raw = route.params.id;
   return Array.isArray(raw) ? raw.join("/") : (raw as string);
 });
 
 const { data: record, isLoading, isError } = useRecord(toRef(id));
+
+const entityType = computed(() => typeForId(id.value));
+const childCreateLinks = computed(() => {
+  if (!entityType.value) return [];
+  const parent = encodeURIComponent(`${apiBase()}/${id.value}`);
+  return specFor(entityType.value).childTypes.map((ct) => ({
+    label: specFor(ct).label,
+    to: `/create/${ct}?parent=${parent}`,
+  }));
+});
 
 const breadcrumbs = ["Cohort studies", "Alzheimer's Disease", "AD Cohort 2024 â€” MRI"];
 </script>
@@ -39,6 +54,14 @@ const breadcrumbs = ["Cohort studies", "Alzheimer's Disease", "AD Cohort 2024 â€
     <SecondaryNav :breadcrumbs="breadcrumbs" :identifier="record.identifier" />
     <main class="layout">
       <div class="column">
+        <div v-if="auth.isSteward && entityType" class="steward-actions">
+          <RouterLink :to="`/records/${id}/edit`" class="btn sm">
+            <AppIcon name="edit" :size="12" /> Edit
+          </RouterLink>
+          <RouterLink v-for="c in childCreateLinks" :key="c.to" :to="c.to" class="btn sm">
+            <AppIcon name="plus" :size="12" /> New {{ c.label.toLowerCase() }}
+          </RouterLink>
+        </div>
         <RecordHero :record="record" />
         <StatStrip :record="record" />
         <SectionTitle>Properties</SectionTitle>
@@ -63,6 +86,17 @@ const breadcrumbs = ["Cohort studies", "Alzheimer's Disease", "AD Cohort 2024 â€
 }
 .column {
   min-width: 0;
+}
+.steward-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.steward-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .loading,
 .error {

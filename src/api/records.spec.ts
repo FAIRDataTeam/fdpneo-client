@@ -4,7 +4,7 @@ import { AxiosError } from "axios";
 vi.mock("@/api/http", () => ({ http: { get: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
 
 import { http } from "@/api/http";
-import { readGraph, putGraph, deleteGraph } from "./records";
+import { readGraph, putGraph, deleteGraph, recordExists } from "./records";
 
 /* eslint-disable @typescript-eslint/unbound-method -- mocking method references */
 const mockGet = vi.mocked(http.get);
@@ -75,5 +75,17 @@ describe("deleteGraph", () => {
       "/catalog/cohort",
       expect.objectContaining({ headers: { "If-Match": '"e"' } }),
     );
+  });
+});
+
+describe("recordExists", () => {
+  it("is true when the GET succeeds", async () => {
+    mockGet.mockResolvedValue({ data: "<a> <b> <c> .", headers: {} });
+    expect(await recordExists("catalog/cohort")).toBe(true);
+  });
+
+  it("is false (best-effort) when the GET errors", async () => {
+    mockGet.mockRejectedValue(new Error("404"));
+    expect(await recordExists("catalog/nope")).toBe(false);
   });
 });

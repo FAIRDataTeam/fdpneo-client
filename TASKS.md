@@ -228,18 +228,41 @@ work — don't fake them client-side.
 
 ---
 
-## Phase 7 — Metadata authoring (CRUD)  ← highest priority; server-supported
+## Phase 7 — Metadata authoring (CRUD)  ✅ COMPLETE (2026-05-29); 7.5 deferred to server
 
 This is the functionality a steward/admin most obviously expects and the new
-client entirely lacks. The server speaks LDP: a record's path id *is* its URL
+client entirely lacked. The server speaks LDP: a record's path id *is* its URL
 (`dataset/ad-cohort-2024` → `/dataset/ad-cohort-2024`).
 
-### 7.1 Write layer in the API client — ⏳ partially done (landed with Phase 8)
-- `src/api/records.ts` already provides `readGraph`/`putGraph`/`deleteGraph` with
-  ETag/`If-Match` and error normalisation, plus `serializeTurtle`/`setLiteral`/
-  `setIri` in `rdf.ts`. Still to do for full 7.1: `PATCH` (SPARQL-update) wrapper,
-  TanStack `useMutation` composables, and query-key invalidation helpers.
-- Add typed mutation wrappers to `src/api/` over the LDP write verbs:
+**Delivered (7.1–7.4): record-level create / edit / delete works end-to-end.**
+- `src/api/entityForms.ts` — config-driven field specs per type (catalog / dataset
+  / distribution / data-service) mirroring the DCAT profile, with RDF ↔ model
+  mapping and create/edit Turtle builders.
+- `src/components/metadata/EntityForm.vue` — generic spec-driven form.
+- `src/views/EntityCreateView.vue` (`/create/:type?parent=`) and
+  `EntityEditView.vue` (replaces the old placeholder `RecordEditView`); delete with
+  confirmation. Mutations via `useRecordMutations` (`useCreate/Update/DeleteRecord`,
+  cache-invalidating).
+- "New …" affordances on the browse view (new catalog) and record detail (new
+  child + Edit), role-gated via `auth.isSteward`.
+- Create uses **PUT to a client-chosen slug** (not POST) — the server returns 201,
+  or 428 if the id exists (can't clobber). Edit/delete carry the ETag → 412 on
+  conflict. Verified live: create 201 / collision 428 / edit 200 / delete 204.
+- **Server fix (fdp-server):** on restart the profile is `already_applied`, so the
+  runtime caches (system-default offer, resource definitions, SHACL warm-up) were
+  never repopulated → the offer-resolver fallback was unset and **creating any new
+  record was default-denied**. Added `resolve_runtime_state` (pure, profile-derived)
+  and a shared `_publish_runtime_state`, now invoked on the already-applied path
+  too (+ regression test). Note: the PDP caches decisions in Postgres, so denials
+  recorded before the fix persist per id — use a fresh id or invalidate.
+
+### 7.1 Write layer in the API client — ✅ done (PATCH wrapper still optional)
+- `src/api/records.ts` provides `readGraph`/`putGraph`/`deleteGraph`/`recordExists`
+  with ETag/`If-Match` + error normalisation; `serializeTurtle`/`setLiteral`/
+  `setIri`/`setLiterals` in `rdf.ts`; `useRecordMutations` exposes cache-invalidating
+  `useMutation` wrappers. Still optional: a `PATCH` (SPARQL-update) wrapper for
+  field-level edits (PUT-replace covers editing today).
+- Original notes (for reference):
   - **Create**: `POST /{containerType}` (e.g. `POST /catalog`) with the new
     record's RDF body; the server mints the IRI and returns `Location`.
   - **Replace**: `PUT /{id}` with the full RDF graph.
@@ -257,7 +280,7 @@ client entirely lacks. The server speaks LDP: a record's path id *is* its URL
 References: server LDP router (`fdp.metadata.ldp.router`), `If-Match`/ETag
 semantics; CLAUDE.md (OpenAPI types are the contract).
 
-### 7.2 Create flow
+### 7.2 Create flow — ✅ done
 - "New…" affordance on the repository and catalog views to create a child of
   the right type (catalog under repo; dataset/data-service under catalog;
   distribution under dataset), gated on the steward/admin role.
@@ -269,19 +292,17 @@ semantics; CLAUDE.md (OpenAPI types are the contract).
   envelope with `violations[]`) inline on the offending fields — do not
   replicate validation client-side (CLAUDE.md).
 
-### 7.3 Edit flow
-- Wire `RecordEditView.vue`'s existing draft refs to a real save via 7.1
-  (PATCH for field edits, PUT for full replace). Remove the "once the API
-  lands" placeholder.
-- Optimistic update or invalidate-on-success; handle `412` conflicts.
-- Role-gate the edit affordances (the route is already `requiresAuth`).
+### 7.3 Edit flow — ✅ done
+- `EntityEditView.vue` reads the record graph + ETag, edits the spec fields via
+  read-modify-write (preserving rdf:type/isPartOf/unmanaged triples), PUTs with
+  `If-Match`; invalidate-on-success; `412` conflict surfaced. Role-gated.
 
-### 7.4 Delete flow
-- Delete a record with a confirmation dialog; explain the LDP rule that a
-  non-empty container can't be deleted until its children are removed, and
-  surface the server's error if it refuses.
+### 7.4 Delete flow — ✅ done
+- Delete from the edit view with a confirmation dialog; ETag-guarded; server
+  errors (e.g. non-empty container) surfaced via the parsed envelope.
 
-### 7.5 SHACL-driven dynamic forms (supersedes the hardcoded 7.2 form)
+### 7.5 SHACL-driven dynamic forms (supersedes the hardcoded 7.2 form) — ⏳ deferred
+- The config-driven `EntityForm` (7.2) stands in for now.
 - Render create/edit forms from the resource type's SHACL shape instead of
   hardcoded field lists — the legacy client's `ShaclForm`/`FormGenerator`
   pattern (datatype → input, `sh:minCount`/`maxCount` → required/repeatable,
@@ -292,11 +313,16 @@ semantics; CLAUDE.md (OpenAPI types are the contract).
   to expose member shapes, or read the bundled profile shapes. Until then,
   7.2's typed forms stand in.
 
-### 7.6 Steward "My metadata"
-- Replace the fixture in `useStewardRecords` with a real listing of records the
-  signed-in user can modify (SPARQL over the catalogs/datasets the user owns,
-  or a server "my records" endpoint if one is added).
-- Show publication state per row once 9.1 exists; link rows to edit/create.
+### 7.6 Steward "My metadata" — ✅ done
+- `useStewardRecords` now lists all authorable records via SPARQL (the server has
+  no per-record ownership, and every steward can modify all — so "records I can
+  edit" is the full set, policy-filtered to what the caller may read).
+- `StewardDashboardView` rebuilt: real per-type counts, a client-side title/type
+  filter, and per-row View / Edit links into the Phase 7 CRUD flows, plus a
+  "New catalog" action. The fixture KPIs and the status/version/views columns are
+  gone (the server exposes none of that yet); the sidebar's secondary sections are
+  inert "Coming soon" placeholders for Phase 9.
+- Publication state per row still pending 9.1 (`/meta/state`).
 
 ---
 

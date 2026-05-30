@@ -67,6 +67,20 @@ export function setIri(store: Store, subject: string, predicate: string, iri: st
   if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), namedNode(v)));
 }
 
+/** Replace all `subject predicate` triples with one string literal per non-empty value. */
+export function setLiterals(store: Store, subject: string, predicate: string, values: string[]): void {
+  store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
+  for (const raw of values) {
+    const v = raw.trim();
+    if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), DataFactory.literal(v)));
+  }
+}
+
+/** Set the rdf:type of a subject (additive — does not remove existing types). */
+export function addType(store: Store, subject: string, classIri: string): void {
+  store.addQuad(DataFactory.quad(namedNode(subject), namedNode(`${NS.rdf}type`), namedNode(classIri)));
+}
+
 /** Serialize a store to Turtle, preserving every triple (used for read-modify-write). */
 export function serializeTurtle(store: Store): Promise<string> {
   return new Promise((resolve, reject) => {

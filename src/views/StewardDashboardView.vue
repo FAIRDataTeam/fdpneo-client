@@ -2,43 +2,61 @@
 /**
  * Steward dashboard — "My metadata".
  *
- * Sidebar nav · KPI strip · owned-records table. Reuses TypeTag/Chip/AppIcon
- * primitives. Filters are visual stubs until the API lands.
+ * Lists every record the signed-in steward can author (the server has no
+ * per-record ownership yet), via `useStewardRecords`. Real per-type counts, a
+ * client-side title filter, and per-row view/edit links into the Phase 7 CRUD
+ * flows. The sidebar's secondary sections are placeholders for Phase 9
+ * (publication state, schemas, users, settings) and are intentionally inert.
  */
+import { computed, ref } from "vue";
 import { useStewardRecords } from "@/composables/useStewardRecords";
 import { useAuthStore } from "@/stores/auth";
-import { computed } from "vue";
+import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TypeTag from "@/components/shared/TypeTag.vue";
-import AppChip from "@/components/shared/AppChip.vue";
 import type { IconName } from "@/types/record";
 
 const auth = useAuthStore();
-const { data: rows } = useStewardRecords();
+const { data: rows, isLoading } = useStewardRecords();
 
 const userName = computed(
   () => auth.user?.profile?.name || auth.user?.profile?.email || "Steward",
 );
 
-const nav: { icon: IconName; label: string; count?: number; active?: boolean }[] = [
-  { icon: "book", label: "My metadata", count: 18, active: true },
-  { icon: "edit", label: "Drafts", count: 3 },
-  { icon: "shield", label: "Pending review", count: 1 },
-  { icon: "calendar", label: "Recently visited" },
-  { icon: "link", label: "Schemas I follow", count: 6 },
-];
-const admin: { icon: IconName; label: string }[] = [
-  { icon: "user", label: "Users" },
-  { icon: "tree", label: "Resource definitions" },
-  { icon: "filter", label: "Metadata schemas" },
-  { icon: "globe", label: "Settings" },
-];
+const filter = ref("");
+const filtered = computed(() => {
+  const all = rows.value ?? [];
+  const q = filter.value.trim().toLowerCase();
+  if (!q) return all;
+  return all.filter(
+    (r) => r.title.toLowerCase().includes(q) || r.typeLabel.toLowerCase().includes(q),
+  );
+});
 
-const kpis = [
-  { value: "18", label: "Records owned", delta: "+2 this month", deltaUp: false, warn: false },
-  { value: "1.2k", label: "Views (30d)", delta: "+18%", deltaUp: true, warn: false },
-  { value: "148", label: "Downloads (30d)", delta: "+6%", deltaUp: true, warn: false },
-  { value: "2", label: "Validation issues", delta: "needs attention", deltaUp: false, warn: true },
+const counts = computed(() => {
+  const all = rows.value ?? [];
+  const by = (label: string) => all.filter((r) => r.typeLabel === label).length;
+  return [
+    { value: all.length, label: "Records" },
+    { value: by("Catalog"), label: "Catalogs" },
+    { value: by("Dataset"), label: "Datasets" },
+    { value: by("Distribution"), label: "Distributions" },
+  ];
+});
+
+const newCatalogLink = computed(
+  () => `/create/catalog?parent=${encodeURIComponent(apiBase())}`,
+);
+
+const nav: { icon: IconName; label: string; active?: boolean }[] = [
+  { icon: "book", label: "My metadata", active: true },
+];
+const soon: { icon: IconName; label: string }[] = [
+  { icon: "edit", label: "Drafts" },
+  { icon: "shield", label: "Pending review" },
+  { icon: "filter", label: "Metadata schemas" },
+  { icon: "user", label: "Users" },
+  { icon: "globe", label: "Settings" },
 ];
 </script>
 
@@ -47,19 +65,23 @@ const kpis = [
     <aside class="side">
       <div class="eyebrow">{{ userName }}</div>
       <nav>
-        <a v-for="n in nav" :key="n.label" :class="['navitem', n.active ? 'active' : '']">
+        <RouterLink
+          v-for="n in nav"
+          :key="n.label"
+          to="/dashboard"
+          :class="['navitem', n.active ? 'active' : '']"
+        >
           <AppIcon :name="n.icon" :size="14" />
           <span class="label">{{ n.label }}</span>
-          <span v-if="n.count != null" class="count mono">{{ n.count }}</span>
-        </a>
+        </RouterLink>
       </nav>
       <hr class="hr" />
-      <div class="eyebrow">Admin</div>
+      <div class="eyebrow">Coming soon</div>
       <nav>
-        <a v-for="n in admin" :key="n.label" class="navitem">
+        <span v-for="n in soon" :key="n.label" class="navitem disabled" aria-disabled="true">
           <AppIcon :name="n.icon" :size="14" />
           <span class="label">{{ n.label }}</span>
-        </a>
+        </span>
       </nav>
     </aside>
 
@@ -67,66 +89,48 @@ const kpis = [
       <div class="title">
         <h1>My metadata</h1>
         <div class="title__actions">
-          <button class="btn ghost"><AppIcon name="download" :size="13" /> Export Turtle</button>
-          <button class="btn primary"><AppIcon name="plus" :size="13" /> New record</button>
+          <RouterLink :to="newCatalogLink" class="btn primary">
+            <AppIcon name="plus" :size="13" /> New catalog
+          </RouterLink>
         </div>
       </div>
-      <p class="lede">
-        18 records you own across 3 catalogs. <a class="accent">Transfer ownership</a> or
-        <a class="accent">request review</a>.
-      </p>
+      <p class="lede">Every record you can edit on this FAIR Data Point.</p>
 
       <div class="kpi-strip">
-        <div v-for="k in kpis" :key="k.label" class="kpi">
+        <div v-for="k in counts" :key="k.label" class="kpi">
           <div class="kpi__value">{{ k.value }}</div>
           <div class="kpi__label">{{ k.label }}</div>
-          <div :class="['kpi__delta', k.warn ? 'warn' : k.deltaUp ? 'up' : '']">
-            <template v-if="k.deltaUp">▲ </template>
-            <template v-else-if="k.warn">▲ </template>
-            {{ k.delta }}
-          </div>
         </div>
       </div>
 
       <div class="toolbar">
         <div class="filter">
           <AppIcon name="search" :size="14" color="var(--muted)" />
-          <span>Filter records…</span>
+          <input v-model="filter" type="text" placeholder="Filter records…" aria-label="Filter records" />
         </div>
-        <AppChip variant="outline">type · all</AppChip>
-        <AppChip variant="outline">status · all</AppChip>
-        <AppChip variant="outline">catalog · all</AppChip>
         <div class="spacer" />
-        <span class="small muted">{{ rows?.length ?? 0 }} records</span>
+        <span class="small muted">{{ filtered.length }} records</span>
       </div>
 
-      <div class="table">
+      <div v-if="isLoading" class="empty">Loading…</div>
+      <div v-else-if="filtered.length === 0" class="empty">
+        No records {{ filter ? "match your filter" : "yet" }}.
+      </div>
+      <div v-else class="table">
         <div class="thead">
           <span>Record</span>
-          <span>Status</span>
-          <span>Version</span>
-          <span>Views 30d</span>
           <span>Modified</span>
           <span />
         </div>
-        <div v-for="row in rows" :key="row.title" class="trow">
+        <div v-for="row in filtered" :key="row.id" class="trow">
           <div class="cell-record">
             <TypeTag :kind="row.type">{{ row.typeLabel }}</TypeTag>
-            <div class="rtitle">{{ row.title }}</div>
+            <RouterLink :to="`/records/${row.id}`" class="rtitle">{{ row.title }}</RouterLink>
           </div>
-          <span>
-            <AppChip v-if="row.status === 'published'" variant="ok" dot>Published</AppChip>
-            <AppChip v-else-if="row.status === 'draft'" dot>Draft</AppChip>
-            <AppChip v-else style="background: var(--warn-soft); color: var(--warn); border: 0">
-              <AppIcon name="shield" :size="11" /> Review
-            </AppChip>
-          </span>
-          <span class="mono small muted">{{ row.version }}</span>
-          <span class="mono small">{{ row.views }}</span>
-          <span class="small muted">{{ row.modified }}</span>
-          <button class="btn ghost sm" aria-label="Row actions">
-            <AppIcon name="dots" :size="14" />
-          </button>
+          <span class="small muted">{{ row.modified || "—" }}</span>
+          <RouterLink :to="`/records/${row.id}/edit`" class="btn ghost sm">
+            <AppIcon name="edit" :size="13" /> Edit
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -161,6 +165,8 @@ const kpis = [
 }
 .side .hr {
   margin: 20px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 .navitem {
   display: flex;
@@ -180,15 +186,12 @@ const kpis = [
   background: var(--accent-soft);
   color: var(--accent);
 }
+.navitem.disabled {
+  color: var(--muted-2);
+  cursor: default;
+}
 .label {
   flex: 1;
-}
-.count {
-  font-size: 11px;
-  color: var(--muted);
-}
-.navitem.active .count {
-  color: var(--accent);
 }
 
 .title {
@@ -209,6 +212,11 @@ const kpis = [
   display: flex;
   gap: 8px;
 }
+.title__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .lede {
   margin: 6px 0 22px;
   color: var(--muted);
@@ -216,9 +224,6 @@ const kpis = [
   font-weight: 400;
   font-size: 14px;
   line-height: 1.55;
-}
-.accent {
-  color: var(--accent);
 }
 
 .kpi-strip {
@@ -247,20 +252,6 @@ const kpis = [
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  margin-bottom: 6px;
-}
-.kpi__delta {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  color: var(--muted);
-}
-.kpi__delta.up {
-  color: var(--ok);
-}
-.kpi__delta.warn {
-  color: var(--warn);
 }
 
 .toolbar {
@@ -280,8 +271,15 @@ const kpis = [
   border-radius: var(--r-2);
   flex: 1;
   max-width: 320px;
+}
+.filter input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--font-sans);
   font-size: 13px;
-  color: var(--muted);
+  color: var(--ink);
+  width: 100%;
 }
 .spacer {
   flex: 1;
@@ -291,6 +289,14 @@ const kpis = [
 }
 .muted {
   color: var(--muted);
+}
+.empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
 }
 
 .table {
@@ -302,7 +308,7 @@ const kpis = [
 .thead,
 .trow {
   display: grid;
-  grid-template-columns: 1fr 130px 100px 110px 110px 40px;
+  grid-template-columns: 1fr 120px 90px;
   gap: 14px;
   padding: 14px 18px;
   align-items: center;
@@ -328,12 +334,22 @@ const kpis = [
   min-width: 0;
 }
 .rtitle {
+  display: block;
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 14px;
   line-height: 1.3;
   color: var(--ink);
   margin-top: 3px;
+  text-decoration: none;
+}
+.rtitle:hover {
+  color: var(--accent);
+}
+.trow .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 @media (max-width: 1100px) {
@@ -346,7 +362,7 @@ const kpis = [
   }
   .thead,
   .trow {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 100px 80px;
   }
 }
 </style>

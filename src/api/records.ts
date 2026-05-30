@@ -73,6 +73,25 @@ export async function putGraph(
   }
 }
 
+/**
+ * Best-effort check used for a friendly "id already taken" message before
+ * create. Not a safety mechanism — the server rejects a create `PUT` (no
+ * `If-Match`) onto an existing resource with `428`, so clobbering can't happen
+ * even if this returns a false negative.
+ */
+export async function recordExists(path: string): Promise<boolean> {
+  try {
+    await http.get(`/${path}`, {
+      headers: { Accept: "text/turtle" },
+      responseType: "text",
+      transformResponse: (d: unknown) => d,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Delete a resource (`DELETE`), guarded by `If-Match` when an ETag is given. */
 export async function deleteGraph(path: string, etag: string | null): Promise<void> {
   const headers: Record<string, string> = {};

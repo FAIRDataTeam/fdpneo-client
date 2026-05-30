@@ -1,31 +1,72 @@
+/**
+ * `useStewardRecords` — the steward "My metadata" listing.
+ *
+ * The server has no per-record ownership/membership (deferred to v1.x) and the
+ * bundled offer grants every steward modify on all records, so "records I can
+ * modify" is the full set of authorable resources. Listed via SPARQL across the
+ * named graphs (policy-filtered to what the caller may read). Publication state
+ * / version / view counts aren't exposed by the server yet (TASKS 9.1), so the
+ * row carries only what's real: id, type, title, modified.
+ */
+
 import { useQuery } from "@tanstack/vue-query";
 import { queryKeys } from "@/api/queries";
+import { iriToId, NS } from "@/api/rdf";
+import { sparqlSelect, value } from "@/api/sparql";
 import type { RecordKind } from "@/types/record";
 
 export interface DashboardRow {
+  id: string;
   type: RecordKind;
   typeLabel: string;
   title: string;
-  status: "published" | "draft" | "review";
-  version: string;
-  views: string;
   modified: string;
 }
 
-const rows: DashboardRow[] = [
-  { type: "dataset", typeLabel: "Dataset", title: "Alzheimer's Disease Cohort 2024 — Longitudinal MRI", status: "published", version: "2024.2", views: "412", modified: "2 min ago" },
-  { type: "dataset", typeLabel: "Dataset", title: "Parkinson Cohort — MRI follow-up 2024", status: "review", version: "2024.1", views: "284", modified: "1 day ago" },
-  { type: "dataset", typeLabel: "Dataset", title: "AD Biobank — CSF samples 2018–2024", status: "published", version: "1.3", views: "186", modified: "3 days ago" },
-  { type: "biobank", typeLabel: "Biobank", title: "Erasmus MC Neuro-biobank", status: "published", version: "2.1", views: "92", modified: "1 week ago" },
-  { type: "publication", typeLabel: "Publication", title: "Subcortical atrophy patterns in early AD", status: "published", version: "1.0", views: "44", modified: "2 weeks ago" },
-  { type: "dataset", typeLabel: "Dataset", title: "Healthy Aging Reference — MRI 2025", status: "draft", version: "—", views: "—", modified: "yesterday" },
-  { type: "dataset", typeLabel: "Dataset", title: "Cognitive Reserve Sub-cohort 2024", status: "draft", version: "—", views: "—", modified: "4 days ago" },
-];
+// rdf:type IRI → display kind (for TypeTag colour) + label. DataService has no
+// dedicated RecordKind, so it borrows the distribution colour.
+const CLASS_MAP: Record<string, { kind: RecordKind; label: string }> = {
+  [`${NS.dcat}Catalog`]: { kind: "catalog", label: "Catalog" },
+  [`${NS.dcat}Dataset`]: { kind: "dataset", label: "Dataset" },
+  [`${NS.dcat}Distribution`]: { kind: "distribution", label: "Distribution" },
+  [`${NS.dcat}DataService`]: { kind: "distribution", label: "Data service" },
+};
+
+const TYPE_LIST = Object.keys(CLASS_MAP)
+  .map((iri) => `<${iri}>`)
+  .join(", ");
+
+const QUERY = `SELECT ?r ?type ?title ?modified WHERE {
+  GRAPH ?r {
+    ?r a ?type ;
+       <${NS.dct}title> ?title .
+    OPTIONAL { ?r <${NS.dct}modified> ?modified }
+    FILTER( ?type IN (${TYPE_LIST}) )
+  }
+} ORDER BY ?title`;
+
+async function fetchStewardRecords(): Promise<DashboardRow[]> {
+  const rows = await sparqlSelect(QUERY);
+  return rows.map((row) => {
+    const iri = value(row, "r") ?? "";
+    const meta = CLASS_MAP[value(row, "type") ?? ""] ?? {
+      kind: "dataset" as RecordKind,
+      label: "Resource",
+    };
+    return {
+      id: iriToId(iri),
+      type: meta.kind,
+      typeLabel: meta.label,
+      title: value(row, "title") ?? iriToId(iri),
+      modified: (value(row, "modified") ?? "").slice(0, 10),
+    };
+  });
+}
 
 export function useStewardRecords() {
   return useQuery({
     queryKey: queryKeys.stewardRecords(),
-    queryFn: () => new Promise<DashboardRow[]>((res) => setTimeout(() => res(rows), 120)),
+    queryFn: fetchStewardRecords,
     staleTime: 30_000,
   });
 }

@@ -35,9 +35,15 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/records/:id+/edit",
     name: "record-edit",
-    component: () => import("@/views/RecordEditView.vue"),
+    component: () => import("@/views/EntityEditView.vue"),
     props: true,
     meta: { title: "Edit record", requiresAuth: true },
+  },
+  {
+    path: "/create/:type",
+    name: "entity-create",
+    component: () => import("@/views/EntityCreateView.vue"),
+    meta: { title: "Create record", requiresAuth: true },
   },
   {
     path: "/dashboard",
