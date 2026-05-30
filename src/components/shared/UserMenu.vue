@@ -102,7 +102,7 @@ onUnmounted(() => {
         <div v-if="displayEmail" class="identity__email mono">{{ displayEmail }}</div>
       </div>
       <hr class="hr" />
-      <button class="item" role="menuitem" @click="gotoDashboard">
+      <button v-if="auth.isSteward" class="item" role="menuitem" @click="gotoDashboard">
         <AppIcon name="book" :size="14" /> My metadata
       </button>
       <button class="item" role="menuitem" @click="signOut">

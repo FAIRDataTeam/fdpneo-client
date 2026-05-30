@@ -6,9 +6,10 @@
  * (links to /search) · theme toggle · Sign-in or user avatar (+ Create when
  * authenticated).
  */
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { apiBase } from "@/api/rdf";
 import { sampleDeployment } from "@/data/sampleRecord";
 import AppLogo from "./AppLogo.vue";
 import AppIcon from "./AppIcon.vue";
@@ -18,6 +19,12 @@ import UserMenu from "./UserMenu.vue";
 const router = useRouter();
 const auth = useAuthStore();
 const query = ref("");
+
+// Quick-create: a top-level catalog under the repository root. Only shown to
+// users who can actually author (steward; admin implies steward).
+const newCatalogLink = computed(
+  () => `/create/catalog?parent=${encodeURIComponent(apiBase())}`,
+);
 
 function submit() {
   const q = query.value.trim();
@@ -55,9 +62,9 @@ defineProps<{ variant?: "default" | "minimal" }>();
       Sign in
     </button>
     <template v-else>
-      <button class="btn">
+      <RouterLink v-if="auth.isSteward" :to="newCatalogLink" class="btn create-btn">
         <AppIcon name="plus" :size="14" /> Create
-      </button>
+      </RouterLink>
       <UserMenu />
     </template>
   </header>
@@ -128,5 +135,11 @@ header {
 .kbd {
   font-size: 11px;
   color: var(--muted-2);
+}
+.create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
 }
 </style>
