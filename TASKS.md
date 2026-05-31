@@ -399,9 +399,46 @@ listed so they aren't forgotten. Do not stub them against absent endpoints.
   (which *authors* a schema) — this is the schema *lifecycle*. Resolve the
   overlap when both are scheduled.
 
-### 9.6 Resource-definition configuration
-- Manage the resource type hierarchy / URL prefixes (legacy
-  `ResourceDefinitions`). Server: profile-driven, no API.
+### 9.6 Resource-definition configuration — UNBLOCKED (server work in progress)
+
+The server is gaining runtime-mutable resource definitions (stored as RDF,
+fronted by a `GET /resource-definitions` read catalog and an admin-gated
+`/resource-definitions` CRUD surface; see fdp-server ADR-0009 and its task
+list). This unblocks 9.6 and changes a foundational assumption in the client.
+Coordinated work, in dependency order:
+
+- **9.6a Dynamic type catalog (PREREQUISITE — do first).** Today
+  `src/api/entityForms.ts` hardcodes the universe of types
+  (`EntityType = "catalog" | "dataset" | "distribution" | "data-service"` and
+  the static `ENTITY_SPECS` map with its `childTypes`). A runtime-added type
+  (e.g. `ontology`) is therefore invisible to the browse tree, create forms,
+  child listings, and `typeForId`. Replace the hardcoded catalog with one
+  loaded at runtime from `GET /resource-definitions`: derive the type list,
+  display names, schema IRIs, and child links from the server response; keep
+  the static map only as an offline fallback. `EntityType` becomes a runtime
+  `string`, not a compile-time union. Routes are already generic
+  (`/create/:type`, `/records/:id+`) so routing needs little change; the work
+  is in `entityForms.ts`, `useEntityShape.ts`, the browse tree, and the create
+  picker. Cache the catalog (TanStack Query) and invalidate it after an admin
+  mutation in 9.6b.
+- **9.6b Resource-definition admin UI (Option A — explicit two-step).** A
+  steward-facing surface to manage the type hierarchy. Flow matching the
+  server's chosen UX: (1) author/select a SHACL shape (ties into Phase 4 and
+  9.5), then (2) register a resource definition that points at that shape
+  (url_prefix, name) and wire it under a parent via a child link — the
+  driving scenario is "Catalog now also contains Ontology metadata", i.e. add
+  a `dcat:`-style child link from the Catalog RD to a new Ontology RD. Support
+  editing an existing RD's child links, not just creating new types. CRUD
+  against the admin `/resource-definitions` endpoints; validate url_prefix
+  uniqueness and reserved-path collisions client-side too for fast feedback.
+  After any mutation, invalidate the 9.6a catalog query so new types appear
+  without reload. Gate the surface on the admin/steward role.
+- **9.6c Regenerate OpenAPI types.** After the server endpoints land, re-run
+  `npm run generate-api` and adapt to the new `/resource-definitions` schema.
+  Note the per-type LDP paths are injected dynamically server-side (tagged
+  `x-fdp-resource-definition`), so the generated `schema.ts` surface for a
+  given deployment depends on its registered types — prefer driving the UI
+  from the runtime catalog (9.6a), not from the generated union.
 
 ### 9.7 Instance settings & branding
 - Deployment title, theme, custom forms, links (legacy `FdpSettings`). Server:
