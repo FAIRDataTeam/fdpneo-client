@@ -15,12 +15,11 @@ import { readGraph } from "@/api/records";
 import {
   applyEditTurtle,
   modelFromTurtle,
-  specFor,
-  typeForId,
   type EntityModel,
   type EntitySpec,
 } from "@/api/entityForms";
 import { useEntityShape } from "@/composables/useEntityShape";
+import { useResourceTypes } from "@/composables/useResourceTypes";
 import { useUpdateRecord, useDeleteRecord } from "@/composables/useRecordMutations";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import EntityForm from "@/components/metadata/EntityForm.vue";
@@ -30,6 +29,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const update = useUpdateRecord();
 const remove = useDeleteRecord();
+const { specFor, typeForId } = useResourceTypes();
 
 const id = computed(() => {
   const raw = route.params.id;
@@ -38,13 +38,16 @@ const id = computed(() => {
 const type = computed(() => typeForId(id.value));
 const iri = computed(() => `${apiBase()}/${id.value}`);
 
-// Fields from the type's SHACL shape (7.5), falling back to the static spec.
-const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(type);
+// Resolve the base spec from the runtime catalog, then layer SHACL-derived
+// fields (7.5) over the static fallback.
+const baseSpec = computed<EntitySpec | null>(() =>
+  type.value ? specFor(type.value) : null,
+);
+const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(baseSpec);
 const spec = computed<EntitySpec | null>(() => {
-  if (!type.value) return null;
-  const base = specFor(type.value);
-  const fields = shapeFields.value?.length ? shapeFields.value : base.fields;
-  return { ...base, fields };
+  if (!baseSpec.value) return null;
+  const fields = shapeFields.value?.length ? shapeFields.value : baseSpec.value.fields;
+  return { ...baseSpec.value, fields };
 });
 
 const model = ref<EntityModel>({});

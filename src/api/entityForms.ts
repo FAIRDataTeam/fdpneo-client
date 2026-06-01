@@ -24,7 +24,15 @@ import {
   shortLabel,
 } from "./rdf";
 
-export type EntityType = "catalog" | "dataset" | "distribution" | "data-service";
+/**
+ * A resource type's URL prefix. Runtime-defined (ADR-0009), so this is an
+ * open `string`, not a closed union. The standard DCAT prefixes
+ * ("catalog" | "dataset" | "distribution" | "data-service") have static
+ * fallback specs in {@link ENTITY_SPECS}; any other value is a type the
+ * deployment registered at runtime, resolved from the server catalog by
+ * `useResourceTypes` / `specFromDefinition`.
+ */
+export type EntityType = string;
 
 export type FieldKind = "text" | "textarea" | "iri" | "keywords" | "iris";
 
@@ -100,14 +108,27 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
   },
 };
 
+/**
+ * Static fallback spec for a *known* DCAT type. Runtime types are resolved
+ * from the server catalog by `useResourceTypes`; this throws for an unknown
+ * prefix because the only callers are the offline fallback path and the tests,
+ * both of which pass standard DCAT prefixes.
+ */
 export function specFor(type: EntityType): EntitySpec {
+  const spec = ENTITY_SPECS[type];
+  if (!spec) throw new Error(`unknown entity type: ${type}`);
+  return spec;
+}
+
+/** The static fallback spec for ``type``, or ``undefined`` if not a known DCAT type. */
+export function staticSpec(type: EntityType): EntitySpec | undefined {
   return ENTITY_SPECS[type];
 }
 
-/** The resource type for a path id (`dataset/ad-cohort-2024` → "dataset"). */
+/** The resource type for a path id (`dataset/ad-cohort-2024` → "dataset"), known types only. */
 export function typeForId(id: string): EntityType | null {
   const prefix = id.split("/")[0] ?? "";
-  return prefix in ENTITY_SPECS ? (prefix as EntityType) : null;
+  return prefix in ENTITY_SPECS ? prefix : null;
 }
 
 const isMulti = (kind: FieldKind): boolean => kind === "keywords" || kind === "iris";

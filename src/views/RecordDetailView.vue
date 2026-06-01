@@ -12,7 +12,7 @@ import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
-import { specFor, typeForId } from "@/api/entityForms";
+import { useResourceTypes } from "@/composables/useResourceTypes";
 import SecondaryNav from "@/components/metadata/SecondaryNav.vue";
 import RecordHero from "@/components/metadata/RecordHero.vue";
 import StatStrip from "@/components/metadata/StatStrip.vue";
@@ -24,6 +24,7 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 
 const route = useRoute();
 const auth = useAuthStore();
+const { typeForId, childSpecs } = useResourceTypes();
 const id = computed(() => {
   const raw = route.params.id;
   return Array.isArray(raw) ? raw.join("/") : (raw as string);
@@ -35,9 +36,11 @@ const entityType = computed(() => typeForId(id.value));
 const childCreateLinks = computed(() => {
   if (!entityType.value) return [];
   const parent = encodeURIComponent(`${apiBase()}/${id.value}`);
-  return specFor(entityType.value).childTypes.map((ct) => ({
-    label: specFor(ct).label,
-    to: `/create/${ct}?parent=${parent}`,
+  // childSpecs resolves from the runtime catalog, so a child link added to a
+  // type at runtime (e.g. Catalog → a new Ontology type) shows up here.
+  return childSpecs(entityType.value).map((s) => ({
+    label: s.label,
+    to: `/create/${s.prefix}?parent=${parent}`,
   }));
 });
 
