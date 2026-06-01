@@ -27,6 +27,7 @@ import {
   useResourceTypes,
   useInvalidateResourceTypes,
 } from "@/composables/useResourceTypes";
+import { useSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
@@ -34,10 +35,12 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 const RESERVED = new Set([
   "healthz", "readyz", "info", "config", "labels", "me", "metrics", "data",
   "sparql", "settings", "forms", "spec", "expanded", "page", "resource-definitions",
+  "schemas",
 ]);
 
 const auth = useAuthStore();
 const { defs, isLoading } = useResourceTypes();
+const { schemas } = useSchemas();
 const invalidate = useInvalidateResourceTypes();
 
 interface ChildRow {
@@ -249,8 +252,20 @@ function confirmDelete(def: ResourceTypeDef) {
         </label>
         <label class="field">
           <span class="label">Schema (SHACL shape IRI)</span>
-          <input v-model="form.schema" placeholder="https://…/shapes/Ontology" />
-          <span class="help">Must already be published as a SHACL shape.</span>
+          <input
+            v-model="form.schema"
+            list="published-schemas"
+            placeholder="pick a published shape, or paste an IRI"
+          />
+          <datalist id="published-schemas">
+            <option v-for="s in schemas" :key="s.iri" :value="s.iri">
+              {{ s.id }}{{ s.targetClass ? ` — ${s.targetClass}` : "" }}
+            </option>
+          </datalist>
+          <span class="help">
+            Must be a published SHACL shape — manage them in
+            <RouterLink to="/schemas">Schemas</RouterLink>.
+          </span>
         </label>
 
         <div class="children">

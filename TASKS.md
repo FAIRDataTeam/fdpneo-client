@@ -392,12 +392,27 @@ listed so they aren't forgotten. Do not stub them against absent endpoints.
 ### 9.4 API keys / personal access tokens
 - Legacy `ApiKeys`. Server: no token-issuing endpoint.
 
-### 9.5 Metadata-schema lifecycle
-- Import / version / release / update SHACL schemas (legacy `Schemas`,
-  `SchemaDetail`, `SchemaRelease`, `SchemasImport`). Server: shapes come from
-  the deployment profile bundle; no management API. Distinct from Phase 4
-  (which *authors* a schema) — this is the schema *lifecycle*. Resolve the
-  overlap when both are scheduled.
+### 9.5 Metadata-schema lifecycle — DONE (text-first; visual canvas still Phase 4)
+
+Server Phase 10.1 shipped `/schemas` (list/get public; PUT/DELETE admin;
+`POST /schemas/{id}/validate`), so this is now wired:
+
+- `src/api/schemas.ts` + `useSchemas` — list/get/put/delete/validate, with
+  snake→camel response mapping (tested in `schemas.spec.ts`).
+- `SchemaEditorView` (route `/schemas`, was a placeholder) is now a functional
+  manager: lists published shapes, authors them as **Turtle** (text-first),
+  publishes (`PUT`, admin), tests a sample record against the saved shape
+  (`validate`), and deletes. Versioning is the server's `owl:versionInfo` at a
+  stable IRI (shown as `v{n}`).
+- The resource-type admin (9.6b) `schema` field is now a **picker**: a
+  `<datalist>` of published shape IRIs (from `useSchemas`) + a link to
+  `/schemas`. Two-step flow is guided: publish a shape → register a type
+  pointing at it. Admin menu gained **Schemas** + **Resource types** entries.
+
+Still future (Phase 4): the **visual** node-based SHACL canvas. Turtle is the
+source of truth, so the text editor stays compatible with a later visual layer.
+Also deferred (server-side, Phase 12 overlap): draft/release lifecycle and
+version-history browsing.
 
 ### 9.6 Resource-definition configuration — UNBLOCKED (server work in progress)
 

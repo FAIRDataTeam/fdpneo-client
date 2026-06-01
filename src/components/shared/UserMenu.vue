@@ -54,6 +54,11 @@ async function gotoResourceTypes() {
   await router.push("/admin/resource-definitions");
 }
 
+async function gotoSchemas() {
+  open.value = false;
+  await router.push("/schemas");
+}
+
 async function signOut() {
   open.value = false;
   await auth.logout();
@@ -109,6 +114,9 @@ onUnmounted(() => {
       <hr class="hr" />
       <button v-if="auth.isSteward" class="item" role="menuitem" @click="gotoDashboard">
         <AppIcon name="book" :size="14" /> My metadata
+      </button>
+      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSchemas">
+        <AppIcon name="code" :size="14" /> Schemas
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoResourceTypes">
         <AppIcon name="tree" :size="14" /> Resource types
