@@ -44,6 +44,13 @@ export interface FieldSpec {
   required?: boolean;
   placeholder?: string;
   help?: string;
+  /**
+   * Name of a server autocomplete source (`GET /forms/autocomplete`) to suggest
+   * values for this field (TASKS 10.6). The source names are admin-configured
+   * (10.5); the field stays free-text, suggestions are advisory. Only applied to
+   * single-value `text`/`iri` fields.
+   */
+  autocomplete?: string;
 }
 
 export interface EntitySpec {
@@ -63,11 +70,11 @@ export type EntityModel = Record<string, string | string[]>;
 const F = {
   title: { key: "title", predicate: `${NS.dct}title`, label: "Title", kind: "text", required: true } as FieldSpec,
   description: { key: "description", predicate: `${NS.dct}description`, label: "Description", kind: "textarea" } as FieldSpec,
-  publisher: { key: "publisher", predicate: `${NS.dct}publisher`, label: "Publisher (IRI)", kind: "iri", placeholder: "https://example.org/org" } as FieldSpec,
-  license: { key: "license", predicate: `${NS.dct}license`, label: "License (IRI)", kind: "iri", placeholder: "https://creativecommons.org/licenses/by/4.0/" } as FieldSpec,
+  publisher: { key: "publisher", predicate: `${NS.dct}publisher`, label: "Publisher (IRI)", kind: "iri", placeholder: "https://example.org/org", autocomplete: "publisher" } as FieldSpec,
+  license: { key: "license", predicate: `${NS.dct}license`, label: "License (IRI)", kind: "iri", placeholder: "https://creativecommons.org/licenses/by/4.0/", autocomplete: "license" } as FieldSpec,
   keywords: { key: "keywords", predicate: `${NS.dcat}keyword`, label: "Keywords", kind: "keywords", help: "Comma-separated." } as FieldSpec,
-  theme: { key: "theme", predicate: `${NS.dcat}theme`, label: "Theme (IRI)", kind: "iri" } as FieldSpec,
-  format: { key: "format", predicate: `${NS.dct}format`, label: "Format", kind: "text", placeholder: "text/csv" } as FieldSpec,
+  theme: { key: "theme", predicate: `${NS.dcat}theme`, label: "Theme (IRI)", kind: "iri", autocomplete: "theme" } as FieldSpec,
+  format: { key: "format", predicate: `${NS.dct}format`, label: "Format", kind: "text", placeholder: "text/csv", autocomplete: "mime" } as FieldSpec,
   downloadURL: { key: "downloadURL", predicate: `${NS.dcat}downloadURL`, label: "Download URL", kind: "iri" } as FieldSpec,
   accessURL: { key: "accessURL", predicate: `${NS.dcat}accessURL`, label: "Access URL", kind: "iri" } as FieldSpec,
   endpointURL: { key: "endpointURL", predicate: `${NS.dcat}endpointURL`, label: "Endpoint URL", kind: "iri" } as FieldSpec,

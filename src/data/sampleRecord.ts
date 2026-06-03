@@ -64,6 +64,8 @@ export interface FdpRecord {
   modified: string;
   keywords: string[];
   themes: string[];
+  /** Raw theme IRIs (for label resolution via `/labels`); `themes` are the fallback labels. */
+  themeUris?: string[];
   spatial: string;
   temporal: string;
   participants: number;

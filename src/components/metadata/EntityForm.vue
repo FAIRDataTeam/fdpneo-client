@@ -7,6 +7,7 @@
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
 import { parseKeywords } from "@/api/entityForms";
+import AutocompleteInput from "./AutocompleteInput.vue";
 
 const props = defineProps<{ spec: EntitySpec }>();
 const model = defineModel<EntityModel>({ required: true });
@@ -47,6 +48,17 @@ const fields = computed(() => props.spec.fields);
         :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'comma-separated IRIs' : 'comma-separated')"
         :aria-label="f.label"
         @input="model[f.key] = parseKeywords(($event.target as HTMLInputElement).value)"
+      />
+
+      <AutocompleteInput
+        v-else-if="f.autocomplete && (f.kind === 'iri' || f.kind === 'text')"
+        :source="f.autocomplete"
+        :type="f.kind === 'iri' ? 'url' : 'text'"
+        :required="f.required"
+        :placeholder="f.placeholder"
+        :aria-label="f.label"
+        :model-value="asText(f.key)"
+        @update:model-value="model[f.key] = $event"
       />
 
       <input

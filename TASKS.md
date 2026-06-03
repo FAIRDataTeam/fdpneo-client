@@ -767,7 +767,7 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
 - (Branding/theme keys only as far as the server defines settings keys for them;
   don't invent keys the server doesn't validate.)
 
-### 10.6 Labels + form autocomplete (polish the existing forms)
+### 10.6 Labels + form autocomplete (polish the existing forms) — ✅ done (2026-06-03)
 - `GET /labels?iri=<…>&iri=<…>` → `{ labels: { iri: text } }`. Batch-resolve
   `dct:license`, publisher, and theme IRIs in record detail + search facets so
   users see "Creative Commons Attribution 4.0", not a URL. Replace the
@@ -775,6 +775,28 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
 - `GET /forms/autocomplete?source=license&prefix=cc` → suggestion list. Wire it
   into `EntityForm.vue` for license/publisher/MIME pickers (the sources are the
   ones managed in 10.5).
+- **Done — labels:** new `src/api/labels.ts` (`fetchLabels`, batches into repeated
+  `iri` params, dedupes, skips empty) + `src/composables/useLabels.ts` (keyed on
+  sorted IRI set, `retry:false`, `labelFor` falls back to `shortLabel`). `mapRecord`
+  now also emits raw `themeUris`; `PropList.vue` resolves publisher/license/theme
+  IRIs via `useLabels` and renders the resolved text, **falling back** to the
+  mapper's short labels (so it degrades gracefully — the `rdf.ts` hack stays only
+  as that fallback, no longer the primary display).
+- **Done — autocomplete:** new `src/api/autocomplete.ts` + `useAutocomplete.ts`
+  (reactive source+prefix, `keepPreviousData`, `retry:false`). `FieldSpec` gained an
+  optional `autocomplete` source; set on publisher→`publisher`, license→`license`,
+  theme→`theme`, format→`mime`. New `AutocompleteInput.vue` (native `<datalist>`,
+  200ms-debounced prefix, IRI as option value + label as hint) wired into
+  `EntityForm.vue` for single-value text/iri fields. Field stays free-text;
+  failed/missing source → no suggestions.
+- Tests: `labels.spec.ts` (3) + `autocomplete.spec.ts` (3); `RecordDetailView.spec`
+  exercises the PropList label fallback. Full suite 117 green; typecheck + lint clean.
+- **Notes:** `/labels` + `/forms/autocomplete` currently **500 on this box**
+  (Postgres/triplestore down — env, not contract); the graceful fallbacks are what
+  let the UI keep working. Autocomplete **source names** (`publisher`/`license`/
+  `theme`/`mime`) must match the server's configured sources (10.5) to return data.
+  Search-**facet** label resolution is deferred to **10.2** (facets are still
+  hardcoded placeholders until `POST /search` returns real facet dimensions).
 
 ### 10.7 Reset to factory defaults (unblocks legacy 9.9)
 - Admin-only destructive action: `POST /admin/reset` with body

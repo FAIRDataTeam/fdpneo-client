@@ -1,22 +1,52 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import type { FdpRecord } from "@/data/sampleRecord";
 import PropRow from "./PropRow.vue";
 import AppChip from "@/components/shared/AppChip.vue";
+import { useLabels } from "@/composables/useLabels";
 
-defineProps<{ record: FdpRecord }>();
+const props = defineProps<{ record: FdpRecord }>();
+
+// Resolve the record's IRI-valued properties to human labels via `/labels`.
+// `labels[iri]` is the resolved text; each row falls back to the value the RDF
+// mapper already derived (publisher/license short labels) so nothing is blank
+// or a raw URL when the label service is unavailable.
+const themeUris = computed(() => props.record.themeUris ?? []);
+const irisToResolve = computed(() =>
+  [props.record.publisherUri, props.record.licenseUri, ...themeUris.value].filter(Boolean),
+);
+const { labels } = useLabels(irisToResolve);
+
+const publisherText = computed(
+  () => labels.value[props.record.publisherUri] || props.record.publisher,
+);
+const licenseText = computed(
+  () => labels.value[props.record.licenseUri] || props.record.license,
+);
+
+// Prefer resolved theme labels keyed by IRI; fall back to the mapper's short
+// labels when the record carries no theme IRIs (e.g. fixtures).
+const themeChips = computed(() =>
+  themeUris.value.length
+    ? themeUris.value.map((iri, i) => ({
+        key: iri,
+        text: labels.value[iri] || props.record.themes[i] || iri,
+      }))
+    : props.record.themes.map((t) => ({ key: t, text: t })),
+);
 </script>
 
 <template>
   <dl class="list">
     <PropRow label="Publisher">
-      <a :href="record.publisherUri" class="accent">{{ record.publisher }}</a>
+      <a :href="record.publisherUri" class="accent">{{ publisherText }}</a>
     </PropRow>
     <PropRow label="License">
-      <a :href="record.licenseUri" class="accent">{{ record.license }}</a>
+      <a :href="record.licenseUri" class="accent">{{ licenseText }}</a>
     </PropRow>
     <PropRow label="Themes">
       <div class="themes">
-        <AppChip v-for="t in record.themes" :key="t" variant="accent">{{ t }}</AppChip>
+        <AppChip v-for="t in themeChips" :key="t.key" variant="accent">{{ t.text }}</AppChip>
       </div>
     </PropRow>
     <PropRow label="Conforms to" mono>{{ record.conformsTo }}</PropRow>

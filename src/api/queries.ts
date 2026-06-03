@@ -18,4 +18,7 @@ export const queryKeys = {
     ["metrics", "resource", resourceId, range] as const,
   appInfo: () => ["app-info"] as const,
   readiness: () => ["readiness"] as const,
+  labels: (iris: string[]) => ["labels", iris] as const,
+  autocomplete: (source: string, prefix: string) =>
+    ["autocomplete", source, prefix] as const,
 };

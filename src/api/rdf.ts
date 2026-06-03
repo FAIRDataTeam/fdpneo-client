@@ -173,6 +173,7 @@ export function mapRecord(
     modified: isoDate(one(store, s, `${NS.dct}modified`)),
     keywords: many(store, s, `${NS.dcat}keyword`),
     themes: many(store, s, `${NS.dcat}theme`).map(shortLabel),
+    themeUris: many(store, s, `${NS.dcat}theme`),
     spatial: shortLabel(one(store, s, `${NS.dct}spatial`) ?? ""),
     temporal: one(store, s, `${NS.dct}temporal`) ?? "",
     participants: 0,
