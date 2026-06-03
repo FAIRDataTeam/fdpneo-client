@@ -17,7 +17,7 @@ import TypeTag from "@/components/shared/TypeTag.vue";
 import type { IconName } from "@/types/record";
 
 const auth = useAuthStore();
-const { data: rows, isLoading } = useStewardRecords();
+const { rows, recent, isLoading } = useStewardRecords();
 
 const userName = computed(
   () => auth.user?.profile?.name || auth.user?.profile?.email || "Steward",
@@ -25,7 +25,7 @@ const userName = computed(
 
 const filter = ref("");
 const filtered = computed(() => {
-  const all = rows.value ?? [];
+  const all = rows.value;
   const q = filter.value.trim().toLowerCase();
   if (!q) return all;
   return all.filter(
@@ -34,7 +34,7 @@ const filtered = computed(() => {
 });
 
 const counts = computed(() => {
-  const all = rows.value ?? [];
+  const all = rows.value;
   const by = (label: string) => all.filter((r) => r.typeLabel === label).length;
   return [
     { value: all.length, label: "Records" },
@@ -133,6 +133,16 @@ const soon: { icon: IconName; label: string }[] = [
           </RouterLink>
         </div>
       </div>
+
+      <template v-if="recent.length">
+        <h2 class="recent-title">Recently updated</h2>
+        <ul class="recent">
+          <li v-for="row in recent" :key="row.id">
+            <RouterLink :to="`/records/${row.id}`" class="rtitle">{{ row.title }}</RouterLink>
+            <span class="small muted">{{ row.modified || "—" }}</span>
+          </li>
+        </ul>
+      </template>
     </section>
   </main>
 </template>
@@ -350,6 +360,36 @@ const soon: { icon: IconName; label: string }[] = [
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.recent-title {
+  margin: 28px 0 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.recent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+}
+.recent li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.recent li:last-child {
+  border-bottom: 0;
 }
 
 @media (max-width: 1100px) {

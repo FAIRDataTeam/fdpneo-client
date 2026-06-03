@@ -559,7 +559,28 @@ the SPARQL workarounds are not.
     Auth0 wants `extraQueryParams.audience`, Keycloak doesn't); only
     `authority`/`client_id` are wired. Revisit if a deployment needs it.
 
-### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints
+### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints — ⏳ partial (2026-06-03)
+- ✅ **Steward dashboard done (2026-06-03):** new `src/api/dashboard.ts`
+  (`fetchDashboard`); `useStewardRecords` now reads `GET /me/dashboard` instead of
+  SPARQL — main `rows` = owned ∪ editable (deduped by IRI, owned wins), `recent`
+  surfaced as a "Recently updated" section in `StewardDashboardView`. `type_iri`
+  mapped to kind/label via the catalog (`useResourceTypes`). Tests:
+  `useStewardRecords.spec.ts` (2). Full suite 133 green.
+  - **Contract gap:** `DashboardItem` has **no `state`** field (only `record_iri`,
+    `type_iri`, `title`, `last_modified`), so the publication-state column the 7.6
+    follow-up wanted is still **not** deliverable — that stays with 10.3. Not invented.
+- ⬜ **Search + saved queries BLOCKED on the running server (not the contract).**
+  `POST /search` and `/me/saved-queries` **are implemented in the server source**
+  (`src/fdp/metadata/search/`, wired in `main.py`) but the **running uvicorn is
+  stale** (PID started Sun, no `--reload`): live `/openapi.json` shows 26 paths,
+  `POST /search` → 405, no saved-queries. Also `/search` is **feature-flagged**
+  (`FeatureFlags.search` defaults **false** + needs the indexer subscriber +
+  Postgres, which is down here). **To finish:** bring the stack up, enable the
+  `search` feature, restart uvicorn, then `npm run generate-api` (the
+  `SearchRequest`/`SearchResponse`/saved-query models aren't in `schema.ts` yet) →
+  implement `useSearch` on `POST /search` + new `src/api/savedQueries.ts`. Until
+  then `useSearch` stays on SPARQL (11.2 made it catalog-driven) and the
+  `SearchView` facet list stays a placeholder.
 - **Search** — replace the SPARQL body in `useSearch.ts` with `POST /search`
   `{ query, types[], license?, from?, to?, offset, limit }` → `{ items, total,
   facets: { type, license } }`. Render facet counts from the response (drop the
