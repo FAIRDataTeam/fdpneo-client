@@ -798,6 +798,111 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
 
 ---
 
+## Phase 11 — Integration audit & cleanup (2026-06-02)
+
+Findings from an audit of how the client actually talks to the live server
+(running FDP **v0.1.0**). Two items below are **new** (not covered by Phase 10);
+the rest are a prioritised cross-reference so the audit is captured in one place.
+Sequencing recommendation at the end.
+
+### 11.1 Resolve the dev-networking half-state (NEW — fixable now)
+**Problem.** `vite.config.ts` defines a dev proxy ("so the SPA can use relative
+URLs without CORS") for `/api`, `/sparql`, `/openapi.json`, but `.env` sets
+`VITE_FDP_API_URL=http://localhost:8000` and `src/api/http.ts` uses it as an
+**absolute** `baseURL` — so every request goes cross-origin and **bypasses the
+proxy entirely**. Consequences:
+- The proxy only lists three prefixes; it does **not** cover the LDP write paths
+  the client actually `PUT`s to (`/`, `/{type}/{id}`, `/meta` in
+  `src/api/records.ts`). So the proxy couldn't carry writes even if used.
+- Working writes depend entirely on the server CORS allow-list matching the
+  **exact** origin spelling. `localhost` ≠ `127.0.0.1` to the browser (the
+  server 400s the mismatch); the OIDC `redirect_uri` (`userManager.ts`) and the
+  Keycloak-registered URI must agree too. This is the root of the historical
+  "server unreachable" incidents (see the CORS memory note).
+
+**Plan — pick ONE model and make it coherent:**
+- **Option A (CORS-only, recommended):** delete the dev proxy from
+  `vite.config.ts`; keep `baseURL` absolute; document the hard requirement that
+  the SPA origin, the server `FDP_CORS_allow_origins`, and the Keycloak redirect
+  URI use the **same** host spelling. Add a startup console warning in dev when
+  `window.location.origin` is not the configured `VITE_PUBLIC_ORIGIN`.
+- **Option B (proxy-everything):** set `baseURL` relative (`"/"`) in dev; widen
+  the proxy to forward all server routes the client uses (root LDP paths,
+  `/config`, `/labels`, `/me/*`, `/settings`, `/info`, `/readyz`, `/resource-
+  definitions`, …). Tricky because root LDP paths (`/{type}/{id}`) collide with
+  the SPA router paths — would need a path-prefix discriminator, so Option A is
+  cleaner.
+- Decision needed from maintainer (A vs B). Either way: a short `docs/`/README
+  note on the localhost-vs-127.0.0.1 origin coupling.
+- Test: a unit assertion that `http` `baseURL` matches the chosen model; manual
+  verify of a record edit round-trip (the historical failure case).
+
+### 11.2 Finish adopting the dynamic type catalog in the read composables (NEW — ⏳ in progress)
+- ✅ **Steward dashboard done (2026-06-02):** `useStewardRecords` now derives its
+  `rdf:type` filter and row labels from `useResourceTypes` (catalog `classIri` +
+  `label`), with the DCAT `kind` kept only for TypeTag colour and unknown classes
+  defaulting neutrally; query is `enabled` once the catalog loads and re-keyed on
+  it. Gate green (typecheck/lint/98 tests).
+- ⬜ **Remaining:** `useSearch` (`TYPE_IRI`/`TYPE_LABEL` — note the facet UI passes
+  `RecordKind` strings, so map facet selections → catalog prefixes) and `useTree`
+  (`HIERARCHY_QUERY` hardcodes Catalog→Dataset; rebuild from the catalog's
+  parent→child relations).
+**Problem.** `useResourceTypes` (from `GET /resource-definitions`, added in
+"Dynamic API endpoint support") drives create/edit/detail/admin, but the **read**
+composables still hardcode the DCAT class maps: `TYPE_IRI`/`TYPE_LABEL` in
+`useSearch.ts`, `CLASS_MAP` in `useStewardRecords.ts`, and the
+`dcat:Catalog`/`dcat:Dataset` literals in `useTree.ts`. A custom resource type
+created in the admin UI is therefore **editable but invisible** to search, the
+tree, and the steward dashboard. This is a user-visible correctness bug and is
+independent of the Phase-10 SPARQL→endpoint migration (it applies to the SPARQL
+fallback too).
+
+**Plan:**
+- Derive the type→{kind,label,iri} map from `useResourceTypes` (the resource
+  definitions carry `urlPrefix`, `name`, and the target class) instead of the
+  hardcoded constants. Keep the built-in DCAT entries as the fallback when the
+  catalog hasn't loaded, mirroring `staticSpec` fallback in `useResourceTypes`.
+- `useSearch`/`useStewardRecords`: build the `?type IN (…)` list and the
+  display-label lookup from the resolved catalog; map unknown classes to a
+  neutral "Resource" label rather than defaulting to `dataset`.
+- `useTree`: enumerate container/child types from the catalog's parent→child
+  relations rather than the fixed Catalog→Dataset assumption.
+- Tests: extend `useSearch`/`useStewardRecords` specs with a custom resource
+  type fixture; assert it classifies and is returned. (When 10.2 lands the real
+  `/search`, the server returns types directly and this client-side map shrinks
+  to label resolution — write 11.2 so it composes with that, not against it.)
+
+### 11.3 Cross-reference — already planned under Phase 10
+The remaining audit findings map onto existing tasks; recorded here so the audit
+is complete. Status reflects the live v0.1.0 contract (see 10.0).
+
+| Finding | Task | Server endpoint present on live v0.1.0? |
+| --- | --- | --- |
+| OIDC config + feature flags hardcoded in `.env`, ignore `GET /config` | **10.1** | ✅ yes — unblocked |
+| Last-IRI-segment label hack (`rdf.ts shortLabel`) instead of `GET /labels` | **10.6** | ✅ yes — unblocked |
+| Free-text inputs instead of `GET /forms/autocomplete` | **10.6** | ✅ yes — unblocked |
+| Tree/children via `GRAPH ?g` SPARQL instead of `/expanded` + `/page` | **10.9** | ✅ yes — unblocked |
+| Search via hand-rolled SPARQL (no paging/facets/state-gating) → `POST /search` | **10.2** | ❌ no — blocked on server |
+| Steward dashboard lists all records, no state → `GET /me/dashboard` | **10.2** | ❌ no — blocked on server |
+| No publication-state badge/controls; 404-as-unpublished copy → `POST /{record}/state` | **10.3** | ❌ no — blocked on server |
+
+- **Client-doable prep while 10.3 is server-blocked:** soften the record-detail
+  404 copy to "this record may not exist *or* may be unpublished", and add a
+  "saved as draft — publish when ready" hint to the create flow. Pull these into
+  10.3's scope or do as a tiny standalone.
+
+### Recommended sequencing
+1. **11.2** (dynamic type catalog) — self-contained, testable now, fixes a real
+   correctness bug. No maintainer decision needed.
+2. **10.1** (`/config`) then **10.6** (`/labels` + autocomplete) then **10.9**
+   (`/expanded`/`/page`) — all unblocked against live v0.1.0, high leverage.
+3. **11.1** (networking) — needs a maintainer A-vs-B decision first.
+4. **10.2 / 10.3 / 10.4 / 10.5 / 10.7** — gated on the server shipping
+   `/search`, `/me/dashboard`, `/{record}/state`, `/me/api-keys`, `/settings`,
+   `/admin/reset`; re-run `npm run generate-api` when it does.
+
+---
+
 ## Open items
 
 - Theme tokens and final design system (likely arrives via Claude Design
