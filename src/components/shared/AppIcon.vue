@@ -82,5 +82,9 @@ const props = withDefaults(defineProps<{ name: IconName; size?: number; color?: 
       <rect x="3" y="4" width="18" height="12" rx="2" />
       <path d="M8 20h8M12 16v4" />
     </template>
+    <template v-else-if="name === 'cog'">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+    </template>
   </svg>
 </template>

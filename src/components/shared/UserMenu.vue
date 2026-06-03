@@ -54,6 +54,11 @@ async function gotoResourceTypes() {
   await router.push("/admin/resource-definitions");
 }
 
+async function gotoSettings() {
+  open.value = false;
+  await router.push("/admin/settings");
+}
+
 async function gotoSchemas() {
   open.value = false;
   await router.push("/schemas");
@@ -120,6 +125,9 @@ onUnmounted(() => {
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoResourceTypes">
         <AppIcon name="tree" :size="14" /> Resource types
+      </button>
+      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSettings">
+        <AppIcon name="cog" :size="14" /> Settings
       </button>
       <button class="item" role="menuitem" @click="signOut">
         <AppIcon name="x" :size="14" /> Sign out

@@ -94,6 +94,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Resource types", requiresAuth: true },
   },
   {
+    path: "/admin/settings",
+    name: "instance-settings",
+    component: () => import("@/views/SettingsView.vue"),
+    meta: { title: "Settings", requiresAuth: true },
+  },
+  {
     path: "/metrics",
     name: "metrics",
     component: () => import("@/views/MetricsDashboardView.vue"),

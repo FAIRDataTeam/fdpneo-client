@@ -757,7 +757,7 @@ test:run` green.
 is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
 `fdpk_` token is what a *user's script* sends, not the SPA).
 
-### 10.5 Instance settings & admin config (unblocks legacy 9.7 + search-filter config)
+### 10.5 Instance settings & admin config (unblocks legacy 9.7 + search-filter config) — ✅ done (2026-06-03)
 - New `src/api/settings.ts`: `GET /settings` (public, returns all keys merged
   with defaults) and `PUT /settings/{key}` (admin, per-key Pydantic-validated).
 - Admin **Settings** view to edit the runtime keys the server exposes:
@@ -766,6 +766,26 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
   is what 10.2's facets read). Surface server 422 validation inline.
 - (Branding/theme keys only as far as the server defines settings keys for them;
   don't invent keys the server doesn't validate.)
+- **Done:** `src/api/settings.ts` (`fetchSettings`/`putSetting`/`resetSetting`) +
+  `src/composables/useSettings.ts` (query + `useInvalidateSettings`). New
+  `SettingsView.vue` at `/admin/settings` (route `instance-settings`, link in
+  UserMenu, admin-gated; `cog` icon added to `AppIcon`). It renders **whatever keys
+  the server reports** (sorted) rather than a hardcoded list, so new server-defined
+  keys appear automatically. Each key edited via `SettingEditor.vue` — a JSON
+  editor: the OpenAPI types each value only as an open object and the server
+  validates the shape per key, so we parse + object-check client-side and surface
+  the server **422 inline** (`parseFdpError` → title/message/violations); non-admins
+  get read-only. `DELETE` resets a key to default.
+- Tests: `settings.spec.ts` (4) + `SettingEditor.spec.ts` (4, incl. invalid-JSON /
+  non-object rejection without hitting the server). Full suite 131 green;
+  typecheck+lint clean.
+- **Notes:** values are free-form objects in the contract, so no per-field forms
+  were invented (per the "don't invent keys" guidance) — a JSON editor is the
+  faithful surface; `search.filters`/`forms.autocomplete-sources` edit cleanly this
+  way. `/settings` **500s on this box** (Postgres down — env, not contract); the
+  view shows the error state until the stack is up. When `search.filters` lands its
+  real shape, 10.2 reads it for facets; 10.6 autocomplete source names live under
+  `forms.autocomplete-sources`.
 
 ### 10.6 Labels + form autocomplete (polish the existing forms) — ✅ done (2026-06-03)
 - `GET /labels?iri=<…>&iri=<…>` → `{ labels: { iri: text } }`. Batch-resolve

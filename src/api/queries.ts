@@ -22,4 +22,5 @@ export const queryKeys = {
   autocomplete: (source: string, prefix: string) =>
     ["autocomplete", source, prefix] as const,
   expanded: (id: string) => ["expanded", id] as const,
+  settings: () => ["settings"] as const,
 };
