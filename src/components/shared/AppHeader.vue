@@ -9,6 +9,7 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
 import { apiBase } from "@/api/rdf";
 import { sampleDeployment } from "@/data/sampleRecord";
 import AppLogo from "./AppLogo.vue";
@@ -18,6 +19,7 @@ import UserMenu from "./UserMenu.vue";
 
 const router = useRouter();
 const auth = useAuthStore();
+const config = useConfigStore();
 const query = ref("");
 
 // Quick-create: a top-level catalog under the repository root. Only shown to
@@ -48,7 +50,12 @@ defineProps<{ variant?: "default" | "minimal" }>();
       <div class="deployment__host mono">{{ sampleDeployment.host }}</div>
     </div>
     <div class="spacer" />
-    <form v-if="variant !== 'minimal'" class="search" role="search" @submit.prevent="submit">
+    <form
+      v-if="variant !== 'minimal' && config.isEnabled('search')"
+      class="search"
+      role="search"
+      @submit.prevent="submit"
+    >
       <AppIcon name="search" :size="15" color="var(--muted)" />
       <input
         v-model="query"

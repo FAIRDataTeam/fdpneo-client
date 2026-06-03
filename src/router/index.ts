@@ -7,10 +7,22 @@
  *
  * Auth-required routes go through the `requireAuth` guard, which redirects
  * unauthenticated users to the OIDC login flow.
+ *
+ * Routes carrying `meta.feature` are gated on the server's feature flags
+ * (`GET /config`): when the server reports the feature disabled, the route
+ * redirects to not-found (TASKS 10.1). Features default permissive, so this
+ * only hides a route the server explicitly turned off.
  */
 
-import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type RouteMeta,
+  type RouteRecordRaw,
+} from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
+import type { FeatureFlags } from "@/api/config";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -23,7 +35,7 @@ const routes: RouteRecordRaw[] = [
     path: "/search",
     name: "search",
     component: () => import("@/views/SearchView.vue"),
-    meta: { title: "Search" },
+    meta: { title: "Search", feature: "search" },
   },
   {
     path: "/records/:id+",
@@ -61,7 +73,7 @@ const routes: RouteRecordRaw[] = [
     path: "/sparql",
     name: "sparql",
     component: () => import("@/views/SparqlPlaygroundView.vue"),
-    meta: { title: "SPARQL" },
+    meta: { title: "SPARQL", feature: "sparql" },
   },
   {
     path: "/schemas",
@@ -85,7 +97,7 @@ const routes: RouteRecordRaw[] = [
     path: "/metrics",
     name: "metrics",
     component: () => import("@/views/MetricsDashboardView.vue"),
-    meta: { title: "Metrics" },
+    meta: { title: "Metrics", feature: "metrics" },
   },
   {
     path: "/auth/callback",
@@ -106,9 +118,23 @@ export const router = createRouter({
   routes,
 });
 
+/**
+ * Whether a route is blocked by a disabled server feature. Pure so it can be
+ * unit-tested without a live router. A route with no `meta.feature` is never
+ * blocked; otherwise it is blocked only when the flag is explicitly `false`.
+ */
+export function routeFeatureBlocked(meta: RouteMeta, features: FeatureFlags): boolean {
+  const feature = meta.feature as keyof FeatureFlags | undefined;
+  return feature ? features[feature] === false : false;
+}
+
 router.beforeEach((to) => {
   if (typeof to.meta.title === "string") {
     document.title = `${to.meta.title} — FAIR Data Point`;
+  }
+
+  if (routeFeatureBlocked(to.meta, useConfigStore().features)) {
+    return { name: "not-found" };
   }
 
   if (!to.meta.requiresAuth) return true;

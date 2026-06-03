@@ -531,13 +531,33 @@ the SPARQL workarounds are not.
   10.6 (`/labels` + `/forms/autocomplete`), 10.8 (`/info`,`/readyz`), and 10.9
   (`/expanded`,`/page`) are unblocked by the current contract.
 
-### 10.1 Bootstrap config (`GET /config`)
+### 10.1 Bootstrap config (`GET /config`) — ✅ done (2026-06-03)
 - Read `/config` once at app start (before the router/OIDC init) and feed it
   into `userManager.ts` instead of the hardcoded `VITE_OIDC_*` values: the
   server returns `{ oidc: { issuer, audience, client_id_hint }, profile, features }`.
   Keep `.env` only for the API base URL and a local dev fallback.
 - Gate optional UI on `features` (e.g. hide search if `features.search` is false,
   metrics if `features.metrics` is false).
+- **Done:** new `src/api/config.ts` (`fetchBootstrapConfig`) + `src/stores/config.ts`
+  (Pinia: `features`/`oidc`/`profile`/`loaded`/`available` + `isEnabled`). `main.ts`
+  bootstrap now `config.load()` → `configureOidc(config.oidc)` → `auth.loadStoredUser()`
+  → mount. `userManager.ts` gained `configureOidc` (issuer→authority,
+  client_id_hint→client_id, env fallback). Routes carry `meta.feature`
+  (search/sparql/metrics) gated in `beforeEach` via the pure `routeFeatureBlocked`
+  helper; `AppHeader` hides the search box when `search` is off. `.env.example`
+  documents `VITE_OIDC_*` as fallback. Tests: `config.spec.ts` (3),
+  `userManager.spec.ts` (4), `featureGate.spec.ts` (3); full suite 111 green.
+- **Design notes / deviations from the assumed shape:**
+  - Real `FeatureFlags` = `{ metrics, sparql, data_provider, search, index }`
+    (server defaults `search` + `index` **false**) — not the assumed set. Gated
+    routes: search/sparql/metrics.
+  - **Permissive fallback:** features default all-on and a feature is hidden only
+    when the server *explicitly* returns `false`. If `/config` fails (it currently
+    **500s on this box — Postgres down**, env-specific not a contract bug) the app
+    still boots on `.env` OIDC + all features visible.
+  - `oidc.audience` is **not** injected into the auth request (IdP-specific:
+    Auth0 wants `extraQueryParams.audience`, Keycloak doesn't); only
+    `authority`/`client_id` are wired. Revisit if a deployment needs it.
 
 ### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints
 - **Search** — replace the SPARQL body in `useSearch.ts` with `POST /search`
@@ -805,7 +825,21 @@ Findings from an audit of how the client actually talks to the live server
 the rest are a prioritised cross-reference so the audit is captured in one place.
 Sequencing recommendation at the end.
 
-### 11.1 Resolve the dev-networking half-state (NEW — fixable now)
+### 11.1 Resolve the dev-networking half-state (NEW — ✅ done 2026-06-03, Option A / CORS-only)
+- **Decision: Option A (CORS-only).** Removed the dev proxy from `vite.config.ts`
+  (the SPA talks to the API directly at `VITE_FDP_API_URL`); rewrote the config
+  docstring to state the model and the same-origin requirement.
+- `src/main.ts` now warns in dev when `window.location.origin !==
+  VITE_PUBLIC_ORIGIN` (the localhost-vs-127.0.0.1 trap behind the historical
+  "server unreachable" reports), pointing at the three things that must agree:
+  `VITE_PUBLIC_ORIGIN`, the server `FDP_CORS_allow_origins`, and the Keycloak
+  redirect URI.
+- `.env.example` documents the CORS-only model and the origin coupling.
+- Gate green (typecheck/lint/101 tests).
+
+(historical plan kept below for context)
+
+#### Original 11.1 plan
 **Problem.** `vite.config.ts` defines a dev proxy ("so the SPA can use relative
 URLs without CORS") for `/api`, `/sparql`, `/openapi.json`, but `.env` sets
 `VITE_FDP_API_URL=http://localhost:8000` and `src/api/http.ts` uses it as an
@@ -837,16 +871,26 @@ proxy entirely**. Consequences:
 - Test: a unit assertion that `http` `baseURL` matches the chosen model; manual
   verify of a record edit round-trip (the historical failure case).
 
-### 11.2 Finish adopting the dynamic type catalog in the read composables (NEW — ⏳ in progress)
-- ✅ **Steward dashboard done (2026-06-02):** `useStewardRecords` now derives its
-  `rdf:type` filter and row labels from `useResourceTypes` (catalog `classIri` +
-  `label`), with the DCAT `kind` kept only for TypeTag colour and unknown classes
-  defaulting neutrally; query is `enabled` once the catalog loads and re-keyed on
-  it. Gate green (typecheck/lint/98 tests).
-- ⬜ **Remaining:** `useSearch` (`TYPE_IRI`/`TYPE_LABEL` — note the facet UI passes
-  `RecordKind` strings, so map facet selections → catalog prefixes) and `useTree`
-  (`HIERARCHY_QUERY` hardcodes Catalog→Dataset; rebuild from the catalog's
-  parent→child relations).
+### 11.2 Finish adopting the dynamic type catalog in the read composables (NEW — ✅ done 2026-06-03)
+All three read composables now derive their `rdf:type` filters and labels from
+`useResourceTypes` instead of hardcoded DCAT maps; a type registered in the admin
+UI is now visible to search, the tree, and the steward dashboard. Gate green
+(typecheck/lint/101 tests).
+- ✅ **Steward dashboard (2026-06-02):** `useStewardRecords` — uses the catalog
+  `classIri` and `label`; DCAT `kind` kept only for TypeTag colour; `enabled`
+  once the catalog loads, re-keyed on it.
+- ✅ **Search (2026-06-03):** `useSearch` builds the `?type IN (…)` list from the
+  catalog and resolves selected facet prefixes → class IRIs (the facet `value`s
+  turned out to be type *prefixes*, not RecordKinds, so they map straight through
+  `specFor`); unfiltered search now spans every registered type; result rows
+  labelled from the catalog. Note: `SearchView.vue`'s facet *list* + counts stay
+  hardcoded placeholders until 10.2 wires `POST /search` facets.
+- ✅ **Tree (2026-06-03):** `useTree` derives container classes from the root
+  definition's children and member classes from *their* children; falls back to
+  DCAT (Catalog → Dataset/DataService) when the catalog is empty so it works
+  pre-load/offline.
+- Tests: `src/composables/dynamicTypeCatalog.spec.ts` (3) — custom `biobank` type
+  is searchable and appears in the tree query.
 **Problem.** `useResourceTypes` (from `GET /resource-definitions`, added in
 "Dynamic API endpoint support") drives create/edit/detail/admin, but the **read**
 composables still hardcode the DCAT class maps: `TYPE_IRI`/`TYPE_LABEL` in

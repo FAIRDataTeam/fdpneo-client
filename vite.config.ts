@@ -1,20 +1,23 @@
 /**
  * Vite configuration.
  *
- * The dev server proxies API requests to the FDP server so the SPA can use
- * relative URLs (`/api/*`, `/sparql`) without CORS complications during local
- * development. In production the SPA is served from the same origin as the
- * API or via a CDN with the API origin configured at build time.
+ * Networking model: **CORS-only** (TASKS 11.1). The client talks to the FDP
+ * server directly at its absolute origin (`VITE_FDP_API_URL`); there is no dev
+ * proxy. The server answers cross-origin requests via its `CORSMiddleware`,
+ * whose `FDP_CORS_allow_origins` allow-list must include the SPA's exact origin
+ * — `http://localhost:5173` and `http://127.0.0.1:5173` are *different* origins
+ * to the browser, and the OIDC `redirect_uri` (Keycloak) must use the same
+ * spelling as `VITE_PUBLIC_ORIGIN`. A dev-time mismatch is warned about at
+ * startup (see `src/main.ts`). In production the SPA is served from the same
+ * origin as the API, or from a CDN with the API origin configured at build
+ * time.
  */
 
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-  const apiUrl = env.VITE_FDP_API_URL || "http://localhost:8000";
-
+export default defineConfig(() => {
   return {
     plugins: [vue()],
     resolve: {
@@ -24,13 +27,6 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-      proxy: {
-        // Proxy API and SPARQL requests to the FDP server in dev so the SPA
-        // can use relative URLs without dealing with CORS.
-        "/api": { target: apiUrl, changeOrigin: true },
-        "/sparql": { target: apiUrl, changeOrigin: true },
-        "/openapi.json": { target: apiUrl, changeOrigin: true },
-      },
     },
     build: {
       target: "es2022",
