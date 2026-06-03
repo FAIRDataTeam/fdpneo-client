@@ -368,11 +368,19 @@ semantics; CLAUDE.md (OpenAPI types are the contract).
 
 ---
 
-## Phase 9 — Collaboration, accounts & instance admin (BLOCKED on server)
+## Phase 9 — Collaboration, accounts & instance admin (mostly UNBLOCKED — see Phase 10)
 
-These legacy-client features depend on `fdp-server` endpoints that **do not
-exist in the current OpenAPI**. Each needs a coordinated server change first;
-listed so they aren't forgotten. Do not stub them against absent endpoints.
+> **Status update (2026-06-03).** The `fdp-server` parity build is essentially
+> complete: server Phases 6–13 shipped, including search, publication state,
+> API keys, runtime settings, schema/resource-definition admin, bootstrap
+> config, operational endpoints, and factory reset. **Most of the items below
+> are no longer blocked.** Phase 10 (next section) is the authoritative,
+> endpoint-by-endpoint integration plan. The Phase 9 entries are kept for the
+> legacy mapping but their "BLOCKED" framing is superseded by Phase 10.
+
+These legacy-client features were listed when the matching `fdp-server`
+endpoints did not exist. Each one's *current* server status is corrected in
+the Phase 10 table.
 
 ### 9.1 Publication state & versioning
 - Draft → published workflow and version history (legacy `EntityView` state +
@@ -473,6 +481,320 @@ Coordinated work, in dependency order:
 ### 9.10 User profile page
 - View/edit the signed-in user's profile (legacy `Profile`). Mostly IdP-backed;
   scope depends on 9.3.
+
+---
+
+## Phase 10 — Full server integration (server parity is done; wire it up)
+
+The `fdp-server` repo finished its reference-implementation parity work. Almost
+everything Phase 9 was "blocked" on now exists, and several places where the
+client worked around a missing endpoint with **SPARQL** (search, the steward
+dashboard, child listing) should migrate to the dedicated endpoints — they are
+faster, paginated, faceted, and (critically) **publication-state-aware**, which
+the SPARQL workarounds are not.
+
+### Current server status of the legacy gaps
+
+| Capability | Server endpoint (now) | Client today | Task |
+| --- | --- | --- | --- |
+| Publication state (draft/published/archived) | ✅ `POST /{record}/state`; state in `/me/dashboard` | ❌ inert placeholder | **10.3** |
+| API keys / personal tokens | ✅ `GET/POST /me/api-keys`, `DELETE /me/api-keys/{id}` | ❌ none | **10.4** |
+| Instance settings & branding | ✅ `GET /settings`, `PUT /settings/{key}` (admin) | ❌ none | **10.5** |
+| Form autocomplete sources (admin) | ✅ `/settings/forms/autocomplete-sources`; `GET /forms/autocomplete` | ❌ none | **10.5 / 10.6** |
+| Search filter config | ✅ `search.filters` settings key (drives facets) | ❌ none | **10.5** |
+| Reset to factory defaults | ✅ `POST /admin/reset` (token-confirmed) | ❌ none | **10.7** |
+| Bootstrap config | ✅ `GET /config` (oidc, features, profile) | ❌ hardcoded `.env` | **10.1** |
+| Labels (IRI → human text) | ✅ `GET /labels?iri=…` | ❌ none (last-segment hack) | **10.6** |
+| Steward "My data" | ✅ `GET /me/dashboard` (owned/editable/recent + state) | ⚠️ SPARQL (`useStewardRecords`) | **10.2** |
+| Faceted/free-text search | ✅ `POST /search` + `/me/saved-queries` | ⚠️ SPARQL (`useSearch`) | **10.2** |
+| Build/app info | ✅ `GET /info`; readiness `GET /readyz` | ❌ none | **10.8** |
+| Membership / sharing | ❌ replaced by ODRL Offers (`dct:rights`) — use the Phase 5 ODRL editor, not a `/members` API | n/a | 9.2 stays out |
+| User management | ❌ identities live in the IdP (ADR-0001); no `/users` | n/a | 9.3 stays out (IdP admin) |
+| FDP Index | ❌ server Phase 8 deferred; separate service | n/a | 9.8 stays out (for now) |
+
+### 10.0 Regenerate the OpenAPI contract (do this first) — ✅ done (2026-06-02)
+- With the server running, `npm run generate-api` → refresh `src/api/schema.ts`.
+  The spec now includes models for search, saved queries, API keys, state
+  transitions, settings, `/config`, `/info`, and `/me/dashboard`. Everything
+  below should use the regenerated types, not hand-written ones.
+- **Done:** regenerated `src/api/schema.ts` against the running server (FDP
+  v0.1.0, 26 paths). Gate green: typecheck, lint, and unit tests (86) all pass —
+  no existing code broke against the new contract.
+- **⚠️ Contract gap — the running server does not yet expose all of Phase 10.**
+  Present now: `/config`, `/info`, `/readyz`, `/healthz`, `/labels`,
+  `/me/dashboard`, `/settings`, `/settings/{key}`, `/forms/autocomplete`,
+  `/spec`, `/expanded`, `/page/{child_prefix}`, `/resource-definitions`, metrics.
+  **Missing:** `POST /search` + `/me/saved-queries` (10.2), `POST /{record}/state`
+  (10.3), `/me/api-keys` (10.4), `POST /admin/reset` (10.7). Those tasks are
+  **blocked on the server** until it ships these endpoints; re-run
+  `npm run generate-api` once it does. 10.1 (`/config`), 10.5 (`/settings`),
+  10.6 (`/labels` + `/forms/autocomplete`), 10.8 (`/info`,`/readyz`), and 10.9
+  (`/expanded`,`/page`) are unblocked by the current contract.
+
+### 10.1 Bootstrap config (`GET /config`)
+- Read `/config` once at app start (before the router/OIDC init) and feed it
+  into `userManager.ts` instead of the hardcoded `VITE_OIDC_*` values: the
+  server returns `{ oidc: { issuer, audience, client_id_hint }, profile, features }`.
+  Keep `.env` only for the API base URL and a local dev fallback.
+- Gate optional UI on `features` (e.g. hide search if `features.search` is false,
+  metrics if `features.metrics` is false).
+
+### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints
+- **Search** — replace the SPARQL body in `useSearch.ts` with `POST /search`
+  `{ query, types[], license?, from?, to?, offset, limit }` → `{ items, total,
+  facets: { type, license } }`. Render facet counts from the response (drop the
+  hardcoded facet list in `SearchView.vue`); paginate with `offset`/`limit`;
+  the result set is already policy- **and** state-gated server-side (anonymous
+  sees only published). Facet *dimensions/labels* come from the server config,
+  so don't hardcode them.
+- **Saved queries** — new `src/api/savedQueries.ts` + a small UI (save the
+  current search, list `GET /me/saved-queries`, run/delete; admins can toggle
+  `shared`). CRUD: `GET/POST /me/saved-queries`, `PUT/DELETE /me/saved-queries/{id}`.
+- **Steward dashboard** — point `useStewardRecords`/`StewardDashboardView` at
+  `GET /me/dashboard` (`{ owned, editable, recent }`, each item carrying
+  `record_iri`, `type_iri`, `title`, `state`, `last_modified`). This removes the
+  SPARQL enumeration and gives you the **publication state** the dashboard's
+  "status" column was waiting on (closes the 7.6 follow-up).
+
+### 10.3 Publication state (unblocks legacy 9.1)
+- New `src/api/state.ts`: `POST /{record}/state` `{ to: "PUBLISHED" | "DRAFT" |
+  "ARCHIVED" }` → `{ record, from_state, to_state }`. Surface the server's
+  state machine in the UI (allowed: DRAFT→PUBLISHED, PUBLISHED→DRAFT (unpublish),
+  PUBLISHED→ARCHIVED; ARCHIVED→DRAFT is **admin-only**; anything else → 409).
+- Show a **state badge** (draft/published/archived) on record detail, the browse
+  list, and the steward dashboard, and a publish/unpublish/archive control gated
+  on owner-or-admin. Newly created records are `DRAFT` server-side, so the create
+  flow should hint "saved as draft — publish when ready".
+- Note: anonymous/non-owner reads of a non-published record now return **404**
+  (state-hidden), and the SPARQL playground projection also excludes drafts for
+  anonymous — adjust copy accordingly (a missing record may be an unpublished one).
+
+### 10.4 API keys / personal access tokens (unblocks legacy 9.4)
+
+Long-lived `fdpk_…` bearer credentials for scripts/CI, bound to the signed-in
+subject. The **lowest-hanging Phase 10 item**: purely additive, no migration,
+no cross-cutting state, no auth-interceptor change. Mirror the existing
+`schemas.ts` / `useSchemas` patterns.
+
+**Server contract** (fdp-server Phase 11.1 / ADR-0011 — already shipped). All
+routes require auth (anonymous → 401). Bodies/responses are **snake_case, no
+aliases** — map to camelCase in the client.
+
+| Call | Request | Success | Errors |
+| --- | --- | --- | --- |
+| `POST /me/api-keys` | `{ "label": string, "expires_at"?: string\|null }` (ISO-8601 or null = non-expiring) | `201` `ApiKeyCreated` (= `ApiKeyInfo` + `key`) | `400 fdp.bad_request` (max reached → `details.max_per_user`; past/over-cap expiry → `details.max_ttl_days`); `404` if feature disabled |
+| `GET /me/api-keys` | — | `200` `{ "keys": ApiKeyInfo[] }` (no `key`; includes revoked rows) | `404` if disabled |
+| `DELETE /me/api-keys/{id}` | — | `204` | `403 fdp.forbidden` (not owner/admin); `404` not found / disabled |
+
+`ApiKeyInfo` JSON: `{ id, label, display_prefix, roles[], groups[], created_at,
+expires_at, last_used_at, revoked_at, active }`.
+- `display_prefix` = `fdpk_Ab3dEf12…wxyz` — the **only** way to recognise a key
+  later; render monospace.
+- `key` (plaintext `fdpk_…`) appears **only** on `POST`, **once**, and is never
+  re-fetchable.
+- `active` = not revoked and not expired. `last_used_at` is throttled
+  server-side (~60 s granularity).
+- Keys are a credential for **any authenticated subject**, not a role-gated
+  admin feature — the surface is for every logged-in user; an admin may *also*
+  revoke anyone's key via the same `DELETE`.
+
+**`src/api/apiKeys.ts`** (JSON endpoints — the axios interceptor already yields a
+parsed envelope, so no `responseType:text`/`normaliseError` dance):
+
+```ts
+import { http } from "./http";
+
+export interface ApiKey {
+  id: string; label: string; displayPrefix: string;
+  roles: string[]; groups: string[];
+  createdAt: string; expiresAt: string | null;
+  lastUsedAt: string | null; revokedAt: string | null; active: boolean;
+}
+/** A freshly minted key — carries the one-time plaintext `token`. */
+export interface NewApiKey extends ApiKey { token: string; }  // server field `key`
+export interface CreateApiKeyInput { label: string; expiresAt?: string | null; }
+
+interface RawApiKey {
+  id?: string; label?: string; display_prefix?: string;
+  roles?: string[]; groups?: string[];
+  created_at?: string; expires_at?: string | null;
+  last_used_at?: string | null; revoked_at?: string | null; active?: boolean;
+}
+function toApiKey(raw: RawApiKey): ApiKey {
+  return {
+    id: raw.id ?? "", label: raw.label ?? "", displayPrefix: raw.display_prefix ?? "",
+    roles: raw.roles ?? [], groups: raw.groups ?? [],
+    createdAt: raw.created_at ?? "", expiresAt: raw.expires_at ?? null,
+    lastUsedAt: raw.last_used_at ?? null, revokedAt: raw.revoked_at ?? null,
+    active: Boolean(raw.active),
+  };
+}
+
+export async function listApiKeys(): Promise<ApiKey[]> {
+  const res = await http.get<{ keys?: RawApiKey[] }>("/me/api-keys");
+  return (res.data.keys ?? []).map(toApiKey);
+}
+export async function createApiKey(input: CreateApiKeyInput): Promise<NewApiKey> {
+  const res = await http.post<RawApiKey & { key?: string }>("/me/api-keys", {
+    label: input.label, expires_at: input.expiresAt ?? null,
+  });
+  return { ...toApiKey(res.data), token: res.data.key ?? "" };
+}
+export async function revokeApiKey(id: string): Promise<void> {
+  await http.delete(`/me/api-keys/${encodeURIComponent(id)}`);
+}
+```
+
+**`src/composables/useApiKeys.ts`** (mirror `useSchemas` + mutation helpers).
+The created `token` is handed to the copy-once dialog by the caller and **MUST
+NOT** be written into any cache or store:
+
+```ts
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, type ComputedRef } from "vue";
+import { listApiKeys, createApiKey, revokeApiKey,
+         type ApiKey, type CreateApiKeyInput, type NewApiKey } from "@/api/apiKeys";
+
+export const API_KEYS_KEY = ["api-keys"] as const;
+
+export function useApiKeys(): {
+  keys: ComputedRef<ApiKey[]>; isLoading: ComputedRef<boolean>; isError: ComputedRef<boolean>;
+} {
+  const query = useQuery({ queryKey: API_KEYS_KEY, queryFn: listApiKeys, staleTime: 60_000, retry: 1 });
+  return {
+    keys: computed(() => query.data.value ?? []),
+    isLoading: computed(() => query.isLoading.value),
+    isError: computed(() => query.isError.value),
+  };
+}
+export function useCreateApiKey() {
+  const client = useQueryClient();
+  return useMutation<NewApiKey, unknown, CreateApiKeyInput>({
+    mutationFn: createApiKey,
+    onSuccess: () => client.invalidateQueries({ queryKey: API_KEYS_KEY }),
+  });
+}
+export function useRevokeApiKey() {
+  const client = useQueryClient();
+  return useMutation<void, unknown, string>({
+    mutationFn: revokeApiKey,
+    onSuccess: () => client.invalidateQueries({ queryKey: API_KEYS_KEY }),
+  });
+}
+```
+
+**`src/views/ApiKeysView.vue`** (`<script setup lang="ts">`, PrimeVue):
+- **List** (`DataTable` of `useApiKeys().keys`) — columns: Label, Prefix
+  (`displayPrefix`, monospace), Status badge, Created, Expires (`—` if null),
+  Last used (`Never` if null), Actions (Revoke). Empty state: "No access tokens yet."
+- **Status badge** derived from the row so the user sees *why* a key is inactive:
+  `revokedAt` → grey "Revoked"; else expired (`expiresAt < now`) → amber
+  "Expired"; else green "Active". Keep revoked/expired rows visible as history;
+  sort active first.
+- **"New token"** → create dialog: `label` (required, ≤256) + optional
+  `expiresAt` (`DatePicker`, "Never expires" when blank) → `useCreateApiKey()`.
+  Map errors with `parseFdpError`: `details.max_per_user` → "You've reached the
+  maximum of N active tokens — revoke one to free a slot." (revoking frees a
+  slot; revoked keys don't count); `details.max_ttl_days` → "Expiry can be at
+  most N days out." On success → close create dialog, open the **copy-once dialog**.
+
+**Copy-once dialog** (the one subtle part):
+- Shows the full plaintext token + a **Copy** button + a clear "this is the only
+  time you'll see it" warning, plus the `Authorization: Bearer fdpk_…` hint.
+- The token lives **only** in a local `ref<string|null>` — never Pinia, TanStack
+  cache, `localStorage`/`sessionStorage` (CLAUDE.md), or the URL.
+- **Copy** → `navigator.clipboard.writeText` + Toast; provide a readonly,
+  selectable `InputText` fallback for denied/non-secure-context clipboard.
+- **Non-dismissible** (`:closable="false"`, no Escape/overlay close) so the token
+  can't vanish before it's copied; only **Done** closes it. On Done → set the ref
+  to `null` (drop the secret) and reset the form. The list already refreshed via
+  the mutation's `invalidateQueries`, so the new key appears as metadata.
+- A11y: focus the token field on open; `aria-live="polite"` warning; labelled Copy.
+
+**Routing + nav:**
+- Route: `{ path: "/account/tokens", name: "api-keys", component: () =>
+  import("@/views/ApiKeysView.vue"), meta: { title: "Access tokens",
+  requiresAuth: true } }` (no role — every authenticated user; the guard handles
+  anonymous, the server enforces too).
+- `UserMenu.vue` entry gated on **`auth.isAuthenticated`** (broader than the
+  existing `isAdmin`/`isSteward` items): an "Access tokens" `@click="gotoTokens"`.
+
+**Tests:**
+- `apiKeys.spec.ts` (vi.mock `./http`): `listApiKeys` maps snake→camel;
+  `createApiKey` sends `expires_at` and surfaces `key` as `token`; `revokeApiKey`
+  hits the URL-encoded `DELETE`.
+- `ApiKeysView.spec.ts`: create → copy-once dialog shows the token; **Done**
+  clears it from the DOM; revoke calls the mutation; status badge reflects
+  revoked/expired/active; the `max_per_user` 400 renders the friendly message.
+
+**Acceptance:** (1) create shows the token **once** in a non-dismissible dialog,
+copied, then absent from app state; (2) list shows it Active with its
+`displayPrefix`, never the secret; (3) revoke → Revoked, freeing a capped slot;
+(4) anonymous blocked by guard (+ 401); (5) `npm run lint && type-check &&
+test:run` green.
+
+**Out of scope:** no rotate (= revoke + create), no post-create editing (server
+is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
+`fdpk_` token is what a *user's script* sends, not the SPA).
+
+### 10.5 Instance settings & admin config (unblocks legacy 9.7 + search-filter config)
+- New `src/api/settings.ts`: `GET /settings` (public, returns all keys merged
+  with defaults) and `PUT /settings/{key}` (admin, per-key Pydantic-validated).
+- Admin **Settings** view to edit the runtime keys the server exposes:
+  `forms.autocomplete-sources` (the autocomplete source list — see 10.6) and
+  `search.filters` (which facet dimensions + labels the search page shows — this
+  is what 10.2's facets read). Surface server 422 validation inline.
+- (Branding/theme keys only as far as the server defines settings keys for them;
+  don't invent keys the server doesn't validate.)
+
+### 10.6 Labels + form autocomplete (polish the existing forms)
+- `GET /labels?iri=<…>&iri=<…>` → `{ labels: { iri: text } }`. Batch-resolve
+  `dct:license`, publisher, and theme IRIs in record detail + search facets so
+  users see "Creative Commons Attribution 4.0", not a URL. Replace the
+  last-IRI-segment hack in `rdf.ts`.
+- `GET /forms/autocomplete?source=license&prefix=cc` → suggestion list. Wire it
+  into `EntityForm.vue` for license/publisher/MIME pickers (the sources are the
+  ones managed in 10.5).
+
+### 10.7 Reset to factory defaults (unblocks legacy 9.9)
+- Admin-only destructive action: `POST /admin/reset` with body
+  `{ "confirmation": "reset-to-factory-defaults" }` (the server requires the
+  literal token; surface a "type this to confirm" field). Truncates runtime
+  settings and re-applies the bundled profile. Put it behind a clear double
+  confirm in the admin area; invalidate **all** TanStack Query caches on success.
+
+### 10.8 Operational surfaces (small) — ✅ done (2026-06-02)
+- Footer build info from `GET /info` (commit, version, profile name+version,
+  features). Optional: a readiness indicator from `GET /readyz` (checks triple
+  store / Postgres / OIDC) for an admin status strip.
+- **Done:** new `src/api/info.ts` (typed `fetchAppInfo`/`fetchReadiness` +
+  `buildLabel`/`failedChecks` helpers) and `src/composables/useAppInfo.ts`
+  (`useAppInfo` cached for the session; `useReadiness` admin-gated, polled 60s).
+  `AppFooter.vue` now shows the connected server's build live (`{name} v{version}
+  · {short-commit|environment}`, full detail in the hover `title`); admin-only
+  `ReadinessStrip.vue` renders an ok/degraded chip on the right. Query keys
+  `appInfo`/`readiness` added. Tests: `info.spec.ts` (8) + `ReadinessStrip.spec.ts`
+  (4); full suite 98 green; typecheck + lint clean.
+- **Contract note:** the server's `/info` carries `name/version/environment/
+  build{commit,built_at}/runtime{python_version}` — **no** `profile`/`features`
+  (those live in `/config`, task 10.1), so the footer shows what `/info` actually
+  returns. `/readyz` answers **503** with a full `ReadinessReport` body when
+  degraded; the fetcher accepts 503 instead of throwing.
+
+### 10.9 Use the LDP read-extensions instead of SPARQL where they exist
+- Child listing: the catalog tree / children currently lean on SPARQL
+  `GRAPH ?g`. Prefer `GET /{prefix}/{id}/page/{childPrefix}` (paginated, gated)
+  and `GET /{prefix}/{id}/expanded` (record + ancestors in one call) — these
+  remove the named-graph-name coupling and respect publication state. `/spec`
+  is already in use (7.5); fold `/page`/`/expanded` in the same way.
+
+### Stays out of scope (server deliberately omits — do not build against absent APIs)
+- **Membership / sharing (9.2):** there is no `/members` API by design —
+  per-record access is ODRL Offers on `dct:rights`. The path is the **Phase 5
+  ODRL editor**, not a members CRUD.
+- **User management (9.3):** identities are owned by the IdP (Keycloak); manage
+  users there. Only revisit if the server grows a deliberate users facade.
+- **FDP Index (9.8):** server Phase 8 is deferred and is a separate service.
 
 ---
 

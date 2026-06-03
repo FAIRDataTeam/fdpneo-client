@@ -24,6 +24,147 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** App Info */
+        get: operations["app_info_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readiness */
+        get: operations["readiness_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bootstrap Config
+         * @description Self-describing config payload. Unauthenticated. No secrets.
+         */
+        get: operations["bootstrap_config_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Labels Lookup */
+        get: operations["labels_lookup_labels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Dashboard */
+        get: operations["user_dashboard_me_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings Read All */
+        get: operations["settings_read_all_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings Read One */
+        get: operations["settings_read_one_settings__key__get"];
+        /** Settings Write One */
+        put: operations["settings_write_one_settings__key__put"];
+        post?: never;
+        /** Settings Delete One */
+        delete: operations["settings_delete_one_settings__key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/forms/autocomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forms Autocomplete */
+        get: operations["forms_autocomplete_forms_autocomplete_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/metrics/summary": {
         parameters: {
             query?: never;
@@ -157,6 +298,184 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/spec": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Root Spec */
+        get: operations["ext_root_spec_spec_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{url_prefix}/spec": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Type Spec */
+        get: operations["ext_type_spec__url_prefix__spec_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{url_prefix}/{record_id}/spec": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Instance Spec */
+        get: operations["ext_instance_spec__url_prefix___record_id__spec_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/expanded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Root Expanded */
+        get: operations["ext_root_expanded_expanded_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{url_prefix}/{record_id}/expanded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Instance Expanded */
+        get: operations["ext_instance_expanded__url_prefix___record_id__expanded_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/page/{child_prefix}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Root Page */
+        get: operations["ext_root_page_page__child_prefix__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{url_prefix}/{record_id}/page/{child_prefix}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ext Instance Page */
+        get: operations["ext_instance_page__url_prefix___record_id__page__child_prefix__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resource-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rd List */
+        get: operations["rd_list_resource_definitions_get"];
+        put?: never;
+        /**
+         * Rd Create
+         * @description Register a new metadata type (admin only).
+         *
+         *     Exposing a type is a two-step act (ADR-0009): **first** publish the
+         *     type's SHACL shape as a record (e.g. ``PUT`` the shape graph to a
+         *     base-relative IRI such as ``{base}/shapes/Ontology`` through the LDP
+         *     API), **then** register a resource definition here whose ``schema``
+         *     points at that shape IRI. This call rejects a ``schema`` that does not
+         *     resolve to a published SHACL shape, so the order matters. On success
+         *     the type's LDP endpoints (``/{urlPrefix}`` …) and OpenAPI paths appear
+         *     immediately — no restart.
+         */
+        post: operations["rd_create_resource_definitions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resource-definitions/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rd Get */
+        get: operations["rd_get_resource_definitions__slug__get"];
+        /**
+         * Rd Replace
+         * @description Replace an existing definition (admin only).
+         *
+         *     The whole definition is replaced, including its ``children`` — this is
+         *     how a child link is added to an existing type (e.g. give Catalog a
+         *     ``children`` entry targeting a new Ontology type so catalogs can hold
+         *     ontology records). The body's ``urlPrefix``/``name`` must keep the same
+         *     slug; renaming is a create, not a replace. As with create, ``schema``
+         *     must resolve to a published SHACL shape.
+         */
+        put: operations["rd_replace_resource_definitions__slug__put"];
+        post?: never;
+        /** Rd Delete */
+        delete: operations["rd_delete_resource_definitions__slug__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{path}": {
         parameters: {
             query?: never;
@@ -180,490 +499,124 @@ export interface paths {
         patch: operations["ldp_patch__path__patch"];
         trace?: never;
     };
-    "/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a Repository
-         * @description Fetch the RDF graph for one Repository record.
-         */
-        get: operations["getRepository"];
-        /**
-         * Replace a Repository
-         * @description Replace the RDF graph for one Repository record.
-         */
-        put: operations["replaceRepository"];
-        post?: never;
-        /**
-         * Delete a Repository
-         * @description Remove a Repository and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteRepository"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/spec": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get SHACL shape for Repository
-         * @description Return the SHACL shape graph that validates Repository instances (https://w3id.org/fdp/o#Repository).
-         */
-        get: operations["getRepositorySpec"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/expanded": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Repository with parents
-         * @description Return the Repository record together with every ancestor reachable via dct:isPartOf.
-         */
-        get: operations["getRepositoryExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of Repository children
-         * @description Paginated listing of Repository members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getRepositoryChildPage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/catalog": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create a Catalog
-         * @description Create a new Catalog member. The server mints the resource IRI; pass the ``Slug`` header to suggest a suffix.
-         */
-        post: operations["createCatalog"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/catalog/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a Catalog
-         * @description Fetch the RDF graph for one Catalog record.
-         */
-        get: operations["getCatalog"];
-        /**
-         * Replace a Catalog
-         * @description Replace the RDF graph for one Catalog record.
-         */
-        put: operations["replaceCatalog"];
-        post?: never;
-        /**
-         * Delete a Catalog
-         * @description Remove a Catalog and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteCatalog"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/catalog/{id}/spec": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get SHACL shape for Catalog
-         * @description Return the SHACL shape graph that validates Catalog instances (http://www.w3.org/ns/dcat#Catalog).
-         */
-        get: operations["getCatalogSpec"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/catalog/{id}/expanded": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Catalog with parents
-         * @description Return the Catalog record together with every ancestor reachable via dct:isPartOf.
-         */
-        get: operations["getCatalogExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/catalog/{id}/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of Catalog children
-         * @description Paginated listing of Catalog members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getCatalogChildPage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/dataset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create a Dataset
-         * @description Create a new Dataset member. The server mints the resource IRI; pass the ``Slug`` header to suggest a suffix.
-         */
-        post: operations["createDataset"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/dataset/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a Dataset
-         * @description Fetch the RDF graph for one Dataset record.
-         */
-        get: operations["getDataset"];
-        /**
-         * Replace a Dataset
-         * @description Replace the RDF graph for one Dataset record.
-         */
-        put: operations["replaceDataset"];
-        post?: never;
-        /**
-         * Delete a Dataset
-         * @description Remove a Dataset and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteDataset"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/dataset/{id}/spec": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get SHACL shape for Dataset
-         * @description Return the SHACL shape graph that validates Dataset instances (http://www.w3.org/ns/dcat#Dataset).
-         */
-        get: operations["getDatasetSpec"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/dataset/{id}/expanded": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Dataset with parents
-         * @description Return the Dataset record together with every ancestor reachable via dct:isPartOf.
-         */
-        get: operations["getDatasetExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/dataset/{id}/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of Dataset children
-         * @description Paginated listing of Dataset members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getDatasetChildPage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/data-service": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create a DataService
-         * @description Create a new DataService member. The server mints the resource IRI; pass the ``Slug`` header to suggest a suffix.
-         */
-        post: operations["createDataService"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/data-service/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a DataService
-         * @description Fetch the RDF graph for one DataService record.
-         */
-        get: operations["getDataService"];
-        /**
-         * Replace a DataService
-         * @description Replace the RDF graph for one DataService record.
-         */
-        put: operations["replaceDataService"];
-        post?: never;
-        /**
-         * Delete a DataService
-         * @description Remove a DataService and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteDataService"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/data-service/{id}/spec": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get SHACL shape for DataService
-         * @description Return the SHACL shape graph that validates DataService instances (http://www.w3.org/ns/dcat#DataService).
-         */
-        get: operations["getDataServiceSpec"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/data-service/{id}/expanded": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get DataService with parents
-         * @description Return the DataService record together with every ancestor reachable via dct:isPartOf.
-         */
-        get: operations["getDataServiceExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/distribution": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create a Distribution
-         * @description Create a new Distribution member. The server mints the resource IRI; pass the ``Slug`` header to suggest a suffix.
-         */
-        post: operations["createDistribution"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/distribution/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a Distribution
-         * @description Fetch the RDF graph for one Distribution record.
-         */
-        get: operations["getDistribution"];
-        /**
-         * Replace a Distribution
-         * @description Replace the RDF graph for one Distribution record.
-         */
-        put: operations["replaceDistribution"];
-        post?: never;
-        /**
-         * Delete a Distribution
-         * @description Remove a Distribution and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteDistribution"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/distribution/{id}/spec": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get SHACL shape for Distribution
-         * @description Return the SHACL shape graph that validates Distribution instances (http://www.w3.org/ns/dcat#Distribution).
-         */
-        get: operations["getDistributionSpec"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/distribution/{id}/expanded": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Distribution with parents
-         * @description Return the Distribution record together with every ancestor reachable via dct:isPartOf.
-         */
-        get: operations["getDistributionExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AppInfo
+         * @description Response shape for ``GET /info``.
+         */
+        AppInfo: {
+            /** Name */
+            name: string;
+            /** Version */
+            version: string;
+            /** Environment */
+            environment: string;
+            build: components["schemas"]["BuildInfo"];
+            runtime: components["schemas"]["RuntimeInfo"];
+        };
+        /**
+         * AutocompleteResponse
+         * @description Response shape for ``GET /forms/autocomplete``.
+         */
+        AutocompleteResponse: {
+            /** Items */
+            items: components["schemas"]["AutocompleteResultItem"][];
+        };
+        /**
+         * AutocompleteResultItem
+         * @description One item in the autocomplete response.
+         */
+        AutocompleteResultItem: {
+            /** Iri */
+            iri: string;
+            /** Label */
+            label: string;
+            /** Source */
+            source: string;
+        };
+        /**
+         * BootstrapConfig
+         * @description Self-description payload returned from ``GET /config``.
+         */
+        BootstrapConfig: {
+            /** Fdp Url */
+            fdp_url: string;
+            /** Fdp Namespace */
+            fdp_namespace: string;
+            /** Fdp Version */
+            fdp_version: string;
+            oidc: components["schemas"]["OIDCBootstrap"];
+            profile: components["schemas"]["ProfileBootstrap"] | null;
+            features: components["schemas"]["FeatureFlags"];
+        };
+        /**
+         * BuildInfo
+         * @description Build-time metadata.
+         *
+         *     All fields are optional because they are populated from environment
+         *     variables the build pipeline sets (``FDP_BUILD_COMMIT``,
+         *     ``FDP_BUILD_BUILT_AT``). A locally-developed checkout has no values
+         *     and the client renders "(unknown build)".
+         */
+        BuildInfo: {
+            /** Commit */
+            commit?: string | null;
+            /** Built At */
+            built_at?: string | null;
+        };
+        /**
+         * CheckOutcome
+         * @description One dependency's probe result.
+         */
+        CheckOutcome: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "fail";
+            /** Latency Ms */
+            latency_ms?: number | null;
+            /** Error */
+            error?: string | null;
+        };
+        /**
+         * ChildLinkInput
+         * @description A child link in a create/replace request (unresolved form).
+         */
+        ChildLinkInput: {
+            /** Relationuri */
+            relationUri: string;
+            /** Target */
+            target: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Tagsuri */
+            tagsUri?: string | null;
+        };
+        /**
+         * ChildLinkView
+         * @description A resolved child link in a read response.
+         */
+        ChildLinkView: {
+            /** Relationuri */
+            relationUri: string;
+            /** Target */
+            target: string;
+            /** Targetname */
+            targetName: string;
+            /** Targetschema */
+            targetSchema: string;
+            /** Title */
+            title: string;
+            /** Tagsuri */
+            tagsUri?: string | null;
+        };
         /** CountryModel */
         CountryModel: {
             /**
@@ -694,6 +647,58 @@ export interface components {
             /** Points */
             points: components["schemas"]["DailyPointModel"][];
         };
+        /**
+         * DashboardItem
+         * @description One record summary surfaced on the dashboard.
+         */
+        DashboardItem: {
+            /** Record Iri */
+            record_iri: string;
+            /** Type Iri */
+            type_iri?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Last Modified */
+            last_modified?: string | null;
+        };
+        /**
+         * DashboardResponse
+         * @description Response shape for ``GET /me/dashboard``.
+         */
+        DashboardResponse: {
+            /** Owned */
+            owned: components["schemas"]["DashboardItem"][];
+            /** Editable */
+            editable: components["schemas"]["DashboardItem"][];
+            /** Recent */
+            recent: components["schemas"]["DashboardItem"][];
+        };
+        /**
+         * FeatureFlags
+         * @description Coarse feature flags surfaced to the client.
+         *
+         *     The client hides any UI that depends on a feature whose flag is
+         *     ``False``. Flags reflect what the server actually exposes — not what
+         *     the deployment *could* be configured to enable.
+         */
+        FeatureFlags: {
+            /** Metrics */
+            metrics: boolean;
+            /** Sparql */
+            sparql: boolean;
+            /** Data Provider */
+            data_provider: boolean;
+            /**
+             * Search
+             * @default false
+             */
+            search: boolean;
+            /**
+             * Index
+             * @default false
+             */
+            index: boolean;
+        };
         /** GeographyResponse */
         GeographyResponse: {
             period: components["schemas"]["PeriodInfo"];
@@ -704,6 +709,35 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * LabelsResponse
+         * @description Response shape for ``GET /labels``.
+         */
+        LabelsResponse: {
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * OIDCBootstrap
+         * @description OIDC endpoint hints for the client.
+         *
+         *     The issuer's ``.well-known/openid-configuration`` is the authoritative
+         *     source for endpoint URLs; the client uses it to discover the
+         *     authorization, token, and JWKS endpoints. We expose only the issuer
+         *     and audience here, plus a non-binding ``client_id_hint`` so a stock
+         *     client can pre-fill its OIDC registration if the operator hasn't
+         *     customised it.
+         */
+        OIDCBootstrap: {
+            /** Issuer */
+            issuer: string;
+            /** Audience */
+            audience: string;
+            /** Client Id Hint */
+            client_id_hint?: string | null;
         };
         /**
          * PeriodInfo
@@ -720,6 +754,107 @@ export interface components {
              * Format: date
              */
             until: string;
+        };
+        /**
+         * ProfileBootstrap
+         * @description Currently-applied deployment profile.
+         */
+        ProfileBootstrap: {
+            /** Name */
+            name: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * ReadinessReport
+         * @description Response shape for ``GET /readyz``.
+         */
+        ReadinessReport: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "not_ready";
+            /** Checks */
+            checks: {
+                [key: string]: components["schemas"]["CheckOutcome"];
+            };
+        };
+        /**
+         * ResourceDefinitionInput
+         * @description Create/replace request body for a resource definition.
+         */
+        ResourceDefinitionInput: {
+            /** Urlprefix */
+            urlPrefix: string;
+            /** Name */
+            name: string;
+            /** Schema */
+            schema: string;
+            /** Children */
+            children?: components["schemas"]["ChildLinkInput"][];
+        };
+        /**
+         * ResourceDefinitionListView
+         * @description Response for ``GET /resource-definitions`` — the full type catalog.
+         */
+        ResourceDefinitionListView: {
+            /** Definitions */
+            definitions: components["schemas"]["ResourceDefinitionView"][];
+        };
+        /**
+         * ResourceDefinitionView
+         * @description A resolved resource definition in a read response.
+         */
+        ResourceDefinitionView: {
+            /** Slug */
+            slug: string;
+            /** Urlprefix */
+            urlPrefix: string;
+            /** Name */
+            name: string;
+            /** Schema */
+            schema: string;
+            /** Isroot */
+            isRoot: boolean;
+            /** Children */
+            children: components["schemas"]["ChildLinkView"][];
+        };
+        /**
+         * RuntimeInfo
+         * @description Runtime metadata: which Python is the server actually running on.
+         */
+        RuntimeInfo: {
+            /** Python Version */
+            python_version: string;
+        };
+        /**
+         * SettingsResponse
+         * @description Shape returned by ``GET /settings``.
+         *
+         *     The settings are wrapped in a top-level ``values`` dict keyed by
+         *     registered key so adding a new key doesn't break clients that
+         *     iterate.
+         */
+        SettingsResponse: {
+            /** Values */
+            values: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        /**
+         * SettingsValueResponse
+         * @description Shape returned by ``GET /settings/{key}``.
+         */
+        SettingsValueResponse: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: {
+                [key: string]: unknown;
+            };
         };
         /** SummaryResponse */
         SummaryResponse: {
@@ -796,6 +931,300 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    app_info_info_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppInfo"];
+                };
+            };
+        };
+    };
+    readiness_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessReport"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessReport"];
+                };
+            };
+        };
+    };
+    bootstrap_config_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BootstrapConfig"];
+                };
+            };
+        };
+    };
+    labels_lookup_labels_get: {
+        parameters: {
+            query: {
+                /** @description One or more IRIs to resolve. Repeat the parameter. */
+                iri: string[];
+                /** @description Preferred BCP-47 language tag. Untagged literals are the fallback. */
+                lang?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_dashboard_me_dashboard_get: {
+        parameters: {
+            query?: {
+                /** @description Maximum records in 'owned'. */
+                owned_limit?: number;
+                /** @description Maximum records in 'recent'. */
+                recent_limit?: number;
+                /** @description Maximum records in 'editable'. */
+                editable_limit?: number;
+                /** @description Drop the subject filter and return system-wide results. Requires the admin role. */
+                as_admin?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settings_read_all_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsResponse"];
+                };
+            };
+        };
+    };
+    settings_read_one_settings__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsValueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settings_write_one_settings__key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsValueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settings_delete_one_settings__key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forms_autocomplete_forms_autocomplete_get: {
+        parameters: {
+            query: {
+                /** @description Name of the configured autocomplete source. */
+                source: string;
+                /** @description Case-insensitive prefix to match. */
+                prefix?: string;
+                /** @description Maximum items returned. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutocompleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1071,6 +1500,359 @@ export interface operations {
             };
         };
     };
+    ext_root_spec_spec_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    ext_type_spec__url_prefix__spec_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                url_prefix: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ext_instance_spec__url_prefix___record_id__spec_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                url_prefix: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ext_root_expanded_expanded_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    ext_instance_expanded__url_prefix___record_id__expanded_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                url_prefix: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ext_root_page_page__child_prefix__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                child_prefix: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ext_instance_page__url_prefix___record_id__page__child_prefix__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                url_prefix: string;
+                record_id: string;
+                child_prefix: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rd_list_resource_definitions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceDefinitionListView"];
+                };
+            };
+        };
+    };
+    rd_create_resource_definitions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResourceDefinitionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceDefinitionView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rd_get_resource_definitions__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceDefinitionView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rd_replace_resource_definitions__slug__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResourceDefinitionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceDefinitionView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rd_delete_resource_definitions__slug__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ldp_get__path__get: {
         parameters: {
             query?: never;
@@ -1285,1723 +2067,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
-            };
-        };
-    };
-    getRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Replacement Repository graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getRepositorySpec: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getRepositoryExpanded: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getRepositoryChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createCatalog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description New Catalog graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getCatalog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceCatalog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** @description Replacement Catalog graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteCatalog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getCatalogSpec: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getCatalogExpanded: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getCatalogChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createDataset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description New Dataset graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDataset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceDataset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** @description Replacement Dataset graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteDataset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDatasetSpec: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDatasetExpanded: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDatasetChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createDataService: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description New DataService graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDataService: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceDataService: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** @description Replacement DataService graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteDataService: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDataServiceSpec: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDataServiceExpanded: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createDistribution: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description New Distribution graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDistribution: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceDistribution: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** @description Replacement Distribution graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteDistribution: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDistributionSpec: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getDistributionExpanded: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

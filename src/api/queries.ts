@@ -16,4 +16,6 @@ export const queryKeys = {
   metricsOverview: (range: string) => ["metrics", "overview", range] as const,
   resourceMetrics: (resourceId: string, range: string) =>
     ["metrics", "resource", resourceId, range] as const,
+  appInfo: () => ["app-info"] as const,
+  readiness: () => ["readiness"] as const,
 };
