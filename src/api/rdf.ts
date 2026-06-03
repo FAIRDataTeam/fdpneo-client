@@ -53,6 +53,15 @@ export function many(store: Store, subject: string, predicate: string): string[]
   return store.getObjects(namedNode(subject), namedNode(predicate), null).map((o) => o.value);
 }
 
+/** Distinct subjects in the store that carry an `rdf:type` (e.g. the children in a `/page` graph). */
+export function typedSubjects(store: Store): string[] {
+  const out = new Set<string>();
+  for (const q of store.getQuads(null, namedNode(RDF_TYPE), null, null)) {
+    out.add(q.subject.value);
+  }
+  return [...out];
+}
+
 /** Replace all `subject predicate` triples with a single string literal (or remove if empty). */
 export function setLiteral(store: Store, subject: string, predicate: string, value: string): void {
   store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));

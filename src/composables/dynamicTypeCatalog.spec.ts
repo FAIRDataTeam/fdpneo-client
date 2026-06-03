@@ -19,6 +19,16 @@ vi.mock("@/api/sparql", () => ({
   literal: (s: string) => JSON.stringify(s),
 }));
 
+// useTree now lists via the /page read-extension, not SPARQL (TASKS 10.9).
+const fetchChildrenPage = vi.fn();
+vi.mock("@/api/extensions", () => ({
+  fetchChildrenPage: (parentId: string, childPrefix: string) =>
+    fetchChildrenPage(parentId, childPrefix),
+}));
+vi.mock("@/api/records", () => ({
+  readGraph: () => Promise.resolve({ turtle: "", etag: null }),
+}));
+
 const BIOBANK_CLASS = "https://example.org/onto#Biobank";
 const DATASET_CLASS = "https://example.org/onto#Dataset";
 
@@ -79,13 +89,26 @@ describe("useSearch (dynamic type catalog)", () => {
 });
 
 describe("useTree (dynamic type catalog)", () => {
-  it("builds the hierarchy from the catalog's container/member classes", async () => {
+  beforeEach(() => {
+    fetchChildrenPage.mockReset();
+    // Root holds one biobank; that biobank holds no datasets.
+    fetchChildrenPage.mockImplementation((parentId: string, childPrefix: string) => {
+      if (parentId === "" && childPrefix === "biobank") {
+        return Promise.resolve({
+          children: [{ id: "biobank/bb1", label: "Biobank One", typeIri: BIOBANK_CLASS }],
+          total: 1,
+        });
+      }
+      return Promise.resolve({ children: [], total: 0 });
+    });
+  });
+
+  it("pages children by the catalog's container then member prefixes", async () => {
     await run(() => useTree());
-    // fetchRootTitle + hierarchy query both fire; the hierarchy one carries the
-    // container (biobank) and member (dataset) classes.
-    const queries = sparqlSelect.mock.calls.map((c) => c[0] as string);
-    const hierarchy = queries.find((q) => q.includes("isPartOf")) ?? "";
-    expect(hierarchy).toContain(`<${BIOBANK_CLASS}>`);
-    expect(hierarchy).toContain(`<${DATASET_CLASS}>`);
+    const calls = fetchChildrenPage.mock.calls;
+    // Root → biobank containers, then that biobank → dataset members. Neither
+    // prefix is hardcoded; both come from the (mocked) type catalog.
+    expect(calls).toContainEqual(["", "biobank"]);
+    expect(calls).toContainEqual(["biobank/bb1", "dataset"]);
   });
 });

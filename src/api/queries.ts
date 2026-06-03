@@ -21,4 +21,5 @@ export const queryKeys = {
   labels: (iris: string[]) => ["labels", iris] as const,
   autocomplete: (source: string, prefix: string) =>
     ["autocomplete", source, prefix] as const,
+  expanded: (id: string) => ["expanded", id] as const,
 };

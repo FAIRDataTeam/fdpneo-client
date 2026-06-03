@@ -2,122 +2,100 @@
  * `useTree` — the repository → containers → members hierarchy for the
  * container browser.
  *
- * Built from SPARQL: the root repository's title plus each container record
- * and the members that declare it as their `dct:isPartOf` parent. Node ids are
- * path ids so they double as `/records/:id` targets.
+ * Built from the LDP read-extension `GET …/page/{childPrefix}` (TASKS 10.9),
+ * not SPARQL: the root's child types come from the live type catalog
+ * (`useResourceTypes`), each container's members from *its* child types. This
+ * removes the named-graph-name coupling the old `GRAPH ?g` query had and
+ * respects publication state server-side (drafts drop out of the page). Falls
+ * back to plain DCAT (Catalog → Dataset/DataService) when the catalog is empty.
  *
- * The container/member class set is runtime-mutable on the server, so it is
- * derived from the live type catalog (`useResourceTypes`) — the root
- * definition's children are the top-level containers, and *their* children are
- * the members. A deployment that registers custom container/member types gets
- * a correct tree without code changes. When the catalog is unavailable the
- * sets fall back to plain DCAT (Catalog → Dataset/DataService), so standard
- * deployments keep working offline.
+ * Eager two levels (containers + their members) to match the existing
+ * `TreeNode` shape the browser renders; each `/page` call is policy-gated and a
+ * failing branch degrades to empty rather than failing the whole tree.
  */
 
 import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { queryKeys } from "@/api/queries";
-import { apiBase, iriToId, NS } from "@/api/rdf";
-import { sparqlSelect, value } from "@/api/sparql";
+import { apiBase, iriToId, NS, one, parseTurtle } from "@/api/rdf";
+import { fetchChildrenPage } from "@/api/extensions";
+import { readGraph } from "@/api/records";
 import { useResourceTypes } from "@/composables/useResourceTypes";
+import type { EntityType } from "@/api/entityForms";
 import type { TreeNode } from "@/data/sampleRecord";
 
-const DCAT_CONTAINERS = [`${NS.dcat}Catalog`];
-const DCAT_MEMBERS = [`${NS.dcat}Dataset`, `${NS.dcat}DataService`];
-
-interface ClassSets {
-  containers: string[];
-  members: string[];
-}
-
-function buildHierarchyQuery({ containers, members }: ClassSets): string {
-  const cList = containers.map((iri) => `<${iri}>`).join(", ");
-  const mList = members.map((iri) => `<${iri}>`).join(", ");
-  return `SELECT ?c ?ctitle ?d ?dtitle WHERE {
-  GRAPH ?c { ?c a ?ctype ; <${NS.dct}title> ?ctitle . FILTER( ?ctype IN (${cList}) ) }
-  OPTIONAL {
-    GRAPH ?d { ?d a ?dtype ; <${NS.dct}isPartOf> ?c ; <${NS.dct}title> ?dtitle . FILTER( ?dtype IN (${mList}) ) }
-  }
-} ORDER BY ?ctitle ?dtitle`;
-}
+const DCAT_TOP = ["catalog"];
+const PAGE_LIMIT = 200;
 
 async function fetchRootTitle(): Promise<string> {
-  const base = apiBase();
-  const rows = await sparqlSelect(
-    `SELECT ?title WHERE { GRAPH <${base}> { <${base}> <${NS.dct}title> ?title } }`,
-  );
-  return value(rows[0] ?? {}, "title") ?? "Repository";
+  try {
+    const { turtle } = await readGraph("");
+    const store = parseTurtle(turtle);
+    const base = apiBase();
+    return (
+      one(store, base, `${NS.dct}title`) ??
+      one(store, `${base}/`, `${NS.dct}title`) ??
+      "Repository"
+    );
+  } catch {
+    return "Repository";
+  }
 }
 
-async function fetchTree(classes: ClassSets): Promise<TreeNode> {
-  const [rootTitle, rows] = await Promise.all([
-    fetchRootTitle(),
-    sparqlSelect(buildHierarchyQuery(classes)),
-  ]);
-
-  const catalogs = new Map<string, TreeNode>();
-  for (const row of rows) {
-    const cIri = value(row, "c");
-    if (!cIri) continue;
-    let cat = catalogs.get(cIri);
-    if (!cat) {
-      cat = {
-        id: iriToId(cIri),
-        label: value(row, "ctitle") ?? iriToId(cIri),
-        count: 0,
-        children: [],
-      };
-      catalogs.set(cIri, cat);
-    }
-    const dIri = value(row, "d");
-    if (dIri) {
-      cat.children!.push({ id: iriToId(dIri), label: value(row, "dtitle") ?? iriToId(dIri) });
-      cat.count = (cat.count ?? 0) + 1;
-    }
+/** Children of one type under a parent (`""` = root); empty on a gated/failed page. */
+async function childrenOf(parentId: string, childPrefix: string): Promise<TreeNode[]> {
+  try {
+    const page = await fetchChildrenPage(parentId, childPrefix, { limit: PAGE_LIMIT });
+    return page.children.map((c) => ({ id: c.id, label: c.label }));
+  } catch {
+    return [];
   }
+}
 
-  const children = [...catalogs.values()];
+async function fetchTree(
+  topPrefixes: string[],
+  childPrefixesOf: (type: EntityType) => EntityType[],
+): Promise<TreeNode> {
+  const [rootTitle, containerLists] = await Promise.all([
+    fetchRootTitle(),
+    Promise.all(topPrefixes.map((p) => childrenOf("", p))),
+  ]);
+  const containers = containerLists.flat();
+
+  const catalogs = await Promise.all(
+    containers.map(async (c): Promise<TreeNode> => {
+      const typePrefix = c.id.split("/")[0] ?? "";
+      const memberLists = await Promise.all(
+        childPrefixesOf(typePrefix).map((mp) => childrenOf(c.id, mp)),
+      );
+      const members = memberLists.flat();
+      return { id: c.id, label: c.label, count: members.length, children: members };
+    }),
+  );
+
   return {
     id: iriToId(apiBase()),
     label: rootTitle,
-    count: children.reduce((sum, c) => sum + (c.count ?? 0), 0),
-    children,
+    count: catalogs.reduce((sum, c) => sum + (c.count ?? 0), 0),
+    children: catalogs,
   };
 }
 
 export function useTree() {
   const { defs, specFor } = useResourceTypes();
 
-  // Container classes = the root definition's children; member classes =
-  // those containers' children. Falls back to DCAT when the catalog is empty.
-  const classes = computed<ClassSets>(() => {
+  // Top-level container types = the root definition's children (DCAT fallback).
+  const topPrefixes = computed<string[]>(() => {
     const root = defs.value.find((d) => d.isRoot);
-    const containerPrefixes = root?.children.map((c) => c.target).filter(Boolean) ?? [];
-    const containerSpecs = containerPrefixes
-      .map((p) => specFor(p))
-      .filter((s): s is NonNullable<typeof s> => s !== null);
-
-    const containers = containerSpecs.map((s) => s.classIri);
-    const memberPrefixes = new Set(containerSpecs.flatMap((s) => s.childTypes));
-    const members = [...memberPrefixes]
-      .map((p) => specFor(p))
-      .filter((s): s is NonNullable<typeof s> => s !== null)
-      .map((s) => s.classIri);
-
-    return {
-      containers: containers.length ? containers : DCAT_CONTAINERS,
-      members: members.length ? members : DCAT_MEMBERS,
-    };
+    const prefixes = root?.children.map((c) => c.target).filter(Boolean) ?? [];
+    return prefixes.length ? prefixes : DCAT_TOP;
   });
 
+  const childPrefixesOf = (type: EntityType): EntityType[] => specFor(type)?.childTypes ?? [];
+
   return useQuery({
-    queryKey: computed(() => [
-      ...queryKeys.tree(),
-      classes.value.containers,
-      classes.value.members,
-    ]),
-    queryFn: () => fetchTree(classes.value),
+    queryKey: computed(() => [...queryKeys.tree(), topPrefixes.value]),
+    queryFn: () => fetchTree(topPrefixes.value, childPrefixesOf),
     staleTime: 5 * 60_000,
   });
 }

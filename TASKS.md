@@ -823,12 +823,35 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
   returns. `/readyz` answers **503** with a full `ReadinessReport` body when
   degraded; the fetcher accepts 503 instead of throwing.
 
-### 10.9 Use the LDP read-extensions instead of SPARQL where they exist
+### 10.9 Use the LDP read-extensions instead of SPARQL where they exist — ✅ done (2026-06-03)
 - Child listing: the catalog tree / children currently lean on SPARQL
   `GRAPH ?g`. Prefer `GET /{prefix}/{id}/page/{childPrefix}` (paginated, gated)
   and `GET /{prefix}/{id}/expanded` (record + ancestors in one call) — these
   remove the named-graph-name coupling and respect publication state. `/spec`
   is already in use (7.5); fold `/page`/`/expanded` in the same way.
+- **Done:** new `src/api/extensions.ts` — `fetchChildrenPage(parentId, childPrefix,
+  {limit,offset})` and `fetchExpanded(path)`. Both endpoints return **negotiated
+  RDF (Turtle), not JSON** (the OpenAPI advertises `application/json` but the
+  handlers serialize RDF — verified in server `metadata/extensions.py`), so they're
+  parsed with `rdf.ts`, **no hand-written response types** (CLAUDE.md). `/page` reads
+  each child's `dct:title`+`rdf:type` from the graph and `X-FDP-Page-Total` from the
+  header (added `typedSubjects` to `rdf.ts`).
+- **`useTree` rewritten off SPARQL onto `/page`:** catalog-driven (top types =
+  root def's children; members = their children, via `useResourceTypes`), eager two
+  levels keeping the existing `TreeNode` shape; per-branch failures degrade to empty
+  rather than failing the whole tree; root title via LDP `readGraph("")`. DCAT
+  fallback retained.
+- **Breadcrumbs now real via `/expanded`:** new `useAncestors(id)` composable walks
+  `dct:isPartOf` in the expanded graph (root→current); `RecordDetailView` replaced
+  its **hardcoded** `["Cohort studies", …]` placeholder with it.
+- Tests: `extensions.spec.ts` (6); `dynamicTypeCatalog.spec.ts` useTree case updated
+  to assert `/page` paging by catalog prefixes. Full suite 123 green; typecheck+lint clean.
+- **Notes:** `/page`+`/expanded` **500 on this box** (Postgres/triplestore down — env,
+  not contract); graceful fallbacks cover it. **Not migrated (deliberately):**
+  `useCatalogs` still uses SPARQL — the browse list reports a per-catalog child
+  *count* that `/page` only gives via a header per call (N+1); revisit with 10.2
+  or when a count is exposed. `useRecord`'s distribution fetch (SPARQL `VALUES`) is
+  record-detail, not child-listing — left as-is.
 
 ### Stays out of scope (server deliberately omits — do not build against absent APIs)
 - **Membership / sharing (9.2):** there is no `/members` API by design —

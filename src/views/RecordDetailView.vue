@@ -10,6 +10,7 @@
 import { computed, toRef } from "vue";
 import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
+import { useAncestors } from "@/composables/useAncestors";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
 import { useResourceTypes } from "@/composables/useResourceTypes";
@@ -44,7 +45,8 @@ const childCreateLinks = computed(() => {
   }));
 });
 
-const breadcrumbs = ["Cohort studies", "Alzheimer's Disease", "AD Cohort 2024 — MRI"];
+// Real breadcrumb trail from /expanded (record + dct:isPartOf ancestors).
+const { crumbs: breadcrumbs } = useAncestors(toRef(id));
 </script>
 
 <template>
