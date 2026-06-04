@@ -57,12 +57,12 @@ describe("useStewardRecords (dashboard)", () => {
   it("merges owned ∪ editable (deduped) and maps type_iri via the catalog", async () => {
     fetchDashboard.mockResolvedValue({
       owned: [
-        { record_iri: "http://localhost:8000/catalog/c1", type_iri: CATALOG, title: "Cat 1", last_modified: "2026-06-01T10:00:00Z" },
+        { record_iri: "http://localhost:8000/catalog/c1", type_iri: CATALOG, title: "Cat 1", state: "PUBLISHED", last_modified: "2026-06-01T10:00:00Z" },
       ],
       editable: [
         // duplicate of owned c1 — must appear once
-        { record_iri: "http://localhost:8000/catalog/c1", type_iri: CATALOG, title: "Cat 1" },
-        { record_iri: "http://localhost:8000/dataset/d1", type_iri: DATASET, title: "Data 1" },
+        { record_iri: "http://localhost:8000/catalog/c1", type_iri: CATALOG, title: "Cat 1", state: "PUBLISHED" },
+        { record_iri: "http://localhost:8000/dataset/d1", type_iri: DATASET, title: "Data 1", state: "DRAFT" },
       ],
       recent: [
         { record_iri: "http://localhost:8000/dataset/d1", type_iri: DATASET, title: "Data 1", last_modified: "2026-06-02T09:00:00Z" },
@@ -73,8 +73,8 @@ describe("useStewardRecords (dashboard)", () => {
 
     expect(rows).toHaveLength(2); // c1 deduped
     const cat = rows.find((r) => r.id === "catalog/c1");
-    expect(cat).toMatchObject({ type: "catalog", typeLabel: "Catalog", title: "Cat 1", modified: "2026-06-01" });
-    expect(rows.find((r) => r.id === "dataset/d1")?.typeLabel).toBe("Dataset");
+    expect(cat).toMatchObject({ type: "catalog", typeLabel: "Catalog", title: "Cat 1", modified: "2026-06-01", state: "PUBLISHED" });
+    expect(rows.find((r) => r.id === "dataset/d1")).toMatchObject({ typeLabel: "Dataset", state: "DRAFT" });
 
     expect(recent).toHaveLength(1);
     expect(recent[0]).toMatchObject({ id: "dataset/d1", modified: "2026-06-02" });

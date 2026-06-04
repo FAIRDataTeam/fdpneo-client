@@ -53,6 +53,12 @@ export function many(store: Store, subject: string, predicate: string): string[]
   return store.getObjects(namedNode(subject), namedNode(predicate), null).map((o) => o.value);
 }
 
+/** First object value for any triple with this predicate, regardless of subject. */
+export function anyObject(store: Store, predicate: string): string | undefined {
+  const [q] = store.getQuads(null, namedNode(predicate), null, null);
+  return q?.object.value;
+}
+
 /** Distinct subjects in the store that carry an `rdf:type` (e.g. the children in a `/page` graph). */
 export function typedSubjects(store: Store): string[] {
   const out = new Set<string>();

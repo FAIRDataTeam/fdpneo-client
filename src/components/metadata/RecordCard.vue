@@ -4,6 +4,7 @@ import { computed } from "vue";
 import TypeTag from "@/components/shared/TypeTag.vue";
 import AppChip from "@/components/shared/AppChip.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
+import StateBadge from "@/components/shared/StateBadge.vue";
 import { useHighlight } from "@/composables/useHighlight";
 
 const props = defineProps<{ record: SearchResult; highlight?: string }>();
@@ -21,6 +22,7 @@ const distributionCount = computed(() => {
     <div class="main">
       <div class="chips">
         <TypeTag :kind="record.type">{{ record.typeLabel }}</TypeTag>
+        <StateBadge :state="record.state" />
         <AppChip v-if="record.restricted">
           <AppIcon name="shield" :size="11" /> Institution only
         </AppChip>

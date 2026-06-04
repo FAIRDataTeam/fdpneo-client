@@ -130,6 +130,7 @@ function clientError(title: string, message: string): ParsedError {
         <div class="eyebrow mono">FDP Neo · New {{ spec.label }}</div>
         <h1>Create {{ spec.label.toLowerCase() }}</h1>
         <p v-if="parentIri" class="lede mono">in {{ parentIri }}</p>
+        <p class="draft-hint">Saved as a <strong>draft</strong> — publish it when ready from the record page.</p>
       </header>
 
       <form class="form" @submit.prevent="submit">
@@ -189,6 +190,11 @@ h1 {
   font-size: 12px;
   color: var(--muted);
   word-break: break-all;
+}
+.draft-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 .form {
   display: flex;

@@ -112,6 +112,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Key List */
+        get: operations["api_key_list_me_api_keys_get"];
+        put?: never;
+        /**
+         * Api Key Create
+         * @description Mint a key. The plaintext token is in the response **once** — store it now.
+         */
+        post: operations["api_key_create_me_api_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/api-keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Api Key Revoke */
+        delete: operations["api_key_revoke_me_api_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search */
+        post: operations["search_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/saved-queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved Query List */
+        get: operations["saved_query_list_me_saved_queries_get"];
+        put?: never;
+        /** Saved Query Create */
+        post: operations["saved_query_create_me_saved_queries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/saved-queries/{query_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Saved Query Update */
+        put: operations["saved_query_update_me_saved_queries__query_id__put"];
+        post?: never;
+        /** Saved Query Delete */
+        delete: operations["saved_query_delete_me_saved_queries__query_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings": {
         parameters: {
             query?: never;
@@ -143,6 +234,30 @@ export interface paths {
         post?: never;
         /** Settings Delete One */
         delete: operations["settings_delete_one_settings__key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Reset
+         * @description Reset the FDP to the bundled profile's factory defaults (admin only).
+         *
+         *     Destructive and irreversible: the ``runtime_settings`` table is
+         *     truncated and the deployment profile is force re-applied. The request
+         *     body must carry the confirmation token.
+         */
+        post: operations["admin_reset_admin_reset_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -417,6 +532,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** State Root */
+        post: operations["state_root_state_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{path}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** State Transition */
+        post: operations["state_transition__path__state_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/resource-definitions": {
         parameters: {
             query?: never;
@@ -476,6 +625,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/schemas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schema List */
+        get: operations["schema_list_schemas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schemas/{schema_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schema Get */
+        get: operations["schema_get_schemas__schema_id__get"];
+        /**
+         * Schema Put
+         * @description Publish (create or replace) a SHACL shape (admin only).
+         *
+         *     Body is Turtle. Each write bumps the shape's ``owl:versionInfo`` and
+         *     re-warms the SHACL validator. The stable IRI keeps resource-definition
+         *     ``schema`` references valid across edits.
+         */
+        put: operations["schema_put_schemas__schema_id__put"];
+        post?: never;
+        /** Schema Delete */
+        delete: operations["schema_delete_schemas__schema_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schemas/{schema_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Schema Validate
+         * @description Dry-run a sample record (Turtle body) against the shape (authenticated).
+         */
+        post: operations["schema_validate_schemas__schema_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{path}": {
         parameters: {
             query?: never;
@@ -503,6 +715,81 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApiKeyCreateRequest
+         * @description Body for ``POST /me/api-keys``.
+         */
+        ApiKeyCreateRequest: {
+            /** Label */
+            label: string;
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /**
+         * ApiKeyCreated
+         * @description ``POST`` response — carries the plaintext token exactly once.
+         */
+        ApiKeyCreated: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Display Prefix */
+            display_prefix: string;
+            /** Roles */
+            roles: string[];
+            /** Groups */
+            groups: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Active */
+            active: boolean;
+            /** Key */
+            key: string;
+        };
+        /**
+         * ApiKeyInfo
+         * @description Public (secret-free) view of a key.
+         */
+        ApiKeyInfo: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Display Prefix */
+            display_prefix: string;
+            /** Roles */
+            roles: string[];
+            /** Groups */
+            groups: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Active */
+            active: boolean;
+        };
+        /** ApiKeyList */
+        ApiKeyList: {
+            /** Keys */
+            keys: components["schemas"]["ApiKeyInfo"][];
+        };
         /**
          * AppInfo
          * @description Response shape for ``GET /info``.
@@ -658,6 +945,8 @@ export interface components {
             type_iri?: string | null;
             /** Title */
             title?: string | null;
+            /** State */
+            state?: string | null;
             /** Last Modified */
             last_modified?: string | null;
         };
@@ -672,6 +961,20 @@ export interface components {
             editable: components["schemas"]["DashboardItem"][];
             /** Recent */
             recent: components["schemas"]["DashboardItem"][];
+        };
+        /** FacetDimension */
+        FacetDimension: {
+            /** Label */
+            label: string;
+            /** Values */
+            values: components["schemas"]["FacetValue"][];
+        };
+        /** FacetValue */
+        FacetValue: {
+            /** Value */
+            value: string;
+            /** Count */
+            count: number;
         };
         /**
          * FeatureFlags
@@ -720,6 +1023,12 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /**
+         * MetadataState
+         * @description A record's publication state.
+         * @enum {string}
+         */
+        MetadataState: "DRAFT" | "PUBLISHED" | "ARCHIVED";
         /**
          * OIDCBootstrap
          * @description OIDC endpoint hints for the client.
@@ -781,6 +1090,37 @@ export interface components {
             };
         };
         /**
+         * ResetRequest
+         * @description Body for ``POST /admin/reset``.
+         */
+        ResetRequest: {
+            /**
+             * Confirmation
+             * @description Must equal the server's reset confirmation token.
+             */
+            confirmation: string;
+        };
+        /**
+         * ResetResponse
+         * @description Outcome of a successful reset.
+         */
+        ResetResponse: {
+            /** Profilename */
+            profileName: string;
+            /** Profileversion */
+            profileVersion: string;
+            /** Settingscleared */
+            settingsCleared: number;
+            /** Schemas */
+            schemas: number;
+            /** Offers */
+            offers: number;
+            /** Resourcedefinitions */
+            resourceDefinitions: number;
+            /** Seedrecords */
+            seedRecords: number;
+        };
+        /**
          * ResourceDefinitionInput
          * @description Create/replace request body for a resource definition.
          */
@@ -828,6 +1168,125 @@ export interface components {
             /** Python Version */
             python_version: string;
         };
+        /** SavedQueryCreate */
+        SavedQueryCreate: {
+            /** Name */
+            name: string;
+            /** Query */
+            query: {
+                [key: string]: unknown;
+            };
+        };
+        /** SavedQueryList */
+        SavedQueryList: {
+            /** Queries */
+            queries: components["schemas"]["SavedQueryView"][];
+        };
+        /** SavedQueryUpdate */
+        SavedQueryUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Query */
+            query?: {
+                [key: string]: unknown;
+            } | null;
+            /** Shared */
+            shared?: boolean | null;
+        };
+        /** SavedQueryView */
+        SavedQueryView: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Query */
+            query: {
+                [key: string]: unknown;
+            };
+            /** Shared */
+            shared: boolean;
+            /** Ownersubject */
+            ownerSubject: string;
+            /** Mine */
+            mine: boolean;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /**
+         * SchemaInfo
+         * @description Summary of a published shape.
+         */
+        SchemaInfo: {
+            /** Id */
+            id: string;
+            /** Iri */
+            iri: string;
+            /** Target Class */
+            target_class?: string | null;
+            /** Version */
+            version?: number | null;
+        };
+        /** SchemaListView */
+        SchemaListView: {
+            /** Schemas */
+            schemas: components["schemas"]["SchemaInfo"][];
+        };
+        /** SearchItem */
+        SearchItem: {
+            /** Recordiri */
+            recordIri: string;
+            /** Typeiri */
+            typeIri?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            /** License */
+            license?: string | null;
+            /** State */
+            state?: string | null;
+            /** Updatedat */
+            updatedAt?: string | null;
+        };
+        /**
+         * SearchRequest
+         * @description Body for ``POST /search``.
+         */
+        SearchRequest: {
+            /** Query */
+            query?: string | null;
+            /** Types */
+            types?: string[];
+            /** License */
+            license?: string | null;
+            /** From */
+            from?: string | null;
+            /** To */
+            to?: string | null;
+            /** Language */
+            language?: string | null;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /** Limit */
+            limit?: number | null;
+        };
+        /** SearchResponse */
+        SearchResponse: {
+            /** Items */
+            items: components["schemas"]["SearchItem"][];
+            /** Total */
+            total: number;
+            /** Facets */
+            facets: {
+                [key: string]: components["schemas"]["FacetDimension"];
+            };
+        };
         /**
          * SettingsResponse
          * @description Shape returned by ``GET /settings``.
@@ -855,6 +1314,23 @@ export interface components {
             value: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * StateTransitionRequest
+         * @description Body for ``POST /{record}/state``.
+         */
+        StateTransitionRequest: {
+            to: components["schemas"]["MetadataState"];
+        };
+        /**
+         * StateTransitionResponse
+         * @description Result of a transition.
+         */
+        StateTransitionResponse: {
+            /** Record */
+            record: string;
+            from_state: components["schemas"]["MetadataState"];
+            to_state: components["schemas"]["MetadataState"];
         };
         /** SummaryResponse */
         SummaryResponse: {
@@ -903,6 +1379,18 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * ValidationResultView
+         * @description The outcome of a dry-run validation against a shape.
+         */
+        ValidationResultView: {
+            /** Conforms */
+            conforms: boolean;
+            /** Violations */
+            violations: {
+                [key: string]: string | null;
+            }[];
         };
     };
     responses: never;
@@ -1076,6 +1564,238 @@ export interface operations {
             };
         };
     };
+    api_key_list_me_api_keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyList"];
+                };
+            };
+        };
+    };
+    api_key_create_me_api_keys_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_key_revoke_me_api_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    saved_query_list_me_saved_queries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedQueryList"];
+                };
+            };
+        };
+    };
+    saved_query_create_me_saved_queries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedQueryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedQueryView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    saved_query_update_me_saved_queries__query_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                query_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedQueryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedQueryView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    saved_query_delete_me_saved_queries__query_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                query_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     settings_read_all_settings_get: {
         parameters: {
             query?: never;
@@ -1181,6 +1901,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_reset_admin_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -1705,6 +2458,74 @@ export interface operations {
             };
         };
     };
+    state_root_state_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StateTransitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_transition__path__state_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StateTransitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     rd_list_resource_definitions_get: {
         parameters: {
             query?: never;
@@ -1841,6 +2662,148 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schema_list_schemas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaListView"];
+                };
+            };
+        };
+    };
+    schema_get_schemas__schema_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schema_put_schemas__schema_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schema_delete_schemas__schema_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schema_validate_schemas__schema_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationResultView"];
+                };
             };
             /** @description Validation Error */
             422: {

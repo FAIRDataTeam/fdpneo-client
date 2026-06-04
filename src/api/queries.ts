@@ -23,4 +23,7 @@ export const queryKeys = {
     ["autocomplete", source, prefix] as const,
   expanded: (id: string) => ["expanded", id] as const,
   settings: () => ["settings"] as const,
+  savedQueries: () => ["saved-queries"] as const,
+  recordState: (id: string) => ["record-state", id] as const,
+  apiKeys: () => ["api-keys"] as const,
 };

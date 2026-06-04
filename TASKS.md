@@ -559,28 +559,39 @@ the SPARQL workarounds are not.
     Auth0 wants `extraQueryParams.audience`, Keycloak doesn't); only
     `authority`/`client_id` are wired. Revisit if a deployment needs it.
 
-### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints — ⏳ partial (2026-06-03)
-- ✅ **Steward dashboard done (2026-06-03):** new `src/api/dashboard.ts`
-  (`fetchDashboard`); `useStewardRecords` now reads `GET /me/dashboard` instead of
-  SPARQL — main `rows` = owned ∪ editable (deduped by IRI, owned wins), `recent`
-  surfaced as a "Recently updated" section in `StewardDashboardView`. `type_iri`
-  mapped to kind/label via the catalog (`useResourceTypes`). Tests:
-  `useStewardRecords.spec.ts` (2). Full suite 133 green.
-  - **Contract gap:** `DashboardItem` has **no `state`** field (only `record_iri`,
-    `type_iri`, `title`, `last_modified`), so the publication-state column the 7.6
-    follow-up wanted is still **not** deliverable — that stays with 10.3. Not invented.
-- ⬜ **Search + saved queries BLOCKED on the running server (not the contract).**
-  `POST /search` and `/me/saved-queries` **are implemented in the server source**
-  (`src/fdp/metadata/search/`, wired in `main.py`) but the **running uvicorn is
-  stale** (PID started Sun, no `--reload`): live `/openapi.json` shows 26 paths,
-  `POST /search` → 405, no saved-queries. Also `/search` is **feature-flagged**
-  (`FeatureFlags.search` defaults **false** + needs the indexer subscriber +
-  Postgres, which is down here). **To finish:** bring the stack up, enable the
-  `search` feature, restart uvicorn, then `npm run generate-api` (the
-  `SearchRequest`/`SearchResponse`/saved-query models aren't in `schema.ts` yet) →
-  implement `useSearch` on `POST /search` + new `src/api/savedQueries.ts`. Until
-  then `useSearch` stays on SPARQL (11.2 made it catalog-driven) and the
-  `SearchView` facet list stays a placeholder.
+### 10.2 Migrate search + steward dashboard off SPARQL onto the real endpoints — ✅ done (2026-06-03)
+- ✅ **Steward dashboard:** new `src/api/dashboard.ts` (`fetchDashboard`);
+  `useStewardRecords` now reads `GET /me/dashboard` instead of SPARQL — main `rows`
+  = owned ∪ editable (deduped by IRI, owned wins), `recent` surfaced as a
+  "Recently updated" section in `StewardDashboardView`. `type_iri` mapped to
+  kind/label via the catalog. Tests: `useStewardRecords.spec.ts` (2).
+  - **Publication-state column (corrected 2026-06-03):** `DashboardItem` **does**
+    carry `state` (verified live — `/me/dashboard` returns it, and the regenerated
+    schema types it). `DashboardRow.state` is now surfaced as a draft/published/
+    archived badge in `StewardDashboardView`, closing the 7.6 status-column
+    follow-up **without** needing 10.3's transition endpoint. (An earlier note here
+    wrongly said the field was absent — caught by live-stack verification.)
+- ✅ **Search:** server `/search` shipped; regenerated the contract (`npm run
+  generate-api`) and replaced `useSearch`'s SPARQL with `POST /search`. New
+  `src/api/search.ts` (`runSearch` + types). `useSearch` builds the request from
+  facet selections (`type` → `types[]`, `license` → `license`), paginates
+  (offset/limit, `keepPreviousData`), and maps result `typeIri` → kind/label via
+  the catalog; `SearchItem.state` is available. `SearchView` rebuilt: facet groups
+  now render from the **response facet dimensions** (hardcoded type/theme/modified
+  lists dropped), with prev/next paging and a result range from `total`.
+- ✅ **Saved queries:** new `src/api/savedQueries.ts` + `useSavedQueries`
+  (list/create/delete + admin `shared` toggle, cache-invalidating). `SearchView`
+  gained a "Saved searches" panel (auth-gated): name + save the current query/facets,
+  list, run (restores q+facets into the URL), delete own, admins toggle `shared`.
+- Tests: `search.spec.ts` (4, search + saved-query clients); `dynamicTypeCatalog.spec.ts`
+  useSearch cases rewritten to assert the `POST /search` request + result mapping.
+  Full suite 137 green; typecheck+lint clean.
+- **Live verification pending datastore:** `POST /search` 500s on this box because
+  the index lives in **Postgres (:5432 down)**; `/me/saved-queries` → 401 (route
+  live, auth-gated). Contract is complete and unit-tested with mocks; happy-path
+  verify once Postgres is up. Facet *value* labels are best-effort
+  (`license`→`licenseLabel`, IRI→`shortLabel`); refine with `/labels` (10.6) after
+  seeing real values. (`FacetValue` carries no label; dimension `label` is server-set.)
 - **Search** — replace the SPARQL body in `useSearch.ts` with `POST /search`
   `{ query, types[], license?, from?, to?, offset, limit }` → `{ items, total,
   facets: { type, license } }`. Render facet counts from the response (drop the
@@ -597,7 +608,28 @@ the SPARQL workarounds are not.
   SPARQL enumeration and gives you the **publication state** the dashboard's
   "status" column was waiting on (closes the 7.6 follow-up).
 
-### 10.3 Publication state (unblocks legacy 9.1)
+### 10.3 Publication state (unblocks legacy 9.1) — ✅ done + verified live (2026-06-04)
+- **Done:** `src/api/state.ts` (`transitionState` POST `/{record}/state` `{to}`;
+  `fetchRecordState` reads `fdp:metadataState` from `<record>/meta`;
+  `allowedTransitions(current,isAdmin)` mirrors the server state machine —
+  DRAFT→PUBLISHED, PUBLISHED→DRAFT/ARCHIVED owner-or-admin, ARCHIVED→DRAFT
+  admin-only, else 409). `useRecordState` composable (state query + transition
+  mutation; on success caches new state + invalidates record/dashboard/search/tree).
+  Shared `StateBadge.vue` (green/grey/signal) used on **record detail**, the
+  **steward dashboard** (replaced the inline chip), and the **browse/search card**
+  (`SearchResult.state` + `useSearch` maps `SearchItem.state`). RecordDetailView
+  gained owner/admin transition controls (Publish/Unpublish/Archive/Restore) with
+  the 409/403 envelope surfaced inline, and its 404 copy now says a record "may be
+  unpublished". EntityCreateView hints "saved as a draft — publish when ready".
+  Tests: `state.spec.ts` (8) + `StateBadge.spec.ts` (3); suite 148 green;
+  typecheck+lint clean.
+- **✅ Verified live (2026-06-04, write path fixed):** server configured
+  `FDP_TRIPLESTORE_GRAPH_STORE_ENDPOINT`. Round-trip PUBLISHED→DRAFT→PUBLISHED both
+  200 with `{record, from_state, to_state}` (matches the client); `/meta` tracked
+  each change; restored cleanly. State-hidden reads confirmed: while DRAFT,
+  anonymous `GET` → 404 (the "may be unpublished" copy is exactly right), owner →
+  200, and anonymous `/search` excluded it. The earlier 500 (graph-store endpoint
+  unset) is resolved — record create/edit + repo edit are unblocked too.
 - New `src/api/state.ts`: `POST /{record}/state` `{ to: "PUBLISHED" | "DRAFT" |
   "ARCHIVED" }` → `{ record, from_state, to_state }`. Surface the server's
   state machine in the UI (allowed: DRAFT→PUBLISHED, PUBLISHED→DRAFT (unpublish),
@@ -610,7 +642,20 @@ the SPARQL workarounds are not.
   (state-hidden), and the SPARQL playground projection also excludes drafts for
   anonymous — adjust copy accordingly (a missing record may be an unpublished one).
 
-### 10.4 API keys / personal access tokens (unblocks legacy 9.4)
+### 10.4 API keys / personal access tokens (unblocks legacy 9.4) — ✅ done + verified live (2026-06-04)
+- **Done:** `src/api/apiKeys.ts` (`listApiKeys`/`createApiKey`/`revokeApiKey`) +
+  `useApiKeys` (list auth-gated + create/revoke mutations, cache-invalidating). New
+  `ApiKeysView.vue` at `/account/tokens` (route `api-keys`, requiresAuth; UserMenu
+  "Access tokens" item visible to all signed-in users). Create form (label +
+  optional expiry) → **copy-once panel** showing the plaintext `key` once
+  (never re-fetchable); list shows metadata only (`display_prefix`, dates,
+  Active/Revoked chip) with per-key Revoke. 409/403 surfaced inline.
+  Tests: `apiKeys.spec.ts` (3) + `ApiKeysView.spec.ts` (2, incl. the reveal-on-
+  success). Suite 153 green; typecheck+lint clean.
+- **Verified live (Postgres-backed, unaffected by the 10.3 write gap):** create →
+  201 with `fdpk_…` key + `display_prefix`; list → 1; DELETE → 204; post-revoke the
+  key stays listed as `active:false` (audit trail — UI shows "Revoked", hides the
+  button). NB left one inert revoked test token (`verify-temp`) in admin's list.
 
 Long-lived `fdpk_…` bearer credentials for scripts/CI, bound to the signed-in
 subject. The **lowest-hanging Phase 10 item**: purely additive, no migration,
@@ -839,12 +884,25 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
   Search-**facet** label resolution is deferred to **10.2** (facets are still
   hardcoded placeholders until `POST /search` returns real facet dimensions).
 
-### 10.7 Reset to factory defaults (unblocks legacy 9.9)
+### 10.7 Reset to factory defaults (unblocks legacy 9.9) — ✅ done (2026-06-04, not live-run)
 - Admin-only destructive action: `POST /admin/reset` with body
   `{ "confirmation": "reset-to-factory-defaults" }` (the server requires the
   literal token; surface a "type this to confirm" field). Truncates runtime
   settings and re-applies the bundled profile. Put it behind a clear double
   confirm in the admin area; invalidate **all** TanStack Query caches on success.
+- **Done:** `src/api/admin.ts` (`resetToFactoryDefaults` + exported
+  `RESET_CONFIRMATION_TOKEN` = `"reset-to-factory-defaults"`, confirmed against
+  server `metadata/admin.py`). New `ResetPanel.vue` — a "danger zone" embedded in
+  the admin `SettingsView` (admin-only): the Reset button is disabled until the
+  admin types the exact token (the "type this to confirm" gate); on success it
+  invalidates **all** query caches (`queryClient.invalidateQueries()`) and reports
+  the re-applied counts (profile name/version, settings cleared, schemas, offers,
+  resource definitions, seed records). 409/validation surfaced inline.
+- Tests: `admin.spec.ts` (2) + `ResetPanel.spec.ts` (3: button gated on the exact
+  phrase; runs + reports on success; no-op on a wrong phrase). Suite 158 green;
+  typecheck+lint clean.
+- **NOT executed live** (per request — verify the real reset once read+write are
+  both confirmed). Contract verified statically; the destructive POST was not run.
 
 ### 10.8 Operational surfaces (small) — ✅ done (2026-06-02)
 - Footer build info from `GET /info` (commit, version, profile name+version,

@@ -1,10 +1,8 @@
 /**
- * TASKS 11.2 — the read composables (`useSearch`, `useTree`) must derive their
- * `rdf:type` filters from the live type catalog, not a hardcoded DCAT map, so a
- * runtime-registered type (here `biobank`) is searchable and shows in the tree.
- *
- * `sparqlSelect` is mocked to capture the emitted query; `useResourceTypes` is
- * mocked with a catalog that includes a custom container/member type.
+ * The read composables stay catalog-driven (TASKS 11.2) over their real
+ * endpoints: `useSearch` → `POST /search` (10.2), `useTree` → `/page` (10.9).
+ * `useResourceTypes` is mocked with a catalog including a custom type so we can
+ * assert request building + result mapping without a live server.
  */
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -12,12 +10,9 @@ import { defineComponent, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { VueQueryPlugin } from "@tanstack/vue-query";
 
-const sparqlSelect = vi.fn().mockResolvedValue([]);
-vi.mock("@/api/sparql", () => ({
-  sparqlSelect: (q: string) => sparqlSelect(q),
-  value: () => undefined,
-  literal: (s: string) => JSON.stringify(s),
-}));
+// useSearch posts to /search (TASKS 10.2).
+const runSearch = vi.fn().mockResolvedValue({ items: [], total: 0, facets: {} });
+vi.mock("@/api/search", () => ({ runSearch: (req: unknown) => runSearch(req) }));
 
 // useTree now lists via the /page read-extension, not SPARQL (TASKS 10.9).
 const fetchChildrenPage = vi.fn();
@@ -53,14 +48,11 @@ vi.mock("@/composables/useResourceTypes", () => ({
 import { useSearch } from "./useSearch";
 import { useTree } from "./useTree";
 
-function lastQuery(): string {
-  return sparqlSelect.mock.calls.at(-1)?.[0] ?? "";
-}
-
-async function run(composable: () => unknown) {
+async function run<T>(composable: () => T): Promise<T> {
+  let out!: T;
   const Comp = defineComponent({
     setup() {
-      composable();
+      out = composable();
       return () => null;
     },
   });
@@ -68,23 +60,36 @@ async function run(composable: () => unknown) {
   await flushPromises();
   await new Promise((r) => setTimeout(r, 10));
   await flushPromises();
+  return out;
 }
 
-beforeEach(() => sparqlSelect.mockClear());
+beforeEach(() => {
+  vi.stubEnv("VITE_FDP_API_URL", "http://localhost:8000");
+  runSearch.mockReset();
+  runSearch.mockResolvedValue({ items: [], total: 0, facets: {} });
+});
 
-describe("useSearch (dynamic type catalog)", () => {
-  it("filters on every catalog class IRI when no facet is selected", async () => {
-    await run(() => useSearch(ref(""), ref({})));
-    const q = lastQuery();
-    expect(q).toContain(`<${BIOBANK_CLASS}>`);
-    expect(q).toContain(`<${DATASET_CLASS}>`);
+describe("useSearch (POST /search)", () => {
+  it("builds the request from the query text and facet selections", async () => {
+    await run(() => useSearch(ref("cancer"), ref({ type: ["biobank"], license: ["https://cc/by"] })));
+    expect(runSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "cancer",
+        types: ["biobank"],
+        license: "https://cc/by",
+        offset: 0,
+      }),
+    );
   });
 
-  it("resolves a custom type facet prefix to its class IRI", async () => {
-    await run(() => useSearch(ref(""), ref({ type: ["biobank"] })));
-    const q = lastQuery();
-    expect(q).toContain(`<${BIOBANK_CLASS}>`);
-    expect(q).not.toContain(`<${DATASET_CLASS}>`);
+  it("maps a result's type_iri to a catalog label", async () => {
+    runSearch.mockResolvedValueOnce({
+      items: [{ recordIri: "http://localhost:8000/dataset/d1", typeIri: DATASET_CLASS, title: "D1" }],
+      total: 1,
+      facets: {},
+    });
+    const out = await run(() => useSearch(ref(""), ref({})));
+    expect(out.data.value?.items[0]).toMatchObject({ id: "dataset/d1", typeLabel: "Dataset" });
   });
 });
 

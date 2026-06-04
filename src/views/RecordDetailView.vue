@@ -11,9 +11,13 @@ import { computed, toRef } from "vue";
 import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
 import { useAncestors } from "@/composables/useAncestors";
+import { useRecordState } from "@/composables/useRecordState";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
+import { allowedTransitions, type MetadataState } from "@/api/state";
+import { parseFdpError } from "@/api/errors";
 import { useResourceTypes } from "@/composables/useResourceTypes";
+import StateBadge from "@/components/shared/StateBadge.vue";
 import SecondaryNav from "@/components/metadata/SecondaryNav.vue";
 import RecordHero from "@/components/metadata/RecordHero.vue";
 import StatStrip from "@/components/metadata/StatStrip.vue";
@@ -47,18 +51,49 @@ const childCreateLinks = computed(() => {
 
 // Real breadcrumb trail from /expanded (record + dct:isPartOf ancestors).
 const { crumbs: breadcrumbs } = useAncestors(toRef(id));
+
+// Publication state + transition controls (owner-or-admin; server is the
+// authority and rejects illegal moves with 409, surfaced inline).
+const { state, transition } = useRecordState(toRef(id));
+const transitions = computed(() =>
+  state.value ? allowedTransitions(state.value, auth.isAdmin) : [],
+);
+const transitionError = computed(() =>
+  transition.error.value ? parseFdpError(transition.error.value) : null,
+);
+function changeState(to: MetadataState) {
+  transition.mutate(to);
+}
 </script>
 
 <template>
   <div v-if="isLoading" class="loading">Loading record…</div>
   <div v-else-if="isError || !record" class="error">
-    <h2>This record could not be loaded.</h2>
-    <p>The server returned an error or no record matched that identifier.</p>
+    <h2>This record isn't available.</h2>
+    <p>
+      It may not exist — or it may be unpublished. Draft and archived records are
+      only visible to their owner or an admin; signing in may reveal it.
+    </p>
   </div>
   <template v-else>
     <SecondaryNav :breadcrumbs="breadcrumbs" :identifier="record.identifier" />
     <main class="layout">
       <div class="column">
+        <div v-if="state || auth.isSteward" class="state-row">
+          <StateBadge :state="state" />
+          <template v-if="auth.isSteward">
+            <button
+              v-for="t in transitions"
+              :key="t.to"
+              class="btn sm"
+              :disabled="transition.isPending.value"
+              @click="changeState(t.to)"
+            >
+              {{ t.label }}
+            </button>
+          </template>
+        </div>
+        <p v-if="transitionError" class="state-error" role="alert">{{ transitionError.message }}</p>
         <div v-if="auth.isSteward && entityType" class="steward-actions">
           <RouterLink :to="`/records/${id}/edit`" class="btn sm">
             <AppIcon name="edit" :size="12" /> Edit
@@ -91,6 +126,18 @@ const { crumbs: breadcrumbs } = useAncestors(toRef(id));
 }
 .column {
   min-width: 0;
+}
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.state-error {
+  margin: 0 0 12px;
+  color: var(--signal);
+  font-size: 13px;
 }
 .steward-actions {
   display: flex;

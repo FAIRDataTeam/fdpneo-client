@@ -13,6 +13,7 @@ import { useStewardRecords } from "@/composables/useStewardRecords";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
+import StateBadge from "@/components/shared/StateBadge.vue";
 import TypeTag from "@/components/shared/TypeTag.vue";
 import type { IconName } from "@/types/record";
 
@@ -124,7 +125,10 @@ const soon: { icon: IconName; label: string }[] = [
         </div>
         <div v-for="row in filtered" :key="row.id" class="trow">
           <div class="cell-record">
-            <TypeTag :kind="row.type">{{ row.typeLabel }}</TypeTag>
+            <div class="badges">
+              <TypeTag :kind="row.type">{{ row.typeLabel }}</TypeTag>
+              <StateBadge :state="row.state" />
+            </div>
             <RouterLink :to="`/records/${row.id}`" class="rtitle">{{ row.title }}</RouterLink>
           </div>
           <span class="small muted">{{ row.modified || "—" }}</span>
@@ -342,6 +346,11 @@ const soon: { icon: IconName; label: string }[] = [
 }
 .cell-record {
   min-width: 0;
+}
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .rtitle {
   display: block;

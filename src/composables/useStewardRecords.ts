@@ -28,6 +28,8 @@ export interface DashboardRow {
   typeLabel: string;
   title: string;
   modified: string;
+  /** Publication state (DRAFT | PUBLISHED | ARCHIVED), when the server reports one. */
+  state: string | null;
 }
 
 // Cosmetic TypeTag colour for the built-in DCAT classes; runtime-registered
@@ -72,6 +74,7 @@ export function useStewardRecords() {
       typeLabel: meta.label,
       title: item.title || id,
       modified: (item.last_modified ?? "").slice(0, 10),
+      state: item.state ?? null,
     };
   }
 

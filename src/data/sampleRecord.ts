@@ -98,6 +98,8 @@ export interface SearchResult {
   distributions?: number | Distribution[];
   license?: string;
   restricted?: boolean;
+  /** Publication state (PUBLISHED | DRAFT | ARCHIVED) when the search index reports it. */
+  state?: string | null;
 }
 
 export const sampleDeployment: Deployment = {

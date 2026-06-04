@@ -15,6 +15,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useSettings } from "@/composables/useSettings";
 import type { SettingValue } from "@/api/settings";
 import SettingEditor from "@/components/admin/SettingEditor.vue";
+import ResetPanel from "@/components/admin/ResetPanel.vue";
 
 const auth = useAuthStore();
 const { settings, isLoading, isError } = useSettings();
@@ -54,6 +55,8 @@ const entries = computed<[string, SettingValue][]>(() =>
         :can-edit="auth.isAdmin"
       />
     </div>
+
+    <ResetPanel v-if="auth.isAdmin" class="reset" />
   </main>
 </template>
 
@@ -91,5 +94,8 @@ const entries = computed<[string, SettingValue][]>(() =>
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.reset {
+  margin-top: 32px;
 }
 </style>
