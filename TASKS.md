@@ -117,33 +117,107 @@ References: server architecture §9.
 
 ---
 
-## Phase 4 — Visual SHACL editor — ⬜ OPEN (foundations in place; canvas unbuilt)
+## Phase 4 — Visual SHACL editor — ⬜ OPEN (foundations in place; editor unbuilt)
 
 **Status (2026-06-04):** the **text-first** schema lifecycle ships (9.5 /
 `SchemaEditorView.vue`, 439 lines) and the read/parse/validate plumbing the
-canvas needs already exists — but the **Vue Flow node canvas and everything
-around it is NOT built** (`src/components/shacl-editor/` does not exist). One of
-the two heaviest surfaces (the other is Phase 5 ODRL). Build incrementally and
-keep the text editor as the raw-RDF fallback (see Open questions).
+editor needs already exists — but the **visual editor and everything around it
+is NOT built** (`src/components/shacl-editor/` does not exist). One of the two
+heaviest surfaces (the other is Phase 5 ODRL). Build incrementally and keep the
+text editor as the raw-RDF fallback (see Open questions).
+
+**Design source of truth:** `docs/design_handoff_visual_schema_editor/`
+(README + screenshots + a React/HTML prototype). It specifies a drag-and-drop
+**DASH form designer** (palette → form-canvas of group/field cards → inspector),
+three tabs (**SHACL** / **Visual Editor** / **Form Preview**) over one shared
+model with bidirectional sync, and the model→Turtle serializer rules. **Caveat:
+the handoff README describes a different/older client** (Vue 2 / `rdflib` /
+`vue-prism-editor` / SCSS `$color-*` vars / Font Awesome). Translate everything
+onto the real stack: Vue 3 `<script setup>`, **n3** (`rdf.ts`), **Monaco** (clone
+the `SparqlEditor.vue` pattern), CSS-custom-prop tokens in `main.css` (dark-mode
+aware — the handoff is light-only), and the inline-SVG `AppIcon` (add new glyphs;
+there is no Font Awesome). The handoff's referenced files (`SchemaDetail`,
+`ShaclForm/*`, `src/rdf/namespaces.ts`, `_variables.scss`) do **not** exist —
+the real equivalents are mapped below.
+
+**Scope decisions (2026-06-04, recorded):**
+
+1. **Build BOTH the form designer and the Vue Flow node graph, merged.** The
+   multi-shape Vue Flow canvas is the top-level overview (nodes = `sh:NodeShape`,
+   edges = `sh:node`/`sh:class`); the handoff's 3-column palette/form-canvas/
+   inspector is the **per-shape editor you drill into** from a node. The shared
+   model is therefore **multi-shape** (`SchemaDocument { prefixes, shapes:
+   ShapeModel[] }`), not the single-shape `SchemaModel` in the handoff README.
+2. **Form Preview renders the full DASH widget set** (all editors at
+   [datashapes.org/forms.html](https://datashapes.org/forms.html)), not the
+   prototype's curated 12.
+   `EntityForm.vue` only handles 5 field kinds, so Preview gets a dedicated
+   `ShaclFormPreview.vue` that dispatches on `dash:editor`; `EntityForm` is left
+   alone for metadata authoring.
 
 ### Already in place — ✅ reuse, don't rebuild
 - **Vue Flow** installed (`@vue-flow/core` + `background`/`controls`/`minimap`)
-  and code-split (`vendor-flow` chunk in `vite.config.ts`).
+  and code-split (`vendor-flow` chunk in `vite.config.ts`). Used by 4.1.
 - **n3** + `rdf.ts` round-trip primitives: `parseTurtle` / `serializeTurtle` /
   `setLiteral` / `setIri` / `setIris` / `setLiterals` / `addType` / `one` /
-  `many` / `typedSubjects`.
+  `many` / `typedSubjects`. (`serializeTurtle` uses the n3 `Writer` — **not**
+  for 4.3; the serializer is hand-rolled for deterministic ordering.)
 - **One-shape parser:** `fieldsFromShape(turtle, classIri)` (`entityForms.ts`)
   reads `sh:targetClass` + `sh:property` → `FieldSpec` (datatype / cardinality /
-  nodeKind). **Lossy** (skips unmapped constraints) — 4.3 needs a richer lossless
-  model, but the n3 access patterns are the template.
+  nodeKind). **Lossy** (skips groups, `dash:editor`, `sh:in`, `sh:pattern`,
+  lengths, order, labels, prefixes) — its n3 access patterns are the template,
+  but 4.3 needs a richer lossless multi-shape parser, not an extension of this.
 - **Schema API** (`schemas.ts` + `useSchemas`): list / get / `PUT` / delete +
   **`validateSample(id, turtle)` → `/schemas/{id}/validate`** — the 4.4
   validation endpoint is already wired.
 - **`useResourceTypes`**: the type catalog + parent→child links — seeds the
   multi-node graph (which shapes exist and how they connect).
 - **`useEntityShape`**: fetches `GET /{type}/spec` (a type's NodeShape).
+- **Form renderer reference:** `EntityForm.vue` (config-driven, 5 field kinds) —
+  pattern reference for `ShaclFormPreview.vue`, not reused directly (see scope 2).
 
-### 4.1 Canvas with shapes as nodes — ⬜
+### 4.0 Shared model + serializer + parser — 🟡 STARTED (do first; the core risk)
+- ✅ Landed: `src/rdf/namespaces.ts` (PREFIXES/DASH/SH/RDFS/XSD/DEFAULT_URI),
+  `model.ts` (multi-shape `SchemaDocument`), `serialize.ts` (hand-rolled,
+  deterministic, multi-shape), and `parse.ts` (n3-based, lossless for the
+  supported subset, re-compacts IRIs to prefixed names, derives `widgetId` from
+  `dash:editor` + numeric heuristic). Field carries the `dash:editor` IRI
+  directly, so the serializer needs no widget table.
+- ✅ Tests (14, green): `serialize.spec.ts` (valid Turtle, `sh:in`, escaping,
+  determinism) + `parse.spec.ts` — **round-trip both ways** (`parse(serialize(m))
+  ≡ m` ignoring client ids; `serialize(parse(ttl))` idempotent) over a
+  two-shape seed, plus the NumberFieldEditor heuristic and malformed-input error.
+- ✅ Landed: `widgets.ts` — the **full DASH editor set** (15 editors sourced
+  from datashapes.org/forms.html + synthetic `NumberFieldEditor`), `DATATYPES`/
+  `NODE_KINDS`, and `widgetForEditor()` (the single editor⇄widget mapping;
+  `parse.ts` now uses it instead of its own copy). +5 tests (19 total green).
+- ⬜ Still to do: pass-through of *unrecognised* triples (parser currently keeps
+  the supported subset only — losslessness for arbitrary input, per 4.3); wire
+  load/save in `SchemaEditorView`. (Project-wide `typecheck` not yet re-run —
+  only lint + specs.)
+- **Multi-shape model** (`shacl-editor/model.ts`): `SchemaDocument` →
+  `ShapeModel[]` → `Group[]` → `Field[]` (per handoff §State Management, lifted
+  to multi-shape). Single source of truth for all three tabs.
+- **Serializer (model → Turtle):** new, hand-rolled to match the prototype's
+  `shacl.jsx generateShacl` deterministic block/term ordering (emits every shape
+  and its groups). **Not** the n3 `Writer` — round-trip stability needs a fixed
+  ordering the Writer won't guarantee.
+- **Parser (Turtle → model):** new, n3-based, **lossless for the supported
+  subset** across *all* `sh:NodeShape`s; reads everything `fieldsFromShape`
+  drops (`sh:group` label/order, `dash:editor`→widgetId + numeric-datatype
+  heuristic for Number, `sh:in`, `sh:pattern`, `sh:min/maxLength`, `sh:order`,
+  `sh:defaultValue`, shape `rdfs:label`/`rdfs:comment`, shape IRI, `@prefix`
+  set). Carry unrecognised triples through untouched.
+- **New `src/rdf/namespaces.ts`:** `PREFIXES` / `DASH` / `SH` / `RDFS` / `XSD` /
+  `DEFAULT_URI` (extend `NS` in `rdf.ts`; today it only has rdf/dct/dcat).
+- **Widget catalog** (`shacl-editor/widgets.ts`): the **full** DASH editor set
+  (sourced from datashapes.org/forms.html), with `dash:editor` IRIs + default
+  constraints + `AppIcon` glyph per widget.
+- **Test (CLAUDE.md gate):** `parse(serialize(m)) ≡ m` and
+  `serialize(parse(ttl))` idempotent; seed with the handoff `SEED_SCHEMA` and a
+  real server shape. Wire into `SchemaEditorView` load/save before any UI.
+
+### 4.1 Shape graph (Vue Flow overview) — ⬜
 - New `src/components/shacl-editor/ShaclCanvas.vue` (Vue Flow). Each
   `sh:NodeShape` → a node card (target class + property count); multi-shape graph
   seeded from the loaded Turtle and/or `useResourceTypes`.
@@ -151,42 +225,65 @@ keep the text editor as the raw-RDF fallback (see Open questions).
   persisted to the schema).
 - Edges from `sh:node` (and `sh:class` pointing at another in-graph shape).
   Keyboard-navigable canvas (a11y per CLAUDE.md).
+- Selecting/opening a node drills into its **form designer** (4.2). Graph⇄designer
+  composition (drill-in vs. split-pane) is the one UX detail neither the handoff
+  nor this plan fully pins down — validate during build.
 
-### 4.2 Property pane — ⬜
-- Side panel for the selected node: list / add / remove / reorder `sh:property`.
-- Per-property form: path, datatype, cardinality (`sh:minCount`/`maxCount`),
-  value range (`sh:nodeKind`/`sh:class`/`sh:datatype`), pattern (`sh:pattern`).
-  Start from the constraint vocab `fieldsFromShape` already understands; widen.
+### 4.2 Per-shape form designer (the handoff 3-column workbench) — ⬜
+- **Palette** (`WidgetPalette.vue`): searchable, categorised full DASH widget
+  list; drag onto the canvas.
+- **Form canvas** (`FormCanvas.vue` + `GroupCard.vue` / `FieldCard.vue`):
+  group cards (one per `sh:PropertyGroup`) holding field cards (one per
+  `sh:property`); HTML5 drag-and-drop to create-from-palette, reorder within a
+  group, and move across groups (renumber `sh:order`).
+- **Inspector** (`Inspector.vue`): context-sensitive Field / Group / Schema
+  panels — path, name, description, cardinality, nodeKind, datatype/class,
+  min/maxLength, `sh:pattern`, `sh:in` chip editor, defaults/order; Schema panel
+  has the shape IRI / target class / prefix-table editor.
+- Every mutation runs `mutate(fn)` → re-serialize → update the SHACL tab.
 
-### 4.3 Internal model + lossless round-trip — ⬜ (the core risk)
-- Explicit editor model (shapes → properties → constraints) with **import**
-  (Turtle → model) and **export** (model → Turtle). Round-trip **lossless for the
-  supported subset**; carry unrecognised triples through untouched so editing
-  never silently drops them.
-- Live Turtle preview pane beside the canvas (re-serialize on change).
-- Import existing `.ttl` (paste/upload) to populate the canvas.
-- **Test (CLAUDE.md gate):** import known-good `.ttl` → modify → export → diff
-  against expected output.
+### 4.3 Three-tab chrome + bidirectional sync — ⬜
+- `SchemaTabs.vue` inside `SchemaEditorView` (keep the schema list + save/validate
+  plumbing): **SHACL** (renamed from the textarea), **Visual Editor**, **Form
+  Preview**. NEW pill on Visual Editor; red dot on SHACL when parse fails.
+- **SHACL tab:** swap the textarea for **Monaco** with a Turtle Monarch grammar
+  (clone `SparqlEditor.vue`); status pill (Synced · N props / Invalid), Tidy +
+  Copy, error strip. `onShaclChange` parses → model on success, keeps last good
+  model + shows error on failure.
+- **Sync (two one-way paths, no cycles):** Visual edit → model → serialize →
+  Turtle; SHACL edit → parse → model (or error). Import existing `.ttl`
+  (paste/upload) populates the editor.
 
 ### 4.4 Validation against sample RDF — ⬜
 - Steward pastes sample data; send schema + sample to **`validateSample`**
   (already in `schemas.ts`); render violations **annotated on the relevant
   nodes/properties**, not just a list. Surface server messages with pointers;
   don't replicate validation client-side.
+- **Form Preview tab:** `ShaclFormPreview.vue` (full DASH dispatch on
+  `dash:editor`) fed the synced Turtle for the focused shape, plus a client-side
+  "Validate record" required-fields banner (throwaway local values).
 
 ### 4.5 Undo/redo + wiring — ⬜
 - Undo/redo over the editor model (command stack in the `shaclEditor` store).
-- Fold the canvas into `SchemaEditorView` (or a sub-route) so the **text editor
+- Fold the editor into `SchemaEditorView` (or a sub-route) so the **SHACL tab
   stays as the raw-RDF fallback** for power users (resolves an Open question);
   save via the existing schema `PUT`.
 
 ### Decisions to make first
 - **SHACL subset:** curated to the FDP profile vs broader `sh:` (Open questions).
-  Start with what `fieldsFromShape` covers + `sh:node` edges; widen iteratively.
-- Plan **multi-shape** canvas from the start (the catalog is multi-type).
+  The form designer covers the DASH widget constraints; widen the parser/
+  serializer's recognised terms iteratively, passing unknown triples through.
+- **Graph⇄designer composition** (see 4.1) — settle early; it shapes 4.1/4.2.
+
+### Suggested order
+4.0 (model/serializer/parser/round-trip, no UI) → 4.3 SHACL tab (Monaco) →
+4.1 shape graph → 4.2 form designer → 4.4 preview + validation → 4.5 undo/redo.
+4.0→SHACL-tab already delivers value (round-trip + better editor) before the
+heavy canvas work.
 
 References: CLAUDE.md (editors don't replicate server validation; round-trip
-test), server architecture §13 (ProjectOak functional reference).
+test), server architecture §13 (ProjectOak functional reference),
+`docs/design_handoff_visual_schema_editor/` (design source of truth).
 
 ---
 

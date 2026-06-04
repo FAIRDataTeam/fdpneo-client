@@ -1,0 +1,46 @@
+/**
+ * RDF namespaces & prefixes for the visual SHACL editor (Phase 4).
+ *
+ * `rdf.ts` exports a minimal `NS` (rdf/dct/dcat) for the metadata surfaces; the
+ * schema editor needs the SHACL/DASH/RDFS/XSD/FOAF families too. This module is
+ * the single source of those IRIs and the default `@prefix` set seeded into a
+ * new schema (matching the prototype's `DEFAULT_PREFIXES`).
+ */
+
+export interface PrefixDecl {
+  prefix: string;
+  uri: string;
+}
+
+/** Namespace base IRIs. */
+export const NAMESPACES = {
+  sh: "http://www.w3.org/ns/shacl#",
+  dash: "http://datashapes.org/dash#",
+  rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+  xsd: "http://www.w3.org/2001/XMLSchema#",
+  dcat: "http://www.w3.org/ns/dcat#",
+  dct: "http://purl.org/dc/terms/",
+  foaf: "http://xmlns.com/foaf/0.1/",
+} as const;
+
+/** The bare-colon default namespace a schema's own terms (`:DatasetShape`) live under. */
+export const DEFAULT_URI = "http://fairdatapoint.org/";
+
+/** Term builders for the families the serializer/parser reference by IRI. */
+export const SH = (local: string): string => `${NAMESPACES.sh}${local}`;
+export const DASH = (local: string): string => `${NAMESPACES.dash}${local}`;
+export const RDFS = (local: string): string => `${NAMESPACES.rdfs}${local}`;
+export const XSD = (local: string): string => `${NAMESPACES.xsd}${local}`;
+
+/** Default prefix declarations seeded into a fresh schema, in stable order. */
+export const PREFIXES: PrefixDecl[] = [
+  { prefix: "sh", uri: NAMESPACES.sh },
+  { prefix: "dash", uri: NAMESPACES.dash },
+  { prefix: "rdf", uri: NAMESPACES.rdf },
+  { prefix: "rdfs", uri: NAMESPACES.rdfs },
+  { prefix: "xsd", uri: NAMESPACES.xsd },
+  { prefix: "dcat", uri: NAMESPACES.dcat },
+  { prefix: "dct", uri: NAMESPACES.dct },
+  { prefix: "foaf", uri: NAMESPACES.foaf },
+];

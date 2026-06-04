@@ -1,0 +1,81 @@
+/**
+ * Shared editor model for the visual SHACL editor (Phase 4, task 4.0).
+ *
+ * The single source of truth behind all three tabs (SHACL / Visual Editor /
+ * Form Preview). Lifted to **multi-shape** per the recorded scope decision:
+ * one `SchemaDocument` carries the prefix set plus every `sh:NodeShape` in the
+ * Turtle, so the Vue Flow graph (4.1) and the per-shape form designer (4.2)
+ * operate on the same structure.
+ *
+ * `id` fields are client-only (for selection/keying) and are NOT serialized.
+ * Serialization order and term mapping live in `serialize.ts`; the parser
+ * (Turtle → model, still to build) is its inverse.
+ */
+
+import type { PrefixDecl } from "@/rdf/namespaces";
+
+export interface SchemaDocument {
+  prefixes: PrefixDecl[];
+  shapes: ShapeModel[];
+}
+
+export interface ShapeModel {
+  /** client-only id */
+  id: string;
+  /** the shape's own IRI, e.g. ":DatasetShape" */
+  shapeIri: string;
+  /** rdfs:label on the NodeShape */
+  label: string;
+  /** rdfs:comment on the NodeShape (omitted when empty) */
+  comment: string;
+  /** sh:targetClass, e.g. "dcat:Dataset" */
+  targetClass: string;
+  groups: Group[];
+}
+
+export interface Group {
+  /** client-only id */
+  id: string;
+  /** rdfs:label on the sh:PropertyGroup */
+  label: string;
+  /** sh:order */
+  order: number;
+  fields: Field[];
+}
+
+export interface Field {
+  /** client-only id */
+  id: string;
+  /** palette widget key (UI only; the serialized form is `editor`) */
+  widgetId: string;
+  /** dash:editor IRI, e.g. "dash:TextFieldEditor" (null = omit) */
+  editor: string | null;
+  /** sh:name */
+  name: string;
+  /** sh:description */
+  description: string;
+  /** sh:path (prefixed, e.g. "dct:title") */
+  path: string;
+  /** sh:nodeKind */
+  nodeKind: string | null;
+  /** sh:datatype */
+  datatype: string | null;
+  /** sh:class */
+  class: string | null;
+  /** sh:minCount */
+  minCount: number | null;
+  /** sh:maxCount (null = unbounded → omit) */
+  maxCount: number | null;
+  /** sh:minLength */
+  minLength: number | null;
+  /** sh:maxLength */
+  maxLength: number | null;
+  /** sh:pattern (regex; omitted when empty) */
+  pattern: string;
+  /** sh:defaultValue (omitted when empty) */
+  defaultValue: string;
+  /** sh:in ( … ) — list of literal options (null/empty = omit) */
+  inValues: string[] | null;
+  /** sh:order */
+  order: number;
+}
