@@ -19,22 +19,22 @@ auth model) are also there.
 
 ---
 
-## Phase 0 — Foundations
+## Phase 0 — Foundations — ✅ done
 
-### 0.1 Project hygiene
+### 0.1 Project hygiene — ✅ done
 - Run `npm install` and confirm the smoke test passes: `npm run test:unit`.
 - Confirm linting and type checking are green: `npm run lint && npm run typecheck`.
 - Set up the recommended VS Code extensions (the workspace prompts you).
 - Configure `.env` from `.env.example` and confirm `npm run dev` starts.
 
-### 0.2 OpenAPI types generation
+### 0.2 OpenAPI types generation — ✅ done
 - With the server running locally (see fdp-server `compose.yaml`), run
   `npm run generate-api` to produce `src/api/schema.ts`.
 - Verify the generated types compile (`npm run typecheck`).
 - Commit the generated file so CI can run without the server up. (The
   alternative — generate-on-CI — is fine if you prefer; document the choice.)
 
-### 0.3 HTTP client wrappers
+### 0.3 HTTP client wrappers — ✅ done
 - Implement `src/api/http.ts` token-attach interceptor wired to the auth
   store (task 1.1 produces the store).
 - Implement `src/api/{records,schemas,policies,metrics}.ts` — thin typed
@@ -47,9 +47,9 @@ References: CLAUDE.md, server architecture §10 (LDP endpoints), §11 (metrics A
 
 ---
 
-## Phase 1 — Authentication and shell
+## Phase 1 — Authentication and shell — ✅ done
 
-### 1.1 Auth store and route guard
+### 1.1 Auth store and route guard — ✅ done
 - Finish `src/stores/auth.ts` — currently scaffolded. Implement:
   - `login()`, `logout()`, `handleCallback()`, `silentRenew()`, `loadStoredUser()`.
   - `roles` computed from the configured claim path.
@@ -63,7 +63,7 @@ References: CLAUDE.md, server architecture §10 (LDP endpoints), §11 (metrics A
 References: CLAUDE.md (OIDC happens directly between client and IdP), server
 architecture §7.
 
-### 1.2 Application shell polish
+### 1.2 Application shell polish — ✅ done
 - Refine `src/App.vue`: user menu (login / logout / profile name), responsive
   navigation, breadcrumb area.
 - Implement a global error boundary that surfaces FDP error envelopes
@@ -72,22 +72,22 @@ architecture §7.
 
 ---
 
-## Phase 2 — Metadata browsing
+## Phase 2 — Metadata browsing — ✅ done
 
-### 2.1 Catalog tree navigation
+### 2.1 Catalog tree navigation — ✅ done
 - `components/metadata/CatalogTree.vue` — recursive component fetching
   containers from the LDP API.
 - Lazy-load children on expand.
 - URL state: the route path mirrors the tree position.
 
-### 2.2 Record detail view
+### 2.2 Record detail view — ✅ done
 - `views/RecordDetailView.vue` — fetch the record graph (Turtle preferred,
   JSON-LD also accepted), render title, description, properties, related
   records, available distributions, and the effective ODRL policy.
 - "View as" selector for RDF serializations.
 - Render the meta-metadata block (creator, dates, version) in a sidebar.
 
-### 2.3 Search
+### 2.3 Search — ✅ done (now POST /search, 10.2)
 - `views/MetadataBrowseView.vue` — facets (resource type, keywords, themes)
   + free-text search.
 - Drives a TanStack Query that hits the server's search API.
@@ -97,9 +97,9 @@ References: server architecture §5.3, §10.
 
 ---
 
-## Phase 3 — SPARQL playground
+## Phase 3 — SPARQL playground — ✅ done
 
-### 3.1 Query editor
+### 3.1 Query editor — ✅ done
 - `views/SparqlPlaygroundView.vue` — code editor (CodeMirror or Monaco;
   prefer Monaco for the better SPARQL grammar support if bundle size allows).
 - Result rendering: table for SELECT / ASK, Turtle viewer for CONSTRUCT /
@@ -107,7 +107,7 @@ References: server architecture §5.3, §10.
 - Save query history to in-memory state only (per CLAUDE.md, no browser
   storage for app state).
 
-### 3.2 Error handling
+### 3.2 Error handling — ✅ done
 - 401 → login prompt.
 - 403 → "your authorization does not cover graph X" with the graph URI.
 - 400 with SERVICE rejection → explain federation is not supported.
@@ -117,42 +117,80 @@ References: server architecture §9.
 
 ---
 
-## Phase 4 — Visual SHACL editor
+## Phase 4 — Visual SHACL editor — ⬜ OPEN (foundations in place; canvas unbuilt)
 
-This is one of the two heaviest surfaces. Build it incrementally.
+**Status (2026-06-04):** the **text-first** schema lifecycle ships (9.5 /
+`SchemaEditorView.vue`, 439 lines) and the read/parse/validate plumbing the
+canvas needs already exists — but the **Vue Flow node canvas and everything
+around it is NOT built** (`src/components/shacl-editor/` does not exist). One of
+the two heaviest surfaces (the other is Phase 5 ODRL). Build incrementally and
+keep the text editor as the raw-RDF fallback (see Open questions).
 
-### 4.1 Canvas with shapes as nodes
-- `components/shacl-editor/ShaclCanvas.vue` using Vue Flow.
-- Each `sh:NodeShape` is a node; the node card shows the target class and
-  the count of properties.
-- Drag to position; positions are local UI state only (not persisted to
-  the schema).
-- Connect node-shape-to-node-shape via `sh:node` constraints (edge).
+### Already in place — ✅ reuse, don't rebuild
+- **Vue Flow** installed (`@vue-flow/core` + `background`/`controls`/`minimap`)
+  and code-split (`vendor-flow` chunk in `vite.config.ts`).
+- **n3** + `rdf.ts` round-trip primitives: `parseTurtle` / `serializeTurtle` /
+  `setLiteral` / `setIri` / `setIris` / `setLiterals` / `addType` / `one` /
+  `many` / `typedSubjects`.
+- **One-shape parser:** `fieldsFromShape(turtle, classIri)` (`entityForms.ts`)
+  reads `sh:targetClass` + `sh:property` → `FieldSpec` (datatype / cardinality /
+  nodeKind). **Lossy** (skips unmapped constraints) — 4.3 needs a richer lossless
+  model, but the n3 access patterns are the template.
+- **Schema API** (`schemas.ts` + `useSchemas`): list / get / `PUT` / delete +
+  **`validateSample(id, turtle)` → `/schemas/{id}/validate`** — the 4.4
+  validation endpoint is already wired.
+- **`useResourceTypes`**: the type catalog + parent→child links — seeds the
+  multi-node graph (which shapes exist and how they connect).
+- **`useEntityShape`**: fetches `GET /{type}/spec` (a type's NodeShape).
 
-### 4.2 Property pane
-- Click a node to open a side panel listing its `sh:property` constraints.
-- Add / remove / reorder properties.
-- Per-property form: path, datatype, cardinality, value range, validation
-  pattern.
+### 4.1 Canvas with shapes as nodes — ⬜
+- New `src/components/shacl-editor/ShaclCanvas.vue` (Vue Flow). Each
+  `sh:NodeShape` → a node card (target class + property count); multi-shape graph
+  seeded from the loaded Turtle and/or `useResourceTypes`.
+- Drag to position = **UI-only state** (new Pinia `shaclEditor` store; not
+  persisted to the schema).
+- Edges from `sh:node` (and `sh:class` pointing at another in-graph shape).
+  Keyboard-navigable canvas (a11y per CLAUDE.md).
 
-### 4.3 Serialization round-trip
-- Parse incoming SHACL Turtle into the editor's internal representation
-  using the `n3` library.
-- Serialize back to Turtle. Round-trip must be lossless for the subset of
-  SHACL the editor supports.
-- Show a live Turtle preview pane next to the canvas.
+### 4.2 Property pane — ⬜
+- Side panel for the selected node: list / add / remove / reorder `sh:property`.
+- Per-property form: path, datatype, cardinality (`sh:minCount`/`maxCount`),
+  value range (`sh:nodeKind`/`sh:class`/`sh:datatype`), pattern (`sh:pattern`).
+  Start from the constraint vocab `fieldsFromShape` already understands; widen.
 
-### 4.4 Validation against test data
-- Steward can paste sample data; the editor sends it plus the current
-  schema to the server's validation endpoint and renders violations
-  inline on the relevant nodes.
+### 4.3 Internal model + lossless round-trip — ⬜ (the core risk)
+- Explicit editor model (shapes → properties → constraints) with **import**
+  (Turtle → model) and **export** (model → Turtle). Round-trip **lossless for the
+  supported subset**; carry unrecognised triples through untouched so editing
+  never silently drops them.
+- Live Turtle preview pane beside the canvas (re-serialize on change).
+- Import existing `.ttl` (paste/upload) to populate the canvas.
+- **Test (CLAUDE.md gate):** import known-good `.ttl` → modify → export → diff
+  against expected output.
 
-References: CLAUDE.md (editors don't replicate server validation), server
-architecture §13 (ProjectOak functional reference).
+### 4.4 Validation against sample RDF — ⬜
+- Steward pastes sample data; send schema + sample to **`validateSample`**
+  (already in `schemas.ts`); render violations **annotated on the relevant
+  nodes/properties**, not just a list. Surface server messages with pointers;
+  don't replicate validation client-side.
+
+### 4.5 Undo/redo + wiring — ⬜
+- Undo/redo over the editor model (command stack in the `shaclEditor` store).
+- Fold the canvas into `SchemaEditorView` (or a sub-route) so the **text editor
+  stays as the raw-RDF fallback** for power users (resolves an Open question);
+  save via the existing schema `PUT`.
+
+### Decisions to make first
+- **SHACL subset:** curated to the FDP profile vs broader `sh:` (Open questions).
+  Start with what `fieldsFromShape` covers + `sh:node` edges; widen iteratively.
+- Plan **multi-shape** canvas from the start (the catalog is multi-type).
+
+References: CLAUDE.md (editors don't replicate server validation; round-trip
+test), server architecture §13 (ProjectOak functional reference).
 
 ---
 
-## Phase 5 — Visual ODRL editor
+## Phase 5 — Visual ODRL editor — ⬜ OPEN (PolicyEditorView is a stub; not built)
 
 ### 5.1 Offer composer
 - `components/odrl-editor/OdrlComposer.vue` — guided form.
@@ -176,18 +214,18 @@ References: server architecture §8, ADR-0006.
 
 ---
 
-## Phase 6 — Metrics dashboard
+## Phase 6 — Metrics dashboard — ✅ done
 
-### 6.1 Overview widgets
+### 6.1 Overview widgets — ✅ done
 - `views/MetricsDashboardView.vue` — top-level widgets: total views over
   time, top resources, geographic distribution, unique visitors per day.
 - All data from the server's anonymous metrics API.
 
-### 6.2 Per-resource drill-down
+### 6.2 Per-resource drill-down — ✅ done
 - Steward can click a resource to see per-resource trends.
 - Admin sees system-wide; stewards see only their own.
 
-### 6.3 Charts
+### 6.3 Charts — ✅ done
 - Chart.js via vue-chartjs.
 - No raw data export — the privacy design rules out per-event export.
 
@@ -382,7 +420,7 @@ These legacy-client features were listed when the matching `fdp-server`
 endpoints did not exist. Each one's *current* server status is corrected in
 the Phase 10 table.
 
-### 9.1 Publication state & versioning
+### 9.1 Publication state & versioning — ✅ state done (10.3, verified live); ⬜ record versioning still open
 - Draft → published workflow and version history (legacy `EntityView` state +
   `VersionInfoTable`). Server: `/meta`, `/meta/state` are noted as deferred to
   v1.x in `fdp.metadata.openapi`.
@@ -397,7 +435,7 @@ the Phase 10 table.
   (Keycloak). Decide whether this belongs in the client at all or stays an IdP
   admin task; if in-client, the server needs a users facade.
 
-### 9.4 API keys / personal access tokens
+### 9.4 API keys / personal access tokens — ✅ done (10.4, verified live)
 - Legacy `ApiKeys`. Server: no token-issuing endpoint.
 
 ### 9.5 Metadata-schema lifecycle — DONE (text-first; visual canvas still Phase 4)
@@ -422,7 +460,7 @@ source of truth, so the text editor stays compatible with a later visual layer.
 Also deferred (server-side, Phase 12 overlap): draft/release lifecycle and
 version-history browsing.
 
-### 9.6 Resource-definition configuration — UNBLOCKED (server work in progress)
+### 9.6 Resource-definition configuration — ✅ done (9.6a dynamic type catalog + 9.6b admin UI)
 
 The server is gaining runtime-mutable resource definitions (stored as RDF,
 fronted by a `GET /resource-definitions` read catalog and an admin-gated
@@ -466,7 +504,7 @@ Coordinated work, in dependency order:
   `npm run generate-api` would still pick up the static `/resource-definitions`
   request/response models, but nothing here depends on it.
 
-### 9.7 Instance settings & branding
+### 9.7 Instance settings & branding — ✅ done (10.5; branding only per server-defined keys)
 - Deployment title, theme, custom forms, links (legacy `FdpSettings`). Server:
   no settings endpoint.
 
@@ -475,7 +513,7 @@ Coordinated work, in dependency order:
   (legacy `IndexDetail`, `IndexPing`, `IndexSettings`). Server: no endpoint;
   the Index is typically a separate service.
 
-### 9.9 Reset to defaults
+### 9.9 Reset to defaults — ✅ done (10.7, verified live)
 - Legacy `ResetToDefaults`. Server: no endpoint.
 
 ### 9.10 User profile page
@@ -884,7 +922,7 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
   Search-**facet** label resolution is deferred to **10.2** (facets are still
   hardcoded placeholders until `POST /search` returns real facet dimensions).
 
-### 10.7 Reset to factory defaults (unblocks legacy 9.9) — ✅ done (2026-06-04, not live-run)
+### 10.7 Reset to factory defaults (unblocks legacy 9.9) — ✅ done + verified live (2026-06-04)
 - Admin-only destructive action: `POST /admin/reset` with body
   `{ "confirmation": "reset-to-factory-defaults" }` (the server requires the
   literal token; surface a "type this to confirm" field). Truncates runtime
@@ -901,8 +939,11 @@ is create/list/revoke only), no change to the SPA's OIDC auth interceptor (an
 - Tests: `admin.spec.ts` (2) + `ResetPanel.spec.ts` (3: button gated on the exact
   phrase; runs + reports on success; no-op on a wrong phrase). Suite 158 green;
   typecheck+lint clean.
-- **NOT executed live** (per request — verify the real reset once read+write are
-  both confirmed). Contract verified statically; the destructive POST was not run.
+- **✅ Executed live (2026-06-04):** `POST /admin/reset` → 200
+  `{profileName:default, profileVersion:0.1.0, settingsCleared:0, schemas:5,
+  offers:1, resourceDefinitions:5, seedRecords:0}`. Post-reset healthy: readyz
+  ready, search total 6 (records intact), 5 resource types, config 200. Re-applied
+  the profile + cleared runtime settings; existing records survived (seedRecords:0).
 
 ### 10.8 Operational surfaces (small) — ✅ done (2026-06-02)
 - Footer build info from `GET /info` (commit, version, profile name+version,
