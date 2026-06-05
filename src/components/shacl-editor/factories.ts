@@ -34,6 +34,7 @@ export function newField(widgetId: string, order = 0): Field {
     nodeKind: widget?.defaults.nodeKind ?? null,
     datatype: widget?.defaults.datatype ?? null,
     class: widget?.defaults.class ?? null,
+    node: null,
     minCount: null,
     maxCount: null,
     minLength: null,

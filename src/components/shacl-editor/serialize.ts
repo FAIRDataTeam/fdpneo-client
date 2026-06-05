@@ -39,6 +39,7 @@ function fieldTerms(field: Field, group: Group | null): string[] {
   if (field.nodeKind) lines.push(`sh:nodeKind ${field.nodeKind}`);
   if (field.datatype) lines.push(`sh:datatype ${field.datatype}`);
   if (field.class) lines.push(`sh:class ${field.class}`);
+  if (field.node) lines.push(`sh:node ${field.node}`);
 
   const minCount = num(field.minCount);
   if (minCount !== null) lines.push(`sh:minCount ${minCount}`);

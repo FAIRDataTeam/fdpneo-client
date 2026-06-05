@@ -26,7 +26,9 @@ import { useSchemas, useInvalidateSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
+import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
 import { shaclStatus } from "@/components/shacl-editor/status";
+import { parseSchema } from "@/components/shacl-editor/parse";
 
 const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
@@ -55,6 +57,17 @@ const slugLocked = computed(() => savedId.value !== null);
 
 // Live, non-destructive parse status for the Turtle source (does not reserialise).
 const status = computed(() => shaclStatus(turtle.value));
+
+const tab = ref<"shacl" | "visual">("shacl");
+
+// The parsed model for the Visual Editor; null while the Turtle is invalid.
+const docModel = computed(() => {
+  try {
+    return parseSchema(turtle.value);
+  } catch {
+    return null;
+  }
+});
 
 async function copyTurtle() {
   try {
@@ -200,6 +213,28 @@ function onDelete() {
           <span class="help mono">/schemas/{{ slug || "…" }}</span>
         </label>
 
+        <div class="tabs" role="tablist">
+          <button
+            class="tab"
+            :class="{ active: tab === 'shacl' }"
+            role="tab"
+            :aria-selected="tab === 'shacl'"
+            @click="tab = 'shacl'"
+          >
+            <AppIcon name="code" :size="13" /> SHACL
+          </button>
+          <button
+            class="tab"
+            :class="{ active: tab === 'visual' }"
+            role="tab"
+            :aria-selected="tab === 'visual'"
+            @click="tab = 'visual'"
+          >
+            <AppIcon name="tree" :size="13" /> Visual Editor
+          </button>
+        </div>
+
+        <div v-show="tab === 'shacl'" class="tabpanel">
         <div class="field">
           <div class="field__head">
             <span class="label">Shape (Turtle)</span>
@@ -271,6 +306,17 @@ function onDelete() {
               </li>
             </ul>
           </div>
+        </div>
+        </div>
+
+        <div v-show="tab === 'visual'" class="tabpanel">
+          <p class="help">
+            Overview of the shapes in this schema and how they link
+            (<span class="mono">sh:node</span>/<span class="mono">sh:class</span>).
+            Drag to arrange; edit shapes in the SHACL tab.
+          </p>
+          <ShaclCanvas v-if="docModel" :doc="docModel" />
+          <p v-else class="srcerror mono">Fix the SHACL to see the shape graph.</p>
         </div>
       </div>
     </div>
@@ -401,6 +447,36 @@ textarea:disabled {
 .help {
   font-size: 11px;
   color: var(--muted);
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tabpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 .field__head {
   display: flex;

@@ -62,6 +62,8 @@ export interface Field {
   datatype: string | null;
   /** sh:class */
   class: string | null;
+  /** sh:node — links to another NodeShape (the basis for shape-graph edges) */
+  node: string | null;
   /** sh:minCount */
   minCount: number | null;
   /** sh:maxCount (null = unbounded → omit) */

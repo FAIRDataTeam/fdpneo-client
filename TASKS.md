@@ -208,17 +208,23 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   the blank-node/determinism work below, so they are unsafe to do under 4.0
   (reserialising a real shape today would silently drop unmodeled triples).
 
-### 4.1 Shape graph (Vue Flow overview) — ⬜
-- New `src/components/shacl-editor/ShaclCanvas.vue` (Vue Flow). Each
-  `sh:NodeShape` → a node card (target class + property count); multi-shape graph
-  seeded from the loaded Turtle and/or `useResourceTypes`.
-- Drag to position = **UI-only state** (new Pinia `shaclEditor` store; not
-  persisted to the schema).
-- Edges from `sh:node` (and `sh:class` pointing at another in-graph shape).
-  Keyboard-navigable canvas (a11y per CLAUDE.md).
-- Selecting/opening a node drills into its **form designer** (4.2). Graph⇄designer
-  composition (drill-in vs. split-pane) is the one UX detail neither the handoff
-  nor this plan fully pins down — validate during build.
+### 4.1 Shape graph (Vue Flow overview) — 🟡 STARTED (renders live; verified)
+- ✅ Landed: `ShaclCanvas.vue` (Vue Flow) + `ShapeNodeCard.vue` (node card:
+  label · target class · property count, with edge handles) + `graph.ts`
+  (`buildShapeGraph` — pure model → nodes/edges) + Pinia `shaclEditor` store
+  (positions + selection, keyed by **stable `shapeIri`**, UI-only). Edges from
+  `sh:node` (by shape IRI) and `sh:class` (by target class), `sh:node` preferred.
+- ✅ Model extended losslessly with `sh:node` (model/serialize/parse/factories),
+  needed for the edges. +8 tests (graph 5, store 3 → 194 total green).
+- ✅ Mounted behind a minimal 2-tab chrome (SHACL / Visual Editor) in
+  `SchemaEditorView`; the canvas reads the live-parsed `docModel`. **Verified in
+  the running app** (Playwright + real Keycloak login): a 2-shape schema renders
+  two draggable node cards + the `dcat:distribution` `sh:node` edge, 0 console
+  errors. Vue Flow's deeply-generic `Node` type needs a cast at assignment (TS2589).
+- ⬜ Still to do: seed from `useResourceTypes` (today only from loaded Turtle);
+  **keyboard-navigable** canvas (a11y per CLAUDE.md); selecting a node drills into
+  its **form designer** (4.2) — selection updates the store but isn't wired to a
+  panel yet. Graph⇄designer composition (drill-in vs. split-pane) still to settle.
 
 ### 4.2 Per-shape form designer (the handoff 3-column workbench) — ⬜
 - **Palette** (`WidgetPalette.vue`): searchable, categorised full DASH widget

@@ -15,6 +15,7 @@ function field(over: Partial<Field>): Field {
     nodeKind: null,
     datatype: null,
     class: null,
+    node: null,
     minCount: null,
     maxCount: null,
     minLength: null,

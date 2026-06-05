@@ -109,6 +109,7 @@ export function parseSchema(turtle: string): SchemaDocument {
       nodeKind: iri(p, "nodeKind"),
       datatype,
       class: iri(p, "class"),
+      node: iri(p, "node"),
       minCount: numOf(p, "minCount"),
       maxCount: numOf(p, "maxCount"),
       minLength: numOf(p, "minLength"),
