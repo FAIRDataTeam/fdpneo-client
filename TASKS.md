@@ -176,46 +176,36 @@ the real equivalents are mapped below.
 - **Form renderer reference:** `EntityForm.vue` (config-driven, 5 field kinds) —
   pattern reference for `ShaclFormPreview.vue`, not reused directly (see scope 2).
 
-### 4.0 Shared model + serializer + parser — 🟡 STARTED (do first; the core risk)
-- ✅ Landed: `src/rdf/namespaces.ts` (PREFIXES/DASH/SH/RDFS/XSD/DEFAULT_URI),
-  `model.ts` (multi-shape `SchemaDocument`), `serialize.ts` (hand-rolled,
-  deterministic, multi-shape), and `parse.ts` (n3-based, lossless for the
-  supported subset, re-compacts IRIs to prefixed names, derives `widgetId` from
-  `dash:editor` + numeric heuristic). Field carries the `dash:editor` IRI
-  directly, so the serializer needs no widget table.
-- ✅ Tests (14, green): `serialize.spec.ts` (valid Turtle, `sh:in`, escaping,
-  determinism) + `parse.spec.ts` — **round-trip both ways** (`parse(serialize(m))
-  ≡ m` ignoring client ids; `serialize(parse(ttl))` idempotent) over a
-  two-shape seed, plus the NumberFieldEditor heuristic and malformed-input error.
-- ✅ Landed: `widgets.ts` — the **full DASH editor set** (15 editors sourced
-  from datashapes.org/forms.html + synthetic `NumberFieldEditor`), `DATATYPES`/
-  `NODE_KINDS`, and `widgetForEditor()` (the single editor⇄widget mapping;
-  `parse.ts` now uses it instead of its own copy). +5 tests (19 total green).
-- ⬜ Still to do: pass-through of *unrecognised* triples (parser currently keeps
-  the supported subset only — losslessness for arbitrary input, per 4.3); wire
-  load/save in `SchemaEditorView`. (Project-wide `typecheck` not yet re-run —
-  only lint + specs.)
-- **Multi-shape model** (`shacl-editor/model.ts`): `SchemaDocument` →
-  `ShapeModel[]` → `Group[]` → `Field[]` (per handoff §State Management, lifted
-  to multi-shape). Single source of truth for all three tabs.
-- **Serializer (model → Turtle):** new, hand-rolled to match the prototype's
-  `shacl.jsx generateShacl` deterministic block/term ordering (emits every shape
-  and its groups). **Not** the n3 `Writer` — round-trip stability needs a fixed
-  ordering the Writer won't guarantee.
-- **Parser (Turtle → model):** new, n3-based, **lossless for the supported
-  subset** across *all* `sh:NodeShape`s; reads everything `fieldsFromShape`
-  drops (`sh:group` label/order, `dash:editor`→widgetId + numeric-datatype
-  heuristic for Number, `sh:in`, `sh:pattern`, `sh:min/maxLength`, `sh:order`,
-  `sh:defaultValue`, shape `rdfs:label`/`rdfs:comment`, shape IRI, `@prefix`
-  set). Carry unrecognised triples through untouched.
-- **New `src/rdf/namespaces.ts`:** `PREFIXES` / `DASH` / `SH` / `RDFS` / `XSD` /
-  `DEFAULT_URI` (extend `NS` in `rdf.ts`; today it only has rdf/dct/dcat).
-- **Widget catalog** (`shacl-editor/widgets.ts`): the **full** DASH editor set
-  (sourced from datashapes.org/forms.html), with `dash:editor` IRIs + default
-  constraints + `AppIcon` glyph per widget.
-- **Test (CLAUDE.md gate):** `parse(serialize(m)) ≡ m` and
-  `serialize(parse(ttl))` idempotent; seed with the handoff `SEED_SCHEMA` and a
-  real server shape. Wire into `SchemaEditorView` load/save before any UI.
+### 4.0 Shared model + serializer + parser — ✅ DONE (foundation; 24 tests green)
+The framework-independent core all three tabs sit on. `npm run typecheck` +
+`eslint` clean; `npm run test:unit` 24/24 in `src/components/shacl-editor/`.
+- `src/rdf/namespaces.ts` — `PREFIXES` / `DASH` / `SH` / `RDFS` / `XSD` /
+  `DEFAULT_URI` (extends `rdf.ts`'s `NS`, which only had rdf/dct/dcat).
+- `model.ts` — **multi-shape** `SchemaDocument → ShapeModel[] → Group[] →
+  Field[]` (handoff §State Management lifted to multi-shape; client-only `id`s
+  not serialized). The single source of truth.
+- `serialize.ts` — hand-rolled, deterministic model→Turtle matching the
+  prototype's `shacl.jsx` block/term order, multi-shape. **Not** the n3 `Writer`
+  (round-trip needs a fixed order the Writer won't guarantee). Field carries the
+  `dash:editor` IRI directly, so the serializer needs no widget table.
+- `parse.ts` — n3-based Turtle→model, **lossless for the supported subset**
+  across *all* `sh:NodeShape`s; re-compacts IRIs to prefixed names; reads
+  everything `fieldsFromShape` drops (`sh:group` label/order, `sh:in`,
+  `sh:pattern`, `sh:min/maxLength`, `sh:order`, `sh:defaultValue`, shape
+  `rdfs:label`/`rdfs:comment`, shape IRI, `@prefix` set) and maps `dash:editor`
+  (+ numeric heuristic) → `widgetId` via `widgetForEditor`. Uses n3's synchronous
+  parse (the callback form is async and leaks errors) + a regex for `@prefix`.
+- `widgets.ts` — the **full DASH editor set** (15 editors from
+  datashapes.org/forms.html + synthetic `NumberFieldEditor`), `DATATYPES`,
+  `NODE_KINDS`, and `widgetForEditor()` (the one editor⇄widget mapping).
+- `factories.ts` — `newField` (seeds from a widget's defaults + auto
+  `:lowercasename` path, per the DnD spec), `newGroup`, `emptyDocument`.
+- **Round-trip proven** (CLAUDE.md gate): `parse(serialize(m)) ≡ m` (ignoring
+  ids) and `serialize(parse(ttl))` idempotent over a two-shape seed.
+- ⚠️ **Carried to 4.3:** true losslessness for *arbitrary* input (pass-through
+  of unrecognised triples) and wiring into `SchemaEditorView` — both depend on
+  the blank-node/determinism work below, so they are unsafe to do under 4.0
+  (reserialising a real shape today would silently drop unmodeled triples).
 
 ### 4.1 Shape graph (Vue Flow overview) — ⬜
 - New `src/components/shacl-editor/ShaclCanvas.vue` (Vue Flow). Each
