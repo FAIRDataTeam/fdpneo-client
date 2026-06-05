@@ -73,6 +73,76 @@ export function parseSchema(turtle: string): SchemaDocument {
     return Number.isFinite(n) ? n : null;
   };
 
+  // --- Lossless pass-through of unmodeled triples (task 4.0) ----------------
+  // Every triple the model doesn't read is re-emitted verbatim on serialize, so
+  // editing never silently drops SHACL features the model can't represent.
+  const RDF_TYPE = `${RDF}type`;
+  const RDF_FIRST = `${RDF}first`;
+  const RDF_REST = `${RDF}rest`;
+  const RDF_NIL = `${RDF}nil`;
+  const XSD_STRING = `${NAMESPACES.xsd}string`;
+  const RDF_LANGSTRING = `${RDF}langString`;
+  const sh = (l: string) => `${SH}${l}`;
+
+  const handled = new Set<string>(); // subjects fully represented by the model
+  const inlined = new Set<string>(); // bnodes already emitted inside a residual fragment
+
+  const SHAPE_KNOWN = new Set([sh("targetClass"), sh("property"), `${RDFS}label`, `${RDFS}comment`]);
+  const SHAPE_TYPES = new Set([sh("NodeShape")]);
+  const FIELD_KNOWN = new Set([
+    sh("path"), sh("name"), sh("description"), sh("nodeKind"), sh("datatype"),
+    sh("class"), sh("node"), sh("minCount"), sh("maxCount"), sh("minLength"),
+    sh("maxLength"), sh("pattern"), sh("defaultValue"), sh("in"), sh("order"),
+    sh("group"), `${DASH}editor`,
+  ]);
+  const GROUP_KNOWN = new Set([`${RDFS}label`, sh("order")]);
+  const GROUP_TYPES = new Set([sh("PropertyGroup")]);
+  const NO_TYPES = new Set<string>();
+
+  const escLit = (v: string): string => v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
+
+  /** An n3 term (and any blank-node subtree) → compacted Turtle. */
+  function termToTtl(term: Term): string {
+    if (term.termType === "NamedNode") return compact(term.value);
+    if (term.termType === "Literal") {
+      const lit = `"${escLit(term.value)}"`;
+      if (term.language) return `${lit}@${term.language}`;
+      const dt = term.datatype?.value;
+      return dt && dt !== XSD_STRING && dt !== RDF_LANGSTRING ? `${lit}^^${compact(dt)}` : lit;
+    }
+    inlined.add(term.value); // BlankNode — inline it
+    if (store.getObjects(term, namedNode(RDF_FIRST), null)[0]) {
+      const items: string[] = [];
+      let node: Term | undefined = term;
+      while (node && node.value !== RDF_NIL) {
+        inlined.add(node.value);
+        const it = store.getObjects(node, namedNode(RDF_FIRST), null)[0];
+        if (it) items.push(termToTtl(it));
+        node = store.getObjects(node, namedNode(RDF_REST), null)[0];
+      }
+      return `( ${items.join(" ")} )`;
+    }
+    const parts = store
+      .getQuads(term, null, null, null)
+      .map((q) => `${q.predicate.value === RDF_TYPE ? "a" : compact(q.predicate.value)} ${termToTtl(q.object)}`);
+    return parts.length ? `[ ${parts.join(" ; ")} ]` : "[]";
+  }
+
+  /** `predicate object` fragments on `subject` that the model doesn't consume. */
+  function residualFrags(subject: Term, known: Set<string>, knownTypes: Set<string>): string[] {
+    const frags: string[] = [];
+    for (const q of store.getQuads(subject, null, null, null)) {
+      const p = q.predicate.value;
+      if (p === RDF_TYPE) {
+        if (!knownTypes.has(q.object.value)) frags.push(`a ${compact(q.object.value)}`);
+        continue;
+      }
+      if (known.has(p)) continue;
+      frags.push(`${compact(p)} ${termToTtl(q.object)}`);
+    }
+    return frags;
+  }
+
   // Group blocks: full IRI → { label, order }.
   const groupInfo = new Map<string, { label: string; order: number }>();
   for (const g of store.getSubjects(namedNode(`${RDF}type`), namedNode(`${SH}PropertyGroup`), null)) {
@@ -83,6 +153,7 @@ export function parseSchema(turtle: string): SchemaDocument {
     const out: string[] = [];
     let node: Term | undefined = head;
     while (node && node.value !== `${RDF}nil`) {
+      handled.add(node.value); // a consumed `sh:in` list node, not residual
       const first = store.getObjects(node, namedNode(`${RDF}first`), null)[0];
       if (first) out.push(first.value);
       node = store.getObjects(node, namedNode(`${RDF}rest`), null)[0];
@@ -99,6 +170,8 @@ export function parseSchema(turtle: string): SchemaDocument {
     const inValues = inHead ? readList(inHead) : null;
     const groupObj = store.getObjects(p, namedNode(`${SH}group`), null)[0];
 
+    handled.add(p.value);
+    const residual = residualFrags(p, FIELD_KNOWN, NO_TYPES);
     const field: Field = {
       id: nextId("f"),
       widgetId: widgetForEditor(editorCompact, datatype),
@@ -117,7 +190,8 @@ export function parseSchema(turtle: string): SchemaDocument {
       pattern: lit(p, "pattern"),
       defaultValue: lit(p, "defaultValue"),
       inValues: inValues && inValues.length ? inValues : null,
-      order: numOf(p, "order") ?? 0,
+      order: numOf(p, "order"),
+      ...(residual.length ? { residual } : {}),
     };
     return { field, groupRef: groupObj ? groupObj.value : null };
   };
@@ -137,11 +211,24 @@ export function parseSchema(turtle: string): SchemaDocument {
     const groups: Group[] = [];
     for (const [groupRef, fields] of byGroup) {
       const info = groupRef ? groupInfo.get(groupRef) : undefined;
-      fields.sort((a, b) => a.order - b.order);
-      groups.push({ id: nextId("g"), label: info?.label ?? "", order: info?.order ?? 0, fields });
+      fields.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      let groupResidual: string[] = [];
+      if (groupRef) {
+        handled.add(groupRef);
+        groupResidual = residualFrags(namedNode(groupRef), GROUP_KNOWN, GROUP_TYPES);
+      }
+      groups.push({
+        id: nextId("g"),
+        label: info?.label ?? "",
+        order: info?.order ?? 0,
+        fields,
+        ...(groupResidual.length ? { residual: groupResidual } : {}),
+      });
     }
     groups.sort((a, b) => a.order - b.order);
 
+    handled.add(s.value);
+    const shapeResidual = residualFrags(s, SHAPE_KNOWN, SHAPE_TYPES);
     shapes.push({
       id: nextId("s"),
       shapeIri: compact(s.value),
@@ -149,8 +236,22 @@ export function parseSchema(turtle: string): SchemaDocument {
       comment: rdfsLit(s, "comment"),
       targetClass: iri(s, "targetClass") ?? "",
       groups,
+      ...(shapeResidual.length ? { residual: shapeResidual } : {}),
     });
   }
 
-  return { prefixes, shapes };
+  // Whole other subjects the model never touched (other resources, orphan
+  // groups, vocabulary…) → a document-level residual block. Bnode subjects are
+  // skipped: they're emitted inline via the IRI that references them.
+  const docFrags: string[] = [];
+  for (const subj of store.getSubjects(null, null, null)) {
+    if (subj.termType !== "NamedNode" || handled.has(subj.value) || inlined.has(subj.value)) continue;
+    const preds = store
+      .getQuads(subj, null, null, null)
+      .map((q) => `${q.predicate.value === RDF_TYPE ? "a" : compact(q.predicate.value)} ${termToTtl(q.object)}`);
+    if (preds.length) docFrags.push(`${compact(subj.value)} ${preds.join(" ;\n  ")} .`);
+  }
+  const residual = docFrags.join("\n\n");
+
+  return { prefixes, shapes, ...(residual ? { residual } : {}) };
 }

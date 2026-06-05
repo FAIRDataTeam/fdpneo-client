@@ -9,6 +9,7 @@ import { computed } from "vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import type { Field } from "./model";
 import { WIDGET_BY_ID } from "./widgets";
+import { setDragImage } from "./dragImage";
 
 const props = defineProps<{ field: Field; selected?: boolean; violations?: string[] }>();
 const emit = defineEmits<{
@@ -19,6 +20,11 @@ const emit = defineEmits<{
   (e: "dragend"): void;
   (e: "move", dir: number): void;
 }>();
+
+function onDragStart(ev: DragEvent) {
+  setDragImage(ev, props.field.name || props.field.path || "field");
+  emit("dragstart", ev);
+}
 
 // Keyboard: Enter/Space selects; Alt+Arrow reorders (the accessible alternative
 // to drag-and-drop).
@@ -56,7 +62,7 @@ const meta = computed(() => {
     :aria-label="`${field.name || 'unnamed'} field${required ? ', required' : ''}. Enter to edit, Alt+Arrow to reorder.`"
     @click="emit('select')"
     @keydown="onKey"
-    @dragstart="emit('dragstart', $event)"
+    @dragstart="onDragStart"
     @dragend="emit('dragend')"
   >
     <span class="grip" aria-hidden="true" title="Drag to reorder"><AppIcon name="grip" :size="14" /></span>

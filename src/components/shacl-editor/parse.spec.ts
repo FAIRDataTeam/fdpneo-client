@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Parser } from "n3";
 import { PREFIXES } from "@/rdf/namespaces";
 import { serializeSchema } from "./serialize";
 import { parseSchema } from "./parse";
@@ -170,5 +171,57 @@ describe("parseSchema ↔ serializeSchema round-trip", () => {
 
   it("throws ShaclParseError on malformed Turtle", () => {
     expect(() => parseSchema("this is not turtle <<<")).toThrow();
+  });
+});
+
+describe("losslessness for arbitrary input (residual pass-through)", () => {
+  // Uses SHACL features the model can't represent: a second rdf:type, sh:closed,
+  // an sh:or list of blank nodes, sh:hasValue, and a whole separate subject.
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://ex.org/> .
+@prefix : <http://fairdatapoint.org/> .
+
+:GeneralGroup a sh:PropertyGroup ; rdfs:label "General" ; sh:order 0 .
+
+:DatasetShape a sh:NodeShape, owl:Class ;
+  rdfs:label "Dataset" ;
+  sh:targetClass ex:Dataset ;
+  sh:closed true ;
+  sh:property [
+    sh:path dct:title ;
+    sh:name "Title" ;
+    sh:minCount 1 ;
+    sh:group :GeneralGroup ;
+    sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:anyURI ] ) ;
+    sh:hasValue "x"
+  ] .
+
+ex:SomeOntology a owl:Ontology ; rdfs:label "Vocab" .`;
+
+  const triples = (t: string) => new Parser().parse(t).length;
+
+  it("drops no triples: parse → serialize preserves the triple count", () => {
+    const out = serializeSchema(parseSchema(ttl));
+    expect(triples(out)).toBe(triples(ttl));
+  });
+
+  it("re-emits the unmodeled features", () => {
+    const out = serializeSchema(parseSchema(ttl));
+    expect(out).toContain("sh:closed");
+    expect(out).toContain("sh:or (");
+    expect(out).toContain("sh:hasValue");
+    expect(out).toContain("a owl:Class"); // the extra shape type
+    expect(out).toContain("ex:SomeOntology"); // the other subject
+    expect(() => new Parser().parse(out)).not.toThrow();
+  });
+
+  it("is idempotent on its own output", () => {
+    const once = serializeSchema(parseSchema(ttl));
+    const twice = serializeSchema(parseSchema(once));
+    expect(twice).toBe(once);
   });
 });

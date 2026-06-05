@@ -9,7 +9,7 @@ import { computed, ref } from "vue";
 import type { Field } from "./model";
 import { DATATYPES, NODE_KINDS, WIDGET_BY_ID } from "./widgets";
 
-const props = defineProps<{ field: Field }>();
+const props = defineProps<{ field: Field; groupLabel?: string }>();
 const emit = defineEmits<{ (e: "update", patch: Partial<Field>): void }>();
 
 const editorIri = computed(() => WIDGET_BY_ID[props.field.widgetId]?.editor ?? props.field.editor ?? "");
@@ -179,6 +179,13 @@ function removeChip(i: number) {
           @input="emit('update', { order: toNum(($event.target as HTMLInputElement).value) ?? 0 })"
         />
       </label>
+      <div class="f">
+        <span>Group <em>sh:group</em></span>
+        <div class="readonly">
+          {{ groupLabel || "(ungrouped)" }}
+          <small>move by dragging the field into another group</small>
+        </div>
+      </div>
     </section>
   </div>
 </template>
@@ -249,6 +256,20 @@ select {
 }
 .mono {
   font-family: var(--font-mono);
+}
+.readonly {
+  font-size: 13px;
+  color: var(--ink);
+  padding: 7px 9px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
+}
+.readonly small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
 }
 .chips {
   display: flex;

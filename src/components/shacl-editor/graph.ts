@@ -4,24 +4,38 @@
  * Pure model → graph: each `sh:NodeShape` becomes a node; a property links two
  * shapes when its `sh:node` points at another shape's IRI, or its `sh:class`
  * points at another shape's `sh:targetClass`. Self-references are dropped.
- * Node positions are deliberately NOT here — they are UI-only state owned by
- * the `shaclEditor` store, so this stays a deterministic, testable function.
+ *
+ * Optionally seeded with the deployment's registered resource types
+ * (`useResourceTypes`): a type whose class this schema has no shape for becomes
+ * a **ghost** node — an "exists in the deployment, no shape here yet" hint. A
+ * property's `sh:class` can also link to a ghost. Node positions live in the
+ * `shaclEditor` store, keyed by `key`, so this stays a deterministic function.
  */
 
 import type { SchemaDocument } from "./model";
 
+/** A registered resource type, for ghost-node seeding. */
+export interface ResourceTypeLike {
+  classIri: string;
+  label: string;
+}
+
 export interface ShapeNode {
-  /** shape.id — stable key shared with the model */
+  /** stable node id: the shape IRI, or `ghost:<classIri>` for an unshaped type */
+  key: string;
+  /** shape.id (real shapes); "" for ghosts */
   id: string;
   shapeIri: string;
   label: string;
   targetClass: string;
   propertyCount: number;
+  /** a registered type with no shape in this schema */
+  ghost: boolean;
 }
 
 export interface ShapeEdge {
   id: string;
-  /** source/target are shape ids */
+  /** source/target are node keys */
   source: string;
   target: string;
   /** the property (path or name) that creates the link */
@@ -35,27 +49,49 @@ export interface ShapeGraph {
   edges: ShapeEdge[];
 }
 
-export function buildShapeGraph(doc: SchemaDocument): ShapeGraph {
+const keyForShape = (id: string, shapeIri: string): string => shapeIri || `shape:${id}`;
+
+export function buildShapeGraph(doc: SchemaDocument, types: ResourceTypeLike[] = []): ShapeGraph {
   const nodes: ShapeNode[] = doc.shapes.map((s) => ({
+    key: keyForShape(s.id, s.shapeIri),
     id: s.id,
     shapeIri: s.shapeIri,
     label: s.label,
     targetClass: s.targetClass,
     propertyCount: s.groups.reduce((n, g) => n + g.fields.length, 0),
+    ghost: false,
   }));
 
-  // Resolve a shape link target to a shape id, preferring sh:node (by IRI),
-  // falling back to sh:class (by target class). First match wins.
+  // Ghost nodes: registered types whose class no shape in this schema targets.
+  const covered = new Set(doc.shapes.map((s) => s.targetClass).filter(Boolean));
+  const ghosted = new Set<string>();
+  for (const t of types) {
+    if (!t.classIri || covered.has(t.classIri) || ghosted.has(t.classIri)) continue;
+    ghosted.add(t.classIri);
+    nodes.push({
+      key: `ghost:${t.classIri}`,
+      id: "",
+      shapeIri: "",
+      label: t.label,
+      targetClass: t.classIri,
+      propertyCount: 0,
+      ghost: true,
+    });
+  }
+
+  // Resolve a link target to a node key: sh:node by shape IRI, sh:class by
+  // target class (real shapes first, then ghosts). First match wins.
   const byIri = new Map<string, string>();
   const byClass = new Map<string, string>();
-  for (const s of doc.shapes) {
-    if (s.shapeIri && !byIri.has(s.shapeIri)) byIri.set(s.shapeIri, s.id);
-    if (s.targetClass && !byClass.has(s.targetClass)) byClass.set(s.targetClass, s.id);
+  for (const n of nodes) {
+    if (n.shapeIri && !byIri.has(n.shapeIri)) byIri.set(n.shapeIri, n.key);
+    if (n.targetClass && !byClass.has(n.targetClass)) byClass.set(n.targetClass, n.key);
   }
 
   const edges: ShapeEdge[] = [];
   const seen = new Set<string>();
   for (const s of doc.shapes) {
+    const source = keyForShape(s.id, s.shapeIri);
     for (const g of s.groups) {
       for (const f of g.fields) {
         let target: string | undefined;
@@ -67,11 +103,11 @@ export function buildShapeGraph(doc: SchemaDocument): ShapeGraph {
           target = byClass.get(f.class);
           kind = "class";
         }
-        if (!target || target === s.id) continue;
-        const id = `${s.id}->${target}:${f.id}`;
+        if (!target || target === source) continue;
+        const id = `${source}->${target}:${f.id}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        edges.push({ id, source: s.id, target, via: f.path || f.name, kind });
+        edges.push({ id, source, target, via: f.path || f.name, kind });
       }
     }
   }

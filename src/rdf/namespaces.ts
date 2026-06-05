@@ -33,6 +33,25 @@ export const DASH = (local: string): string => `${NAMESPACES.dash}${local}`;
 export const RDFS = (local: string): string => `${NAMESPACES.rdfs}${local}`;
 export const XSD = (local: string): string => `${NAMESPACES.xsd}${local}`;
 
+/**
+ * Compact a full IRI to a prefixed name (`http://…/dcat#Dataset` → `dcat:Dataset`)
+ * using the given prefixes plus the standard families; longest namespace wins.
+ * Non-IRIs (already prefixed/short) pass through unchanged.
+ */
+export function compactIri(iri: string, prefixes: PrefixDecl[] = []): string {
+  if (!/^https?:\/\//.test(iri)) return iri;
+  const entries: [string, string][] = [
+    ["", DEFAULT_URI],
+    ...prefixes.map((p) => [p.prefix, p.uri] as [string, string]),
+    ...(Object.entries(NAMESPACES) as [string, string][]),
+  ];
+  entries.sort((a, b) => b[1].length - a[1].length);
+  for (const [prefix, ns] of entries) {
+    if (iri.startsWith(ns)) return `${prefix}:${iri.slice(ns.length)}`;
+  }
+  return iri;
+}
+
 /** Default prefix declarations seeded into a fresh schema, in stable order. */
 export const PREFIXES: PrefixDecl[] = [
   { prefix: "sh", uri: NAMESPACES.sh },

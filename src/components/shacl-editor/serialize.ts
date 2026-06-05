@@ -70,6 +70,8 @@ function fieldTerms(field: Field, group: Group | null): string[] {
   if (order !== null) lines.push(`sh:order ${order}`);
   if (field.editor) lines.push(`dash:editor ${field.editor}`);
   if (group) lines.push(`sh:group ${groupIri(group.label)}`);
+  // Carry through any SHACL features the model doesn't capture (sh:or, …).
+  if (field.residual) lines.push(...field.residual);
   return lines;
 }
 
@@ -84,6 +86,8 @@ function serializeShape(shape: ShapeModel, out: string[]): void {
   if (shape.label) out.push(`  rdfs:label ${quote(shape.label)} ;`);
   if (shape.comment) out.push(`  rdfs:comment ${quote(shape.comment)} ;`);
   if (shape.targetClass) out.push(`  sh:targetClass ${shape.targetClass} ;`);
+  // Unmodeled shape-level predicates (sh:closed, extra rdf:type, …).
+  for (const frag of shape.residual ?? []) out.push(`  ${frag} ;`);
 
   const groups = sortedGroups(shape.groups);
   const fields: { field: Field; group: Group }[] = [];
@@ -128,10 +132,14 @@ export function serializeSchema(doc: SchemaDocument): string {
       const iri = groupIri(g.label);
       if (seen.has(iri)) continue;
       seen.add(iri);
+      const stmts = [
+        `a sh:PropertyGroup`,
+        `rdfs:label ${quote(g.label || "Group")}`,
+        `sh:order ${num(g.order) ?? 0}`,
+        ...(g.residual ?? []),
+      ];
       out.push(`${iri}`);
-      out.push(`  a sh:PropertyGroup ;`);
-      out.push(`  rdfs:label ${quote(g.label || "Group")} ;`);
-      out.push(`  sh:order ${num(g.order) ?? 0} .`);
+      stmts.forEach((s, j) => out.push(`  ${s}${j === stmts.length - 1 ? " ." : " ;"}`));
       out.push("");
     }
   }
@@ -140,6 +148,12 @@ export function serializeSchema(doc: SchemaDocument): string {
     serializeShape(shape, out);
     if (i < doc.shapes.length - 1) out.push("");
   });
+
+  // Whole other subjects the model doesn't represent, carried through verbatim.
+  if (doc.residual) {
+    out.push("");
+    out.push(doc.residual);
+  }
 
   return out.join("\n");
 }

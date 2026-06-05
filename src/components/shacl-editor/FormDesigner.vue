@@ -60,6 +60,12 @@ const selectedGroup = computed<Group | null>(() => {
   if (s.kind !== "group" || !shape.value) return null;
   return shape.value.groups.find((g) => g.id === s.id) ?? null;
 });
+// The label of the group the selected field lives in (read-only inspector line).
+const selectedFieldGroupLabel = computed(() => {
+  const s = sel.value;
+  if (s.kind !== "field" || !shape.value) return "";
+  return shape.value.groups.find((g) => g.fields.some((f) => f.id === s.id))?.label ?? "";
+});
 
 // Where palette adds land: the selected group, the selected field's group, else the first.
 const targetGroupId = computed<string | null>(() => {
@@ -250,7 +256,12 @@ function overEmpty(groupId: string): boolean {
       <section class="panel" role="region" aria-label="Inspector">
         <header>INSPECTOR</header>
         <div class="panel__body">
-          <FieldInspector v-if="selectedField" :field="selectedField" @update="onUpdateField" />
+          <FieldInspector
+            v-if="selectedField"
+            :field="selectedField"
+            :group-label="selectedFieldGroupLabel"
+            @update="onUpdateField"
+          />
           <GroupInspector
             v-else-if="selectedGroup"
             :group="selectedGroup"

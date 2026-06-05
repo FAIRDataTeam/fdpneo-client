@@ -6,7 +6,8 @@
  * `draggable` so the DnD wiring can hang off it without markup changes.
  */
 import { computed, ref } from "vue";
-import { CATEGORIES, WIDGETS } from "./widgets";
+import { CATEGORIES, WIDGETS, type WidgetDef } from "./widgets";
+import { setDragImage } from "./dragImage";
 
 const emit = defineEmits<{
   (e: "add", widgetId: string): void;
@@ -27,11 +28,12 @@ const filtered = computed(() => {
   );
 });
 
-function startDrag(widgetId: string, ev: DragEvent) {
+function startDrag(w: WidgetDef, ev: DragEvent) {
   // setData is required for the drag to initiate in some browsers (Firefox).
-  ev.dataTransfer?.setData("text/plain", widgetId);
+  ev.dataTransfer?.setData("text/plain", w.id);
   if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
-  emit("dragstart", widgetId);
+  setDragImage(ev, w.name);
+  emit("dragstart", w.id);
 }
 
 const byCategory = computed(() =>
@@ -54,7 +56,7 @@ const byCategory = computed(() =>
         draggable="true"
         :title="w.editor"
         @click="emit('add', w.id)"
-        @dragstart="startDrag(w.id, $event)"
+        @dragstart="startDrag(w, $event)"
         @dragend="emit('dragend')"
       >
         <span class="glyph" aria-hidden="true">{{ w.glyph }}</span>

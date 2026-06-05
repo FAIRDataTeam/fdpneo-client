@@ -7,11 +7,13 @@ import type { SchemaDocument } from "@/components/shacl-editor/model";
 function graph(iris: string[]): ShapeGraph {
   return {
     nodes: iris.map((shapeIri, i) => ({
+      key: shapeIri,
       id: `s${i}`,
       shapeIri,
       label: shapeIri,
       targetClass: "",
       propertyCount: 0,
+      ghost: false,
     })),
     edges: [],
   };

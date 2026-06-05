@@ -90,7 +90,7 @@ export const useShaclEditorStore = defineStore("shaclEditor", () => {
   function ensureLayout(graph: ShapeGraph): number {
     let placed = 0;
     graph.nodes.forEach((node, i) => {
-      const key = node.shapeIri;
+      const key = node.key;
       if (!key || positions.value[key]) return;
       const col = i % COLS;
       const row = Math.floor(i / COLS);

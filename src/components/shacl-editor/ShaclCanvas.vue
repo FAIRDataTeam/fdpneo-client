@@ -16,7 +16,9 @@ import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import "@vue-flow/controls/dist/style.css";
 import { useShaclEditorStore } from "@/stores/shaclEditor";
-import { buildShapeGraph } from "./graph";
+import { useResourceTypes } from "@/composables/useResourceTypes";
+import { compactIri } from "@/rdf/namespaces";
+import { buildShapeGraph, type ResourceTypeLike, type ShapeNode } from "./graph";
 import { shapeViolationCounts } from "./violations";
 import type { SchemaDocument } from "./model";
 import ShapeNodeCard from "./ShapeNodeCard.vue";
@@ -25,29 +27,40 @@ const props = defineProps<{ doc: SchemaDocument }>();
 const emit = defineEmits<{ (e: "select", shapeIri: string | null): void }>();
 
 const store = useShaclEditorStore();
+const { defs, specFor } = useResourceTypes();
 const nodes = ref<Node[]>([]);
 const edges = ref<Edge[]>([]);
 // Per-shape count of violating fields, for the node badge (4.4).
 const violByShape = computed(() => shapeViolationCounts(props.doc, store.violations));
 
+// Registered resource types → ghost-node seeds (4.1): types with no shape here.
+const types = computed<ResourceTypeLike[]>(() =>
+  defs.value
+    .map((d) => specFor(d.urlPrefix))
+    .filter((s): s is NonNullable<typeof s> => s !== null)
+    // resource-type class IRIs are full; the model's targetClass is prefixed.
+    .map((s) => ({ classIri: compactIri(s.classIri, props.doc.prefixes), label: s.label })),
+);
+
 function rebuild() {
-  const g = buildShapeGraph(props.doc);
+  const g = buildShapeGraph(props.doc, types.value);
   store.ensureLayout(g);
-  const idToIri = new Map(g.nodes.map((n) => [n.id, n.shapeIri]));
   // Build plain objects, then cast: assigning the literal straight to a
   // `ref<Node[]>` makes TS instantiate Vue Flow's deeply-generic `Node` type
   // against it (TS2589). The local infers structurally, the cast asserts.
   const ns = g.nodes.map((n) => ({
-    id: n.shapeIri,
+    id: n.key,
     type: "shapecard",
-    position: store.positions[n.shapeIri] ?? { x: 0, y: 0 },
+    position: store.positions[n.key] ?? { x: 0, y: 0 },
     data: n,
-    selected: store.selectedIri === n.shapeIri,
+    selected: store.selectedIri === n.key,
+    selectable: !n.ghost,
+    draggable: true,
   }));
   const es = g.edges.map((e) => ({
     id: e.id,
-    source: idToIri.get(e.source) ?? e.source,
-    target: idToIri.get(e.target) ?? e.target,
+    source: e.source,
+    target: e.target,
     label: e.via,
     animated: e.kind === "node",
   }));
@@ -55,12 +68,13 @@ function rebuild() {
   edges.value = es as Edge[];
 }
 
-watch(() => props.doc, rebuild, { immediate: true, deep: true });
+watch([() => props.doc, types], rebuild, { immediate: true, deep: true });
 
 function onDragStop({ node }: NodeDragEvent) {
   store.setPosition(node.id, { x: node.position.x, y: node.position.y });
 }
 function onNodeClick({ node }: NodeMouseEvent) {
+  if ((node.data as ShapeNode | undefined)?.ghost) return; // ghosts aren't editable
   activate(node.id);
 }
 // Keyboard activation (Enter/Space on a focused node) — same as a click.

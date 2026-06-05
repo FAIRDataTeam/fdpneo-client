@@ -187,9 +187,11 @@ the real equivalents are mapped below.
 - **Form renderer reference:** `EntityForm.vue` (config-driven, 5 field kinds) —
   pattern reference for `ShaclFormPreview.vue`, not reused directly (see scope 2).
 
-### 4.0 Shared model + serializer + parser — ✅ DONE (foundation; 24 tests green)
+### 4.0 Shared model + serializer + parser — ✅ DONE (foundation; lossless round-trip)
 The framework-independent core all three tabs sit on. `npm run typecheck` +
-`eslint` clean; `npm run test:unit` 24/24 in `src/components/shacl-editor/`.
+`eslint` clean; the `src/components/shacl-editor/` suite (model/serialize/parse/
+widgets/factories/graph/violations/preview/status) is green, incl. lossless
+round-trip over arbitrary input.
 
 - `src/rdf/namespaces.ts` — `PREFIXES` / `DASH` / `SH` / `RDFS` / `XSD` /
   `DEFAULT_URI` (extends `rdf.ts`'s `NS`, which only had rdf/dct/dcat).
@@ -214,12 +216,19 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   `:lowercasename` path, per the DnD spec), `newGroup`, `emptyDocument`.
 - **Round-trip proven** (CLAUDE.md gate): `parse(serialize(m)) ≡ m` (ignoring
   ids) and `serialize(parse(ttl))` idempotent over a two-shape seed.
-- ⚠️ **Carried to 4.3:** true losslessness for *arbitrary* input (pass-through
-  of unrecognised triples) and wiring into `SchemaEditorView` — both depend on
-  the blank-node/determinism work below, so they are unsafe to do under 4.0
-  (reserialising a real shape today would silently drop unmodeled triples).
+- ✅ **Lossless for *arbitrary* input** (the original core risk): the parser
+  captures every triple the model doesn't read as residual Turtle fragments —
+  per field (inside the `sh:property [ … ]` block), per shape, per group, and
+  whole other subjects as a document block — re-emitted verbatim on serialize. A
+  recursive term serializer inlines blank-node subtrees (`sh:or` lists, nested
+  shapes) so references stay intact. Also made `sh:order` nullable so an
+  unordered property round-trips exactly. +3 tests (`sh:closed`, `sh:or`, extra
+  `rdf:type`, `sh:hasValue`, separate subject → zero triples dropped, idempotent).
+  **Verified live**: added a field in the designer to a shape using those features
+  → all preserved on save. So editing never silently drops unmodeled triples.
+- ✅ Wired into `SchemaEditorView` (the Visual Editor / SHACL / Preview tabs).
 
-### 4.1 Shape graph (Vue Flow overview) — 🟡 STARTED (renders live; verified)
+### 4.1 Shape graph (Vue Flow overview) — ✅ DONE (verified live)
 - ✅ Landed: `ShaclCanvas.vue` (Vue Flow) + `ShapeNodeCard.vue` (node card:
   label · target class · property count, with edge handles) + `graph.ts`
   (`buildShapeGraph` — pure model → nodes/edges) + Pinia `shaclEditor` store
@@ -232,12 +241,16 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   the running app** (Playwright + real Keycloak login): a 2-shape schema renders
   two draggable node cards + the `dcat:distribution` `sh:node` edge, 0 console
   errors. Vue Flow's deeply-generic `Node` type needs a cast at assignment (TS2589).
-- ⬜ Still to do: seed from `useResourceTypes` (today only from loaded Turtle);
-  **keyboard-navigable** canvas (a11y per CLAUDE.md); selecting a node drills into
-  its **form designer** (4.2) — selection updates the store but isn't wired to a
-  panel yet. Graph⇄designer composition (drill-in vs. split-pane) still to settle.
+- ✅ **Seed from `useResourceTypes`**: registered types this schema has no shape
+  for render as muted/dashed **ghost** nodes ("no shape yet"), non-interactive; a
+  `sh:class` can link to one. `buildShapeGraph` gained `key`/`ghost` + a `types`
+  arg; new `compactIri` (in `namespaces.ts`) reconciles full type-class IRIs with
+  the model's prefixed `targetClass`. +5 tests. **Verified live** (Dataset-only
+  schema → 1 real + 4 ghosts, ghosts don't drill in, real does, 0 console errors).
+- ✅ Keyboard-navigable canvas + drill-into-designer landed in the a11y pass / 4.2.
+  Graph⇄designer composition settled (drill-in; back to the graph from the bar).
 
-### 4.2 Per-shape form designer (the handoff 3-column workbench) — ✅ DONE (verified; only canvas a11y remains, shared w/ 4.1)
+### 4.2 Per-shape form designer (the handoff 3-column workbench) — ✅ DONE (verified, incl. a11y + polish)
 - ✅ Landed: the 3-column `FormDesigner.vue` (drill-in from a graph node) +
   `WidgetPalette.vue` (searchable, categorised **full DASH** set) + `FieldCard.vue`
   (glyph · name · required ● · multi badge · mono meta · duplicate/delete) +
@@ -275,8 +288,10 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   three workbench panels. **Verified live** (Playwright keyboard-only): focus a
   node → Enter drills in; focus a field → Enter selects → Alt+↓ reorders
   (Title moved below Description), valid Turtle, 0 console errors.
-- ⬜ Minor remaining (non-blocking): the field inspector's read-only "group" line;
-  richer drag image.
+- ✅ Polish done (verified live): the field inspector's **read-only "Group" line**
+  (shows the field's group + "move by dragging into another group") and a **custom
+  drag image** (`dragImage.ts` — an accent chip with grip glyph + label, for both
+  palette drags and field-card reorders). DnD unaffected (drag-add still works).
 
 ### 4.3 Three-tab chrome + bidirectional sync — ✅ DONE (verified live)
 - ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark
@@ -360,27 +375,87 @@ test), server architecture §13 (ProjectOak functional reference),
 
 ---
 
-## Phase 5 — Visual ODRL editor — ⬜ OPEN (PolicyEditorView is a stub; not built)
+## Phase 5 — Visual ODRL editor — ⬜ OPEN (planned 2026-06-05; PolicyEditorView is a 21-line stub)
 
-### 5.1 Offer composer
-- `components/odrl-editor/OdrlComposer.vue` — guided form.
-- Action selector limited to the FDP profile (`odrl:read`, `odrl:modify`,
-  `odrl:delete`, `odrl:distribute`).
-- Constraint builder: party, role, organization, time window. Constraints
-  outside the FDP profile are not offered.
-- Conflict strategy picker with deny-wins as the explicit default.
+A **guided** Offer composer (not a canvas) at `/policies` →
+`PolicyEditorView.vue`, under `src/components/odrl-editor/`. Much smaller than
+Phase 4: no Vue Flow, no DnD — just typed forms + a live Turtle preview.
 
-### 5.2 Offer preview and save
-- Live Turtle preview.
-- Save sends the Offer to the server, which validates against the FDP
-  profile and rejects non-conforming policies with a structured error
-  the editor surfaces inline.
+**⚠️ Server gap (verified live 2026-06-05):** there is **no `/offers` or
+`/policies` endpoint**. Offers are **profile-bundled config**
+(`server/profiles/default/offers/*.ttl`, applied by `profiles/applier.py`); a
+record references one by an **intrinsic w3id.org IRI** via `dct:rights`
+(`…/offers/public-read-steward-modify` — not fetchable locally, 404s).
+**Agreements** are PDP-materialized into the record's audit graph on PERMIT
+(likely a hidden `/meta` graph). So **5.2 persist-to-server and 5.3 Agreement
+history are server-blocked** (need a coordinated fdp-server change, like
+`/schemas` was). The composer + preview + client-side validation (5.1) is fully
+buildable now.
 
-### 5.3 Agreement history view
-- Read-only display of materialized Agreements against a given Offer.
-- Steward-visible; not part of the editing flow but useful for audit.
+**Decisions (2026-06-05):** (1) **build client-complete now, defer save** — full
+composer + live preview + client-side profile validation + Copy/Download Turtle;
+"Publish" wired to a seam but disabled with a "server endpoint pending" note;
+5.3 deferred. (2) **Hardcode the ADR-0006 closed vocabulary** in `vocab.ts`.
 
-References: server architecture §8, ADR-0006.
+### The profile contract (server `policy/model.py` + `parser.py`; ADR-0006) — don't invent
+- `<iri> a odrl:Offer`; optional `odrl:assigner <iri>`; optional `odrl:conflict`
+  (`odrl:deny` = deny-wins **default**, `odrl:perm`, `odrl:invalid`).
+- Rules: `odrl:permission`/`odrl:prohibition` → bnode `a odrl:Permission|Prohibition`,
+  exactly one `odrl:action` ∈ {`odrl:read`, `odrl:modify`, `odrl:delete`,
+  `odrl:distribute`}.
+- Constraints (`odrl:constraint` bnode): `odrl:leftOperand` + `odrl:operator`
+  (`odrl:eq/neq/lt/gt/lteq/gteq`) + `odrl:rightOperand`, with **per-operand rules
+  the client must enforce**:
+  - `odrl:assignee` → operator **eq/neq only**, rightOperand an **IRI**.
+  - `fdp-pol:role` / `fdp-pol:group` → operator **eq/neq only**, rightOperand a literal.
+  - `odrl:dateTime` → comparison operators, rightOperand an `xsd:dateTime` literal.
+- Namespaces: `odrl: <http://www.w3.org/ns/odrl/2/>`,
+  `fdp-pol: <https://specs.fairdatapoint.org/odrl-profile#>`.
+
+### Reuse from Phase 4 (why this goes fast)
+Model→Turtle **serializer pattern** (`shacl-editor/serialize.ts` — hand-rolled,
+escaping, `[ … ]` bnodes, always-declared prefixes); **n3** parse for round-trip
+import; **`TurtleEditor`** (Monaco, read-only) for the live preview; CSS tokens,
+`AppIcon`, view chrome, the `validateSample`-style wiring for when the endpoint
+lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
+
+### 5.0 Vocab + model + serializer + parser + round-trip — ⬜ (do first, no UI)
+- `vocab.ts` (actions/operators/leftOperands/conflict — the closed sets above),
+  `model.ts` (`OfferModel { iri, assigner, conflict, rules: Rule[] }`,
+  `Rule { kind, action, constraints }`, `Constraint { leftOperand, operator,
+  rightOperand }`), `serialize.ts` + `parse.ts`. **Round-trip test seeded with
+  the real bundled `public-read-steward-modify.ttl`.**
+
+### 5.1 Offer composer + client-side validation — ⬜
+- `OdrlComposer.vue` — action picker (4), per-rule constraint builder (leftOperand
+  select → operator select filtered per operand → typed value input), permission/
+  prohibition toggle, conflict-strategy picker (deny-wins default).
+- `validate.ts` — pure, mirrors `parser.py` (per-operand operator/value rules);
+  the composer is structurally unable to emit out-of-profile constructs (CLAUDE.md).
+- `OdrlPreview.vue` — live Turtle preview + validation banner. Wire into
+  `PolicyEditorView` (replaces the stub).
+
+### 5.2 Offer save — 🚫 server-blocked (build the seam + Copy/Download now)
+- Live preview ✅ buildable. **Save**: Copy/Download Turtle now; "Publish" wired
+  behind a clear API seam, disabled with a "server endpoint pending" note until
+  fdp-server exposes an offer CRUD/validate endpoint (mirror the `/schemas`
+  pattern: `putOffer` + a `validate` dry-run surfacing structured errors inline).
+- **Reference an offer from a record** (`dct:rights` picker in `EntityForm`,
+  currently excluded there) also needs an offer-**list** endpoint — blocked.
+
+### 5.3 Agreement history view — 🚫 server-blocked (deferred)
+- Read-only Agreements for an Offer (assigner/assignee/action/timestamp), from
+  the record's audit graph. Needs steward-scoped audit-graph access (the `/meta`
+  graphs are hidden from anonymous SPARQL). Defer until that exists.
+
+### Risks
+- The **persist path is genuinely server-blocked** — the editor is client-complete
+  but offers can't be stored until fdp-server adds the endpoint (a real server task).
+- Build the API seam so swapping the stub for the real endpoint is a one-file change.
+
+References: server architecture §8, ADR-0006
+(`server/docs/adr/0006-odrl-profile-permission-prohibition.md`),
+`server/profiles/default/offers/public-read-steward-modify.ttl`.
 
 ---
 

@@ -3,15 +3,17 @@
  * A single shape rendered as a Vue Flow node (Phase 4, task 4.1): the shape's
  * label, target class, and property count, with left/right handles so
  * `sh:node`/`sh:class` edges can attach. Selection styling is driven by Vue
- * Flow's `selected` flag.
+ * Flow's `selected` flag. A **ghost** node is a registered resource type with
+ * no shape in this schema — rendered muted/dashed and non-interactive.
  */
 import { Handle, Position } from "@vue-flow/core";
 import type { ShapeNode } from "./graph";
 
-defineProps<{ data: ShapeNode; selected?: boolean; violations?: number }>();
+const props = defineProps<{ data: ShapeNode; selected?: boolean; violations?: number }>();
 const emit = defineEmits<{ (e: "activate"): void }>();
 
 function onKey(e: KeyboardEvent) {
+  if (props.data.ghost) return;
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
     emit("activate");
@@ -22,21 +24,28 @@ function onKey(e: KeyboardEvent) {
 <template>
   <div
     class="shape-node"
-    :class="{ selected }"
-    tabindex="0"
-    role="button"
-    :aria-pressed="selected"
-    :aria-label="`Shape ${data.label || data.shapeIri}, ${data.propertyCount} properties. Enter to edit.`"
+    :class="{ selected, ghost: data.ghost }"
+    :tabindex="data.ghost ? -1 : 0"
+    :role="data.ghost ? undefined : 'button'"
+    :aria-pressed="data.ghost ? undefined : selected"
+    :aria-label="
+      data.ghost
+        ? `Type ${data.label || data.targetClass} — no shape in this schema yet`
+        : `Shape ${data.label || data.shapeIri}, ${data.propertyCount} properties. Enter to edit.`
+    "
     @keydown="onKey"
   >
     <Handle type="target" :position="Position.Left" />
-    <div class="shape-node__label">{{ data.label || data.shapeIri || "(unnamed)" }}</div>
+    <div class="shape-node__label">{{ data.label || data.shapeIri || data.targetClass || "(unnamed)" }}</div>
     <div class="shape-node__tc mono">{{ data.targetClass || "no sh:targetClass" }}</div>
     <div class="shape-node__count">
-      {{ data.propertyCount }} propert{{ data.propertyCount === 1 ? "y" : "ies" }}
-      <span v-if="violations" class="shape-node__viol" :title="`${violations} field(s) failed validation`">
-        ⚠ {{ violations }}
-      </span>
+      <template v-if="data.ghost">no shape yet</template>
+      <template v-else>
+        {{ data.propertyCount }} propert{{ data.propertyCount === 1 ? "y" : "ies" }}
+        <span v-if="violations" class="shape-node__viol" :title="`${violations} field(s) failed validation`">
+          ⚠ {{ violations }}
+        </span>
+      </template>
     </div>
     <Handle type="source" :position="Position.Right" />
   </div>
@@ -59,6 +68,19 @@ function onKey(e: KeyboardEvent) {
 .shape-node:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+.shape-node.ghost {
+  border-style: dashed;
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  opacity: 0.75;
+  box-shadow: none;
+}
+.shape-node.ghost .shape-node__label {
+  color: var(--muted);
+}
+.shape-node.ghost .shape-node__count {
+  font-style: italic;
 }
 .shape-node__label {
   font-weight: 600;

@@ -17,6 +17,13 @@ import type { PrefixDecl } from "@/rdf/namespaces";
 export interface SchemaDocument {
   prefixes: PrefixDecl[];
   shapes: ShapeModel[];
+  /**
+   * Triples the editor model doesn't represent, captured at parse time as a
+   * Turtle block and re-emitted verbatim on serialize so editing never silently
+   * drops them (task 4.0 losslessness). Document-level = whole other subjects;
+   * per-shape/group/field residual lives on those elements.
+   */
+  residual?: string;
 }
 
 export interface ShapeModel {
@@ -31,6 +38,8 @@ export interface ShapeModel {
   /** sh:targetClass, e.g. "dcat:Dataset" */
   targetClass: string;
   groups: Group[];
+  /** Unmodeled predicates on this shape (e.g. `sh:closed`), as Turtle fragments. */
+  residual?: string[];
 }
 
 export interface Group {
@@ -41,6 +50,8 @@ export interface Group {
   /** sh:order */
   order: number;
   fields: Field[];
+  /** Unmodeled predicates on this group, as Turtle fragments. */
+  residual?: string[];
 }
 
 export interface Field {
@@ -78,6 +89,11 @@ export interface Field {
   defaultValue: string;
   /** sh:in ( … ) — list of literal options (null/empty = omit) */
   inValues: string[] | null;
-  /** sh:order */
-  order: number;
+  /** sh:order — null when the property carried none (so round-trip stays exact) */
+  order: number | null;
+  /**
+   * Unmodeled predicates on this property shape (e.g. `sh:or`, `sh:hasValue`),
+   * as Turtle fragments re-emitted inside the `sh:property [ … ]` block.
+   */
+  residual?: string[];
 }
