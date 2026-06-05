@@ -54,9 +54,9 @@ const fields = computed(() => props.spec.fields);
         v-else-if="f.autocomplete && (f.kind === 'iri' || f.kind === 'text')"
         :source="f.autocomplete"
         :type="f.kind === 'iri' ? 'url' : 'text'"
-        :required="f.required"
-        :placeholder="f.placeholder"
-        :aria-label="f.label"
+        :required="!!f.required"
+        :placeholder="f.placeholder ?? ''"
+        :ariaLabel="f.label"
         :model-value="asText(f.key)"
         @update:model-value="model[f.key] = $event"
       />

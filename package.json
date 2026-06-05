@@ -19,7 +19,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "vue-tsc --build",
     "generate-api": "openapi-typescript ${FDP_API_URL:-http://localhost:8000}/openapi.json -o src/api/schema.ts"
   },
   "dependencies": {

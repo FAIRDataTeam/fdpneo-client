@@ -25,7 +25,7 @@ describe("fetchLabels", () => {
   it("requests one `iri` param per unique IRI plus the lang", async () => {
     mockGet.mockResolvedValueOnce({ data: { labels: { a: "Alpha" } } });
     await fetchLabels(["a", "b", "a"], "nl");
-    const url = mockGet.mock.calls[0][0];
+    const url = mockGet.mock.calls[0]![0];
     expect(url.match(/iri=/g)).toHaveLength(2); // a, b — deduped
     expect(url).toContain("iri=a");
     expect(url).toContain("iri=b");

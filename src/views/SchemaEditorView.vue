@@ -25,6 +25,8 @@ import {
 import { useSchemas, useInvalidateSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
+import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
+import { shaclStatus } from "@/components/shacl-editor/status";
 
 const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
@@ -50,6 +52,17 @@ const result = ref<SchemaValidation | null>(null);
 const loadingShape = ref(false);
 
 const slugLocked = computed(() => savedId.value !== null);
+
+// Live, non-destructive parse status for the Turtle source (does not reserialise).
+const status = computed(() => shaclStatus(turtle.value));
+
+async function copyTurtle() {
+  try {
+    await navigator.clipboard.writeText(turtle.value);
+  } catch {
+    /* clipboard unavailable (e.g. insecure context) — no-op */
+  }
+}
 
 function clientError(title: string, message: string): ParsedError {
   return { title, message, code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
@@ -187,15 +200,28 @@ function onDelete() {
           <span class="help mono">/schemas/{{ slug || "…" }}</span>
         </label>
 
-        <label class="field">
-          <span class="label">Shape (Turtle)</span>
-          <textarea
-            v-model="turtle"
-            spellcheck="false"
-            rows="16"
-            :placeholder="loadingShape ? 'Loading…' : STARTER"
-          />
-        </label>
+        <div class="field">
+          <div class="field__head">
+            <span class="label">Shape (Turtle)</span>
+            <div class="srcactions">
+              <span class="pill" :class="status.ok ? 'ok' : 'bad'" role="status">
+                <template v-if="status.ok">
+                  ✓ {{ status.shapes }} shape{{ status.shapes === 1 ? "" : "s" }} ·
+                  {{ status.properties }} propert{{ status.properties === 1 ? "y" : "ies" }}
+                </template>
+                <template v-else>✕ Invalid SHACL</template>
+              </span>
+              <button type="button" class="btn sm" @click="copyTurtle">
+                <AppIcon name="code" :size="12" /> Copy
+              </button>
+            </div>
+          </div>
+          <TurtleEditor v-model="turtle" aria-label="Shape (Turtle)" class="srceditor" />
+          <p v-if="loadingShape" class="help">Loading…</p>
+          <p v-else-if="!status.ok && status.error" class="srcerror mono">
+            {{ status.error }} — the last valid version is kept until this is fixed.
+          </p>
+        </div>
 
         <div class="actions">
           <button
@@ -375,6 +401,43 @@ textarea:disabled {
 .help {
   font-size: 11px;
   color: var(--muted);
+}
+.field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.srcactions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-1);
+  white-space: nowrap;
+}
+.pill.ok {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.pill.bad {
+  color: var(--signal);
+  background: var(--signal-soft);
+}
+.srceditor {
+  height: 380px;
+}
+.srcerror {
+  font-size: 12px;
+  color: var(--signal);
+  background: var(--signal-soft);
+  border-radius: var(--r-1);
+  padding: 8px 10px;
+  margin: 0;
 }
 .actions {
   display: flex;

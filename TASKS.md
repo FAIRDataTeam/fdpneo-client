@@ -179,6 +179,7 @@ the real equivalents are mapped below.
 ### 4.0 Shared model + serializer + parser — ✅ DONE (foundation; 24 tests green)
 The framework-independent core all three tabs sit on. `npm run typecheck` +
 `eslint` clean; `npm run test:unit` 24/24 in `src/components/shacl-editor/`.
+
 - `src/rdf/namespaces.ts` — `PREFIXES` / `DASH` / `SH` / `RDFS` / `XSD` /
   `DEFAULT_URI` (extends `rdf.ts`'s `NS`, which only had rdf/dct/dcat).
 - `model.ts` — **multi-shape** `SchemaDocument → ShapeModel[] → Group[] →
@@ -232,17 +233,28 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   has the shape IRI / target class / prefix-table editor.
 - Every mutation runs `mutate(fn)` → re-serialize → update the SHACL tab.
 
-### 4.3 Three-tab chrome + bidirectional sync — ⬜
-- `SchemaTabs.vue` inside `SchemaEditorView` (keep the schema list + save/validate
-  plumbing): **SHACL** (renamed from the textarea), **Visual Editor**, **Form
-  Preview**. NEW pill on Visual Editor; red dot on SHACL when parse fails.
-- **SHACL tab:** swap the textarea for **Monaco** with a Turtle Monarch grammar
-  (clone `SparqlEditor.vue`); status pill (Synced · N props / Invalid), Tidy +
-  Copy, error strip. `onShaclChange` parses → model on success, keeps last good
-  model + shows error on failure.
+### 4.3 Three-tab chrome + bidirectional sync — 🟡 STARTED (Monaco SHACL editor in)
+- ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark
+  themes, slim API — clones `SparqlEditor.vue`) and `status.ts` (`shaclStatus`,
+  pure/non-destructive parse status). Wired into `SchemaEditorView`: the Turtle
+  textarea is now Monaco with a live status pill (✓ N shapes · M properties /
+  ✕ Invalid SHACL), an error strip, and a Copy button. **Text in/out only — no
+  reserialise**, so it's safe ahead of the pass-through work. +4 tests (28 total).
+- ⬜ Still to do — the actual **3-tab chrome** (`SchemaTabs.vue`: SHACL / Visual
+  Editor / Form Preview; NEW pill; red dot on parse fail), **Tidy** (reserialise —
+  gated on the losslessness work below), and the bidirectional **`onShaclChange`
+  → model** sync (the SHACL tab today only *reads* status, doesn't drive a model).
 - **Sync (two one-way paths, no cycles):** Visual edit → model → serialize →
   Turtle; SHACL edit → parse → model (or error). Import existing `.ttl`
   (paste/upload) populates the editor.
+- **Losslessness for arbitrary input (carried from 4.0):** the parser keeps only
+  the supported subset; before a model→Turtle reserialise can be safe on a real
+  server shape, unrecognised triples must pass through untouched. The hard part is
+  blank nodes — SHACL property shapes are bnodes, so quad-diffing to find "extra"
+  triples is unreliable, and deterministic serialize-from-scratch fights
+  read-modify-write preservation. Settle this (e.g. carry a residual quad set keyed
+  off stable subject/path identity) **before** wiring Tidy/reformat into the SHACL
+  tab — until then, reserialising would silently drop triples.
 
 ### 4.4 Validation against sample RDF — ⬜
 - Steward pastes sample data; send schema + sample to **`validateSample`**

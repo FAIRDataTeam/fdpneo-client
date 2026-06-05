@@ -158,7 +158,7 @@ describe("parseSchema ↔ serializeSchema round-trip", () => {
   it("recovers the NumberFieldEditor widget via the numeric-datatype heuristic", () => {
     const back = parseSchema(serializeSchema(seed()));
     const dist = back.shapes.find((s) => s.shapeIri === ":DistributionShape");
-    expect(dist?.groups[0].fields[0].widgetId).toBe("NumberFieldEditor");
+    expect(dist?.groups[0]?.fields[0]?.widgetId).toBe("NumberFieldEditor");
   });
 
   it("recovers both shapes and the declared prefixes", () => {

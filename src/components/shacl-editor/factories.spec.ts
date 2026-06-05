@@ -35,6 +35,6 @@ describe("factories", () => {
     const doc = emptyDocument();
     expect(() => parseSchema(serializeSchema(doc))).not.toThrow();
     const back = parseSchema(serializeSchema(doc));
-    expect(back.shapes[0].shapeIri).toBe(":NewShape");
+    expect(back.shapes[0]?.shapeIri).toBe(":NewShape");
   });
 });

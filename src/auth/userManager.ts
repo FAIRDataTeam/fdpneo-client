@@ -30,10 +30,10 @@ let override: { authority?: string; client_id?: string } = {};
  */
 export function configureOidc(oidc: OIDCBootstrap | null): void {
   if (!oidc) return;
-  override = {
-    authority: oidc.issuer || undefined,
-    client_id: oidc.client_id_hint ?? undefined,
-  };
+  const next: { authority?: string; client_id?: string } = {};
+  if (oidc.issuer) next.authority = oidc.issuer;
+  if (oidc.client_id_hint) next.client_id = oidc.client_id_hint;
+  override = next;
 }
 
 function build(): UserManager {

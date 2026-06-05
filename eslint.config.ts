@@ -25,6 +25,8 @@ export default defineConfigWithVueTs(
       "src/api/schema.ts",
       "tests/e2e/**",
       "playwright.config.ts",
+      // Design-handoff prototype (React/JSX reference material, not app code).
+      "docs/**",
     ],
   },
   ...pluginVue.configs["flat/recommended"],

@@ -71,7 +71,7 @@ describe("fetchReadiness", () => {
     });
     await fetchReadiness();
     // The fetcher must opt 503 into Axios's accepted statuses.
-    const opts = mockGet.mock.calls[0][1] as { validateStatus: (s: number) => boolean };
+    const opts = mockGet.mock.calls[0]![1] as { validateStatus: (s: number) => boolean };
     expect(opts.validateStatus(200)).toBe(true);
     expect(opts.validateStatus(503)).toBe(true);
     expect(opts.validateStatus(500)).toBe(false);

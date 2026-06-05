@@ -56,7 +56,7 @@ export function parseSchema(turtle: string): SchemaDocument {
   const declRe = /@prefix\s+([\w-]*):\s*<([^>]*)>\s*\./g;
   for (let m = declRe.exec(turtle); m !== null; m = declRe.exec(turtle)) {
     const [, prefix, uri] = m;
-    if (prefix !== "" && uri !== DEFAULT_URI) prefixes.push({ prefix, uri });
+    if (prefix && uri && uri !== DEFAULT_URI) prefixes.push({ prefix, uri });
   }
 
   const compact = makeCompactor(prefixes);

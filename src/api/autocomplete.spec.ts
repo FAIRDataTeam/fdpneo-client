@@ -19,7 +19,7 @@ describe("fetchAutocomplete", () => {
   it("passes source, prefix and limit", async () => {
     mockGet.mockResolvedValueOnce({ data: { items: [] } });
     await fetchAutocomplete("license", "cc", 10);
-    const url = mockGet.mock.calls[0][0];
+    const url = mockGet.mock.calls[0]![0];
     expect(url).toContain("source=license");
     expect(url).toContain("prefix=cc");
     expect(url).toContain("limit=10");

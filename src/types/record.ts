@@ -33,6 +33,7 @@ export type IconName =
   | "globe"
   | "check"
   | "lock"
+  | "cog"
   | "book"
   | "sun"
   | "moon"

@@ -81,7 +81,8 @@ function serializeShape(shape: ShapeModel, out: string[]): void {
 
   if (fields.length === 0) {
     // No properties: turn the last emitted term's `;` into the closing `.`.
-    out[out.length - 1] = out[out.length - 1].replace(/;$/, ".");
+    const last = out.length - 1;
+    out[last] = (out[last] ?? "").replace(/;$/, ".");
     return;
   }
 
