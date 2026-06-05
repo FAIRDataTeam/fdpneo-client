@@ -62,6 +62,10 @@ const props = withDefaults(defineProps<{ name: IconName; size?: number; color?: 
       <path d="M3.5 12h17M12 3.5c3 3 3 14 0 17M12 3.5c-3 3-3 14 0 17" />
     </template>
     <path v-else-if="name === 'check'" d="m5 12 5 5 9-10" />
+    <template v-else-if="name === 'eye'">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </template>
     <template v-else-if="name === 'grip'">
       <circle cx="9" cy="6" r="1.3" fill="currentColor" />
       <circle cx="15" cy="6" r="1.3" fill="currentColor" />

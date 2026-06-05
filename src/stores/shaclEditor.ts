@@ -11,6 +11,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { ShapeGraph } from "@/components/shacl-editor/graph";
+import type { SchemaViolation } from "@/api/schemas";
 
 export interface XY {
   x: number;
@@ -27,6 +28,15 @@ export const useShaclEditorStore = defineStore("shaclEditor", () => {
   // Positions keyed by shapeIri (stable); UI-only, never serialized.
   const positions = ref<Record<string, XY>>({});
   const selectedIri = ref<string | null>(null);
+  // Latest server validation violations, surfaced as canvas annotations (4.4).
+  const violations = ref<SchemaViolation[]>([]);
+
+  function setViolations(v: SchemaViolation[]) {
+    violations.value = v;
+  }
+  function clearViolations() {
+    violations.value = [];
+  }
 
   function setPosition(iri: string, pos: XY) {
     positions.value[iri] = pos;
@@ -61,7 +71,18 @@ export const useShaclEditorStore = defineStore("shaclEditor", () => {
   function reset() {
     positions.value = {};
     selectedIri.value = null;
+    violations.value = [];
   }
 
-  return { positions, selectedIri, setPosition, select, ensureLayout, reset };
+  return {
+    positions,
+    selectedIri,
+    violations,
+    setPosition,
+    select,
+    ensureLayout,
+    setViolations,
+    clearViolations,
+    reset,
+  };
 });

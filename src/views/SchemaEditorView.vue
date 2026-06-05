@@ -28,6 +28,7 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
 import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
 import FormDesigner from "@/components/shacl-editor/FormDesigner.vue";
+import ShaclFormPreview from "@/components/shacl-editor/ShaclFormPreview.vue";
 import { shaclStatus } from "@/components/shacl-editor/status";
 import { parseSchema } from "@/components/shacl-editor/parse";
 import { serializeSchema } from "@/components/shacl-editor/serialize";
@@ -63,7 +64,8 @@ const slugLocked = computed(() => savedId.value !== null);
 const status = computed(() => shaclStatus(turtle.value));
 
 const editorStore = useShaclEditorStore();
-const tab = ref<"shacl" | "visual">("shacl");
+const tab = ref<"shacl" | "visual" | "preview">("shacl");
+const previewShapeIri = ref<string | null>(null);
 
 // Working model for the Visual Editor: parsed once when the tab opens, then
 // mutated in place (client ids stay stable, so field selection survives edits)
@@ -79,10 +81,9 @@ function safeParse(t: string): SchemaDocument | null {
 }
 
 watch(tab, (t) => {
-  if (t === "visual") {
-    model.value = safeParse(turtle.value);
-    editorStore.select(null); // start on the shape graph, not a drill-in
-  }
+  // Both visual surfaces read a freshly-parsed model from the Turtle.
+  if (t === "visual" || t === "preview") model.value = safeParse(turtle.value);
+  if (t === "visual") editorStore.select(null); // start on the shape graph, not a drill-in
 });
 
 function onDocChange(next: SchemaDocument) {
@@ -90,10 +91,19 @@ function onDocChange(next: SchemaDocument) {
   turtle.value = serializeSchema(next);
 }
 
+// Any edit to the Turtle invalidates a prior sample-validation run.
+watch(turtle, () => editorStore.clearViolations());
+
 // Drill-in target: the shape selected in the graph, by stable shapeIri.
 const selectedShape = computed(
   () => model.value?.shapes.find((s) => s.shapeIri === editorStore.selectedIri) ?? null,
 );
+
+// The shape rendered in Form Preview (a picker when there are several).
+const previewShape = computed(() => {
+  const shapes = model.value?.shapes ?? [];
+  return shapes.find((s) => s.shapeIri === previewShapeIri.value) ?? shapes[0] ?? null;
+});
 
 async function copyTurtle() {
   try {
@@ -159,6 +169,8 @@ const preview = useMutation({
   onSuccess: (r) => {
     result.value = r;
     error.value = null;
+    // Surface violations as canvas annotations in the Visual Editor (4.4).
+    editorStore.setViolations(r.violations);
   },
   onError: (e) => {
     error.value = parseFdpError(e);
@@ -258,6 +270,15 @@ function onDelete() {
           >
             <AppIcon name="tree" :size="13" /> Visual Editor
           </button>
+          <button
+            class="tab"
+            :class="{ active: tab === 'preview' }"
+            role="tab"
+            :aria-selected="tab === 'preview'"
+            @click="tab = 'preview'"
+          >
+            <AppIcon name="eye" :size="13" /> Form Preview
+          </button>
         </div>
 
         <div v-show="tab === 'shacl'" class="tabpanel">
@@ -354,6 +375,26 @@ function onDelete() {
             </template>
           </template>
           <p v-else class="srcerror mono">Fix the SHACL to see the shape graph.</p>
+        </div>
+
+        <div v-show="tab === 'preview'" class="tabpanel">
+          <template v-if="previewShape">
+            <p class="help">
+              Data-entry form a curator would use to populate a record of type
+              <span class="mono">{{ previewShape.targetClass || "(no target class)" }}</span>.
+              Generated live from the schema; test values are throwaway.
+            </p>
+            <label v-if="(model?.shapes.length ?? 0) > 1" class="field">
+              <span class="label">Preview shape</span>
+              <select v-model="previewShapeIri">
+                <option v-for="s in model?.shapes ?? []" :key="s.id" :value="s.shapeIri">
+                  {{ s.label || s.shapeIri }}
+                </option>
+              </select>
+            </label>
+            <ShaclFormPreview :shape="previewShape" />
+          </template>
+          <p v-else class="srcerror mono">Fix the SHACL to preview the form.</p>
         </div>
       </div>
     </div>

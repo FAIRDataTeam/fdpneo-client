@@ -8,7 +8,7 @@
 import { Handle, Position } from "@vue-flow/core";
 import type { ShapeNode } from "./graph";
 
-defineProps<{ data: ShapeNode; selected?: boolean }>();
+defineProps<{ data: ShapeNode; selected?: boolean; violations?: number }>();
 const emit = defineEmits<{ (e: "activate"): void }>();
 
 function onKey(e: KeyboardEvent) {
@@ -34,6 +34,9 @@ function onKey(e: KeyboardEvent) {
     <div class="shape-node__tc mono">{{ data.targetClass || "no sh:targetClass" }}</div>
     <div class="shape-node__count">
       {{ data.propertyCount }} propert{{ data.propertyCount === 1 ? "y" : "ies" }}
+      <span v-if="violations" class="shape-node__viol" :title="`${violations} field(s) failed validation`">
+        ⚠ {{ violations }}
+      </span>
     </div>
     <Handle type="source" :position="Position.Right" />
   </div>
@@ -72,5 +75,13 @@ function onKey(e: KeyboardEvent) {
   font-size: 11px;
   color: var(--muted-2);
   margin-top: 6px;
+}
+.shape-node__viol {
+  margin-left: 6px;
+  font-weight: 700;
+  color: var(--signal);
+  background: var(--signal-soft);
+  padding: 1px 5px;
+  border-radius: var(--r-1);
 }
 </style>

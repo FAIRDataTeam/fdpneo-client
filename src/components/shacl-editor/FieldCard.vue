@@ -10,7 +10,7 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 import type { Field } from "./model";
 import { WIDGET_BY_ID } from "./widgets";
 
-const props = defineProps<{ field: Field; selected?: boolean }>();
+const props = defineProps<{ field: Field; selected?: boolean; violations?: string[] }>();
 const emit = defineEmits<{
   (e: "select"): void;
   (e: "duplicate"): void;
@@ -48,7 +48,7 @@ const meta = computed(() => {
 <template>
   <div
     class="card"
-    :class="{ selected }"
+    :class="{ selected, 'has-violation': violations && violations.length }"
     draggable="true"
     tabindex="0"
     role="button"
@@ -66,6 +66,9 @@ const meta = computed(() => {
         <span class="name">{{ field.name || "(unnamed)" }}</span>
         <span v-if="required" class="req" title="Required (sh:minCount ≥ 1)">●</span>
         <span v-if="multi" class="badge">multi</span>
+        <span v-if="violations && violations.length" class="viol" :title="violations.join('; ')">
+          ⚠ {{ violations.length }}
+        </span>
       </div>
       <div class="meta mono">{{ meta }}</div>
     </div>
@@ -98,6 +101,18 @@ const meta = computed(() => {
 .card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+.card.has-violation {
+  border-color: var(--signal);
+  box-shadow: inset 3px 0 0 var(--signal);
+}
+.viol {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--signal);
+  background: var(--signal-soft);
+  padding: 1px 5px;
+  border-radius: var(--r-1);
 }
 .grip {
   display: grid;

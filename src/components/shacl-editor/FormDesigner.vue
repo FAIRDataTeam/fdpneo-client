@@ -26,6 +26,8 @@ import {
   updateGroup,
   updateShape,
 } from "./mutations";
+import { fieldViolations } from "./violations";
+import { useShaclEditorStore } from "@/stores/shaclEditor";
 import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
 import type { PrefixDecl } from "@/rdf/namespaces";
 
@@ -37,6 +39,10 @@ const props = defineProps<{ doc: SchemaDocument; shapeId: string }>();
 const emit = defineEmits<{ (e: "update:doc", doc: SchemaDocument): void; (e: "back"): void }>();
 
 const shape = computed(() => props.doc.shapes.find((s) => s.id === props.shapeId) ?? null);
+
+const editorStore = useShaclEditorStore();
+// Server validation messages mapped to the field they hit (4.4 annotations).
+const fieldViol = computed(() => fieldViolations(props.doc, editorStore.violations));
 
 const sel = ref<Selection>({ kind: "schema" });
 
@@ -224,6 +230,7 @@ function overEmpty(groupId: string): boolean {
                   <FieldCard
                     :field="f"
                     :selected="selectedField?.id === f.id"
+                    :violations="fieldViol.get(f.id) ?? []"
                     @select="sel = { kind: 'field', id: f.id }"
                     @duplicate="apply((d) => duplicateField(d, shapeId, f.id))"
                     @delete="onDeleteField(f.id)"

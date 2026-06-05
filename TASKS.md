@@ -290,14 +290,26 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   off stable subject/path identity) **before** wiring Tidy/reformat into the SHACL
   tab — until then, reserialising would silently drop triples.
 
-### 4.4 Validation against sample RDF — ⬜
-- Steward pastes sample data; send schema + sample to **`validateSample`**
-  (already in `schemas.ts`); render violations **annotated on the relevant
-  nodes/properties**, not just a list. Surface server messages with pointers;
-  don't replicate validation client-side.
-- **Form Preview tab:** `ShaclFormPreview.vue` (full DASH dispatch on
-  `dash:editor`) fed the synced Turtle for the focused shape, plus a client-side
-  "Validate record" required-fields banner (throwaway local values).
+### 4.4 Validation against sample RDF — ✅ DONE (Form Preview + annotated violations; verified end-to-end)
+- ✅ **Form Preview tab** (third tab): `ShaclFormPreview.vue` renders a fillable
+  form from the focused shape, dispatching on the **full DASH** widget set via a
+  pure `preview.ts` (`previewKind` keys off SHACL constraints first, widget hints
+  second — so it works for parsed shapes with no `dash:editor`). Throwaway local
+  values; a **"Validate record"** button runs the client-side required-fields
+  check (`sh:minCount ≥ 1`) → green/red banner + red border on empty required
+  inputs; **Clear** resets. Shape picker when the doc has several. +5 tests.
+- ✅ **Verified live** (Playwright + Keycloak): 3 fields render (date picker for
+  `xsd:date`, `<select>` for `sh:in`), validating with the required Title empty →
+  "1 required field still needs a value" + invalid highlight; filling it → green
+  banner; 0 console errors. New `eye` AppIcon.
+- ✅ **Server violations annotated on the canvas**: `validateSample` results are
+  stored in the `shaclEditor` store; a pure `violations.ts` (`fieldViolations` /
+  `shapeViolationCounts`, expanding each field's prefixed path to a full IRI to
+  match the server's `resultPath`) maps them onto fields. Field cards show a ⚠
+  marker + red border; shape nodes show a ⚠ count badge; edits to the Turtle clear
+  them. +8 tests. **Verified end-to-end** (publish a shape → validate a sample
+  missing a required `dct:title` → server "Less than 1 values" → Title field +
+  Dataset node annotated), 0 console errors.
 
 ### 4.5 Undo/redo + wiring — ⬜
 - Undo/redo over the editor model (command stack in the `shaclEditor` store).

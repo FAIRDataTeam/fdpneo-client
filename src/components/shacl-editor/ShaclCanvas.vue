@@ -8,7 +8,7 @@
  * `shapeIri`), never written back to the schema. Selecting a node will later
  * drill into that shape's form designer (4.2); for now it emits `select`.
  */
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { VueFlow, type Edge, type Node, type NodeDragEvent, type NodeMouseEvent } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
@@ -17,6 +17,7 @@ import "@vue-flow/core/dist/theme-default.css";
 import "@vue-flow/controls/dist/style.css";
 import { useShaclEditorStore } from "@/stores/shaclEditor";
 import { buildShapeGraph } from "./graph";
+import { shapeViolationCounts } from "./violations";
 import type { SchemaDocument } from "./model";
 import ShapeNodeCard from "./ShapeNodeCard.vue";
 
@@ -26,6 +27,8 @@ const emit = defineEmits<{ (e: "select", shapeIri: string | null): void }>();
 const store = useShaclEditorStore();
 const nodes = ref<Node[]>([]);
 const edges = ref<Edge[]>([]);
+// Per-shape count of violating fields, for the node badge (4.4).
+const violByShape = computed(() => shapeViolationCounts(props.doc, store.violations));
 
 function rebuild() {
   const g = buildShapeGraph(props.doc);
@@ -93,6 +96,7 @@ function onPaneClick() {
         <ShapeNodeCard
           :data="slotProps.data"
           :selected="slotProps.selected"
+          :violations="violByShape.get(slotProps.id) ?? 0"
           @activate="activate(slotProps.id)"
         />
       </template>
