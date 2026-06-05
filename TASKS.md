@@ -117,7 +117,18 @@ References: server architecture §9.
 
 ---
 
-## Phase 4 — Visual SHACL editor — ⬜ OPEN (foundations in place; editor unbuilt)
+## Phase 4 — Visual SHACL editor — ✅ DONE (4.0–4.5 built & verified; only minor polish left)
+
+**Status (2026-06-05):** the visual editor ships end-to-end under
+`src/components/shacl-editor/` + the `shaclEditor` store, folded into
+`SchemaEditorView` as SHACL / Visual Editor / Form Preview tabs. All sub-tasks
+(4.0 model/serializer/parser/widgets, 4.1 Vue Flow graph, 4.2 form designer +
+DnD + inspectors + keyboard a11y, 4.3 Monaco SHACL tab + sync, 4.4 Form Preview +
+annotated server validation, 4.5 undo/redo) are done and verified live
+(Playwright + real Keycloak/server). ~216 unit tests; typecheck/lint/build green.
+Non-blocking polish remains (noted per task): the field inspector's read-only
+"group" line, a richer DnD drag image, and seeding the graph from
+`useResourceTypes`. Original pre-build status retained below for history.
 
 **Status (2026-06-04):** the **text-first** schema lifecycle ships (9.5 /
 `SchemaEditorView.vue`, 439 lines) and the read/parse/validate plumbing the
@@ -311,11 +322,17 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   missing a required `dct:title` → server "Less than 1 values" → Title field +
   Dataset node annotated), 0 console errors.
 
-### 4.5 Undo/redo + wiring — ⬜
-- Undo/redo over the editor model (command stack in the `shaclEditor` store).
-- Fold the editor into `SchemaEditorView` (or a sub-route) so the **SHACL tab
-  stays as the raw-RDF fallback** for power users (resolves an Open question);
-  save via the existing schema `PUT`.
+### 4.5 Undo/redo + wiring — ✅ DONE (verified live)
+- ✅ Undo/redo over the editor model — a snapshot stack in the `shaclEditor`
+  store (`record`/`undo`/`redo`/`resetHistory` + `canUndo`/`canRedo`, capped at
+  100). The view records the pre-edit document on every Visual Editor change;
+  Undo/Redo toolbar buttons + **Cmd/Ctrl+Z / +Shift+Z** (scoped to the Visual tab
+  so Monaco keeps its own undo on the SHACL tab). History resets per editing
+  session (on entering the tab). +3 store tests. **Verified live**: add field →
+  Undo → Redo → keyboard-Undo all step the model and Turtle correctly.
+- ✅ Editor folded into `SchemaEditorView` as the SHACL / Visual Editor / Form
+  Preview tabs, with the **SHACL tab as the raw-RDF fallback**; save via the
+  existing schema `PUT` (proven by the 4.4 publish round-trip).
 
 ### Decisions to make first
 - **SHACL subset:** curated to the FDP profile vs broader `sh:` (Open questions).

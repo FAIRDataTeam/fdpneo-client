@@ -12,7 +12,7 @@
  * (Phase 4) is separate, still future work. Turtle is the source of truth
  * either way, so this stays compatible with a later visual layer.
  */
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useMutation } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/auth";
 import {
@@ -83,13 +83,45 @@ function safeParse(t: string): SchemaDocument | null {
 watch(tab, (t) => {
   // Both visual surfaces read a freshly-parsed model from the Turtle.
   if (t === "visual" || t === "preview") model.value = safeParse(turtle.value);
-  if (t === "visual") editorStore.select(null); // start on the shape graph, not a drill-in
+  if (t === "visual") {
+    editorStore.select(null); // start on the shape graph, not a drill-in
+    editorStore.resetHistory(); // undo/redo is per editing session
+  }
 });
 
 function onDocChange(next: SchemaDocument) {
+  if (model.value) editorStore.record(model.value); // snapshot the pre-edit doc
   model.value = next;
   turtle.value = serializeSchema(next);
 }
+
+function undo() {
+  if (!model.value) return;
+  const prev = editorStore.undo(model.value);
+  if (prev) {
+    model.value = prev;
+    turtle.value = serializeSchema(prev);
+  }
+}
+function redo() {
+  if (!model.value) return;
+  const next = editorStore.redo(model.value);
+  if (next) {
+    model.value = next;
+    turtle.value = serializeSchema(next);
+  }
+}
+
+// Cmd/Ctrl+Z / +Shift+Z drive undo/redo while on the Visual Editor tab (the
+// SHACL tab has Monaco's own undo, so we stay out of its way).
+function onKeydown(e: KeyboardEvent) {
+  if (tab.value !== "visual" || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
+  e.preventDefault();
+  if (e.shiftKey) redo();
+  else undo();
+}
+onMounted(() => window.addEventListener("keydown", onKeydown));
+onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 // Any edit to the Turtle invalidates a prior sample-validation run.
 watch(turtle, () => editorStore.clearViolations());
@@ -357,6 +389,14 @@ function onDelete() {
         </div>
 
         <div v-show="tab === 'visual'" class="tabpanel">
+          <div class="vtoolbar">
+            <button class="btn sm" :disabled="!editorStore.canUndo" title="Undo (Cmd/Ctrl+Z)" @click="undo">
+              ↶ Undo
+            </button>
+            <button class="btn sm" :disabled="!editorStore.canRedo" title="Redo (Cmd/Ctrl+Shift+Z)" @click="redo">
+              ↷ Redo
+            </button>
+          </div>
           <template v-if="model">
             <FormDesigner
               v-if="selectedShape"
@@ -555,6 +595,10 @@ textarea:disabled {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.vtoolbar {
+  display: flex;
+  gap: 8px;
 }
 .field__head {
   display: flex;

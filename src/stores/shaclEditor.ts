@@ -9,8 +9,9 @@
  */
 
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { ShapeGraph } from "@/components/shacl-editor/graph";
+import type { SchemaDocument } from "@/components/shacl-editor/model";
 import type { SchemaViolation } from "@/api/schemas";
 
 export interface XY {
@@ -36,6 +37,41 @@ export const useShaclEditorStore = defineStore("shaclEditor", () => {
   }
   function clearViolations() {
     violations.value = [];
+  }
+
+  // --- Undo/redo (4.5): a snapshot stack of model documents. The view records
+  // the pre-edit document on every Visual Editor change and asks to step back
+  // or forward; snapshots are immutable (mutations always clone). ---
+  const past = ref<SchemaDocument[]>([]);
+  const future = ref<SchemaDocument[]>([]);
+  const HISTORY_LIMIT = 100;
+
+  const canUndo = computed(() => past.value.length > 0);
+  const canRedo = computed(() => future.value.length > 0);
+
+  /** Record the document as it was *before* an edit; clears the redo stack. */
+  function record(prev: SchemaDocument) {
+    past.value.push(prev);
+    if (past.value.length > HISTORY_LIMIT) past.value.shift();
+    future.value = [];
+  }
+  /** Step back: returns the previous document (and stashes `current` for redo), or null. */
+  function undo(current: SchemaDocument): SchemaDocument | null {
+    const prev = past.value.pop();
+    if (!prev) return null;
+    future.value.push(current);
+    return prev;
+  }
+  /** Step forward: returns the next document (and stashes `current` for undo), or null. */
+  function redo(current: SchemaDocument): SchemaDocument | null {
+    const next = future.value.pop();
+    if (!next) return null;
+    past.value.push(current);
+    return next;
+  }
+  function resetHistory() {
+    past.value = [];
+    future.value = [];
   }
 
   function setPosition(iri: string, pos: XY) {
@@ -72,17 +108,24 @@ export const useShaclEditorStore = defineStore("shaclEditor", () => {
     positions.value = {};
     selectedIri.value = null;
     violations.value = [];
+    resetHistory();
   }
 
   return {
     positions,
     selectedIri,
     violations,
+    canUndo,
+    canRedo,
     setPosition,
     select,
     ensureLayout,
     setViolations,
     clearViolations,
+    record,
+    undo,
+    redo,
+    resetHistory,
     reset,
   };
 });
