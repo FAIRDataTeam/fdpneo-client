@@ -5,7 +5,7 @@
  * change; the parent runs it through `mutations.updateField` and re-serialises.
  * Range controls switch on node kind: Literal → datatype, IRI → class.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { Field } from "./model";
 import { DATATYPES, NODE_KINDS, WIDGET_BY_ID } from "./widgets";
 
@@ -24,9 +24,16 @@ function toNum(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const inText = computed(() => (props.field.inValues ?? []).join(", "));
-function onIn(v: string) {
-  const list = v.split(",").map((s) => s.trim()).filter(Boolean);
+// sh:in chip editor — Enter adds, × removes.
+const inDraft = ref("");
+function addChip() {
+  const v = inDraft.value.trim();
+  if (!v) return;
+  emit("update", { inValues: [...(props.field.inValues ?? []), v] });
+  inDraft.value = "";
+}
+function removeChip(i: number) {
+  const list = (props.field.inValues ?? []).filter((_, idx) => idx !== i);
   emit("update", { inValues: list.length ? list : null });
 }
 </script>
@@ -110,9 +117,67 @@ function onIn(v: string) {
           @input="emit('update', { class: ($event.target as HTMLInputElement).value || null })"
         />
       </label>
+      <div v-if="isLiteral" class="row2">
+        <label class="f">
+          <span>Min length <em>sh:minLength</em></span>
+          <input
+            type="number"
+            :value="field.minLength ?? ''"
+            @input="emit('update', { minLength: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+        <label class="f">
+          <span>Max length <em>sh:maxLength</em></span>
+          <input
+            type="number"
+            :value="field.maxLength ?? ''"
+            @input="emit('update', { maxLength: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+      </div>
+      <label v-if="isLiteral" class="f">
+        <span>Pattern <em>sh:pattern</em></span>
+        <input
+          class="mono"
+          :value="field.pattern"
+          placeholder="^.+$"
+          @input="emit('update', { pattern: ($event.target as HTMLInputElement).value })"
+        />
+      </label>
+      <div class="f">
+        <span>Allowed values <em>sh:in</em> — press Enter to add</span>
+        <div class="chips">
+          <span v-for="(v, i) in field.inValues ?? []" :key="i" class="chip">
+            {{ v }}
+            <button type="button" class="chip__x" :aria-label="`Remove ${v}`" @click="removeChip(i)">×</button>
+          </span>
+          <input
+            class="chip__in"
+            :value="inDraft"
+            placeholder="Add value…"
+            @input="inDraft = ($event.target as HTMLInputElement).value"
+            @keydown.enter.prevent="addChip"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h4>Defaults &amp; order</h4>
       <label class="f">
-        <span>Allowed values <em>sh:in</em> — comma-separated</span>
-        <input :value="inText" @input="onIn(($event.target as HTMLInputElement).value)" />
+        <span>Default value <em>sh:defaultValue</em></span>
+        <input
+          :value="field.defaultValue"
+          @input="emit('update', { defaultValue: ($event.target as HTMLInputElement).value })"
+        />
+      </label>
+      <label class="f">
+        <span>Order <em>sh:order</em></span>
+        <input
+          type="number"
+          :value="field.order"
+          @input="emit('update', { order: toNum(($event.target as HTMLInputElement).value) ?? 0 })"
+        />
       </label>
     </section>
   </div>
@@ -184,5 +249,41 @@ select {
 }
 .mono {
   font-family: var(--font-mono);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  padding: 6px;
+  background: var(--paper);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--r-1);
+  padding: 2px 4px 2px 8px;
+}
+.chip__x {
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.chip__in {
+  flex: 1;
+  min-width: 80px;
+  border: none;
+  padding: 2px 4px;
+  background: none;
 }
 </style>

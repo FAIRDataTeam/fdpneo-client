@@ -9,6 +9,7 @@
  * no-ops (return the input unchanged).
  */
 
+import type { PrefixDecl } from "@/rdf/namespaces";
 import { genId, newField, newGroup } from "./factories";
 import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
 
@@ -49,6 +50,13 @@ function onShape(
 
 export function updateShape(doc: SchemaDocument, shapeId: string, patch: ShapePatch): SchemaDocument {
   return onShape(doc, shapeId, (s) => Object.assign(s, patch));
+}
+
+/** Replace the document's `@prefix` table (the Vocabularies editor). */
+export function setPrefixes(doc: SchemaDocument, prefixes: PrefixDecl[]): SchemaDocument {
+  const next = clone(doc);
+  next.prefixes = prefixes.map((p) => ({ prefix: p.prefix, uri: p.uri }));
+  return next;
 }
 
 export function addGroup(doc: SchemaDocument, shapeId: string, label = "New group"): SchemaDocument {

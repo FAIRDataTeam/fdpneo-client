@@ -226,7 +226,7 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   its **form designer** (4.2) — selection updates the store but isn't wired to a
   panel yet. Graph⇄designer composition (drill-in vs. split-pane) still to settle.
 
-### 4.2 Per-shape form designer (the handoff 3-column workbench) — 🟡 STARTED (works; verified)
+### 4.2 Per-shape form designer (the handoff 3-column workbench) — ✅ DONE (verified; only canvas a11y remains, shared w/ 4.1)
 - ✅ Landed: the 3-column `FormDesigner.vue` (drill-in from a graph node) +
   `WidgetPalette.vue` (searchable, categorised **full DASH** set) + `FieldCard.vue`
   (glyph · name · required ● · multi badge · mono meta · duplicate/delete) +
@@ -245,10 +245,20 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   Boolean widget, edited its label in the inspector → SHACL tab showed valid
   "✓ 2 shapes · 4 properties", 0 console errors. (Two real bugs found & fixed in
   the process: structuredClone-on-proxy; undeclared `dash:` prefix.)
-- ⬜ Still to do: **drag-and-drop** (palette→canvas, reorder within a group, move
-  across groups — today palette is click-to-add, order is add-order); `sh:in`
-  **chip** editor (today comma-separated) + `sh:pattern`/min-max-length controls;
-  Group & Schema **inspector** panels (prefix-table editor); the field-card drag grip.
+- ✅ **Drag-and-drop** (HTML5): palette→canvas drop creates a field at the drop
+  index; field cards have a grip and drag to reorder within a group or move across
+  groups; a 3px insertion bar + empty-group highlight show the drop point.
+  Click-to-add is kept as the fallback. **Verified live** (drag adds the correct
+  widget at the drop index; reorder last→top works; 0 console errors). New `grip`
+  AppIcon. +`moveField` already covered by mutation tests.
+- ✅ Inspector polish (verified live): field inspector now has the `sh:in`
+  **chip** editor (Enter to add, × to remove), `sh:pattern` + min/max-length, and
+  a Defaults & order section. New **`GroupInspector`** (label/order/delete) and
+  **`SchemaInspector`** (identity, shape IRI/target class, **`@prefix` table**
+  editor via `setPrefixes`); the inspector is now context-sensitive
+  (field/group/schema) with a `Selection` model. +1 mutation test (204 total).
+- ⬜ Minor remaining (non-blocking): canvas **keyboard a11y** (shared with 4.1);
+  the field inspector's read-only "group" line; richer drag image.
 
 ### 4.3 Three-tab chrome + bidirectional sync — 🟡 STARTED (Monaco SHACL editor in)
 - ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark

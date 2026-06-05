@@ -6,6 +6,7 @@ import {
   deleteGroup,
   duplicateField,
   moveField,
+  setPrefixes,
   updateField,
   updateShape,
 } from "./mutations";
@@ -104,5 +105,13 @@ describe("mutations", () => {
     const d = deleteGroup(doc(), "s1", "g1");
     expect(shape(d).groups.map((g) => g.id)).toEqual(["g2"]);
     expect(shape(d).groups[0]?.order).toBe(0);
+  });
+
+  it("setPrefixes replaces the @prefix table (cloned, input untouched)", () => {
+    const d0 = doc();
+    const d = setPrefixes(d0, [{ prefix: "ex", uri: "http://ex.org/" }]);
+    expect(d.prefixes).toEqual([{ prefix: "ex", uri: "http://ex.org/" }]);
+    expect(d0.prefixes).toEqual([]); // input unchanged
+    expect(d).not.toBe(d0);
   });
 });

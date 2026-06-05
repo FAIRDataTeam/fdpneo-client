@@ -3,55 +3,74 @@
  * Per-shape form designer (Phase 4, task 4.2): the handoff's 3-column workbench
  * — widget palette, form canvas (groups of field cards), and a field inspector.
  * Operates on the passed-in model and emits `update:doc` for every edit (run
- * through the pure `mutations`, which preserve client ids so field selection
- * stays stable across edits). Drag-and-drop is a later refinement; today the
- * palette adds on click.
+ * through the pure `mutations`, which preserve client ids so selection stays
+ * stable across edits). The inspector is context-sensitive (field / group /
+ * schema). Widgets drag or click onto the canvas; field cards drag to reorder.
  */
 import { computed, ref, watch } from "vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import WidgetPalette from "./WidgetPalette.vue";
 import FieldCard from "./FieldCard.vue";
 import FieldInspector from "./FieldInspector.vue";
+import GroupInspector from "./GroupInspector.vue";
+import SchemaInspector from "./SchemaInspector.vue";
 import {
   addField,
   addGroup,
   deleteField,
   deleteGroup,
   duplicateField,
+  moveField,
+  setPrefixes,
   updateField,
   updateGroup,
   updateShape,
 } from "./mutations";
-import type { Field, SchemaDocument } from "./model";
+import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
+import type { PrefixDecl } from "@/rdf/namespaces";
+
+type Drag = { kind: "widget"; widgetId: string } | { kind: "field"; fieldId: string };
+// The inspector context: a field, a group, or the schema (the default).
+type Selection = { kind: "field"; id: string } | { kind: "group"; id: string } | { kind: "schema" };
 
 const props = defineProps<{ doc: SchemaDocument; shapeId: string }>();
 const emit = defineEmits<{ (e: "update:doc", doc: SchemaDocument): void; (e: "back"): void }>();
 
 const shape = computed(() => props.doc.shapes.find((s) => s.id === props.shapeId) ?? null);
 
-const selectedFieldId = ref<string | null>(null);
+const sel = ref<Selection>({ kind: "schema" });
+
 const selectedField = computed<Field | null>(() => {
-  if (!shape.value || !selectedFieldId.value) return null;
+  const s = sel.value;
+  if (s.kind !== "field" || !shape.value) return null;
   for (const g of shape.value.groups) {
-    const f = g.fields.find((x) => x.id === selectedFieldId.value);
+    const f = g.fields.find((x) => x.id === s.id);
     if (f) return f;
   }
   return null;
 });
+const selectedGroup = computed<Group | null>(() => {
+  const s = sel.value;
+  if (s.kind !== "group" || !shape.value) return null;
+  return shape.value.groups.find((g) => g.id === s.id) ?? null;
+});
 
-// Where palette clicks land: the selected field's group, else the first group.
+// Where palette adds land: the selected group, the selected field's group, else the first.
 const targetGroupId = computed<string | null>(() => {
+  const s = sel.value;
   if (!shape.value) return null;
-  if (selectedFieldId.value) {
-    const g = shape.value.groups.find((x) => x.fields.some((f) => f.id === selectedFieldId.value));
+  if (s.kind === "group") return s.id;
+  if (s.kind === "field") {
+    const g = shape.value.groups.find((x) => x.fields.some((f) => f.id === s.id));
     if (g) return g.id;
   }
   return shape.value.groups[0]?.id ?? null;
 });
 
-// Drop selection if the selected field disappears (e.g. its group was deleted).
-watch(selectedField, (f) => {
-  if (!f) selectedFieldId.value = null;
+// Fall back to the schema inspector if the selected field/group disappears.
+watch([selectedField, selectedGroup], () => {
+  if (sel.value.kind === "field" && !selectedField.value) sel.value = { kind: "schema" };
+  if (sel.value.kind === "group" && !selectedGroup.value) sel.value = { kind: "schema" };
 });
 
 function apply(fn: (d: SchemaDocument) => SchemaDocument) {
@@ -63,12 +82,75 @@ function onAddWidget(widgetId: string) {
   if (gid) apply((d) => addField(d, props.shapeId, gid, widgetId));
 }
 function onUpdateField(patch: Partial<Field>) {
-  const id = selectedFieldId.value;
-  if (id) apply((d) => updateField(d, props.shapeId, id, patch));
+  const s = sel.value;
+  if (s.kind === "field") apply((d) => updateField(d, props.shapeId, s.id, patch));
 }
 function onDeleteField(id: string) {
-  if (selectedFieldId.value === id) selectedFieldId.value = null;
+  if (sel.value.kind === "field" && sel.value.id === id) sel.value = { kind: "schema" };
   apply((d) => deleteField(d, props.shapeId, id));
+}
+function onUpdateGroup(patch: Partial<Pick<Group, "label" | "order">>) {
+  const s = sel.value;
+  if (s.kind === "group") apply((d) => updateGroup(d, props.shapeId, s.id, patch));
+}
+function onDeleteGroup() {
+  const s = sel.value;
+  if (s.kind === "group") {
+    apply((d) => deleteGroup(d, props.shapeId, s.id));
+    sel.value = { kind: "schema" };
+  }
+}
+function onUpdateShape(patch: Partial<ShapeModel>) {
+  apply((d) => updateShape(d, props.shapeId, patch));
+}
+function onUpdatePrefixes(list: PrefixDecl[]) {
+  apply((d) => setPrefixes(d, list));
+}
+
+// --- Drag and drop -------------------------------------------------------
+// `drag` is what's being dragged (a palette widget or an existing field);
+// `dropAt` is the live insertion point (group + index) for the indicator bar.
+const drag = ref<Drag | null>(null);
+const dropAt = ref<{ groupId: string; index: number } | null>(null);
+
+function onPaletteDragStart(widgetId: string) {
+  drag.value = { kind: "widget", widgetId };
+}
+function onFieldDragStart(fieldId: string, ev: DragEvent) {
+  drag.value = { kind: "field", fieldId };
+  ev.dataTransfer?.setData("text/plain", fieldId);
+  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "move";
+}
+function onDragEnd() {
+  drag.value = null;
+  dropAt.value = null;
+}
+function onCardDragOver(groupId: string, index: number, ev: DragEvent) {
+  if (!drag.value) return;
+  const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+  const after = ev.clientY > rect.top + rect.height / 2;
+  dropAt.value = { groupId, index: after ? index + 1 : index };
+}
+function onBodyDragOver(groupId: string, count: number) {
+  // Padding area below the cards → insert at the end (cards stop propagation).
+  if (drag.value) dropAt.value = { groupId, index: count };
+}
+function onDrop(groupId: string) {
+  const d = drag.value;
+  if (!d) return;
+  const index = dropAt.value?.groupId === groupId ? dropAt.value.index : undefined;
+  if (d.kind === "widget") {
+    apply((doc) => addField(doc, props.shapeId, groupId, d.widgetId, index));
+  } else {
+    apply((doc) => moveField(doc, props.shapeId, d.fieldId, groupId, index ?? Number.MAX_SAFE_INTEGER));
+  }
+  onDragEnd();
+}
+function barAt(groupId: string, index: number): boolean {
+  return !!drag.value && dropAt.value?.groupId === groupId && dropAt.value.index === index;
+}
+function overEmpty(groupId: string): boolean {
+  return !!drag.value && dropAt.value?.groupId === groupId;
 }
 </script>
 
@@ -76,28 +158,21 @@ function onDeleteField(id: string) {
   <div v-if="shape" class="designer">
     <div class="bar">
       <button class="btn sm ghost" @click="emit('back')"><AppIcon name="chevron-l" :size="12" /> Shapes</button>
-      <input
-        class="schema-name"
-        :value="shape.label"
-        placeholder="Schema name"
-        aria-label="Schema name"
-        @input="apply((d) => updateShape(d, shapeId, { label: ($event.target as HTMLInputElement).value }))"
-      />
-      <input
-        class="schema-tc mono"
-        :value="shape.targetClass"
-        placeholder="sh:targetClass"
-        aria-label="Target class"
-        @input="apply((d) => updateShape(d, shapeId, { targetClass: ($event.target as HTMLInputElement).value }))"
-      />
+      <div class="bar__title">
+        {{ shape.label || shape.shapeIri || "Shape" }}
+        <span class="mono">· {{ shape.targetClass || "no sh:targetClass" }}</span>
+      </div>
+      <button class="btn sm" :class="{ active: sel.kind === 'schema' }" @click="sel = { kind: 'schema' }">
+        <AppIcon name="cog" :size="12" /> Schema settings
+      </button>
     </div>
 
     <div class="grid">
       <!-- Palette -->
       <section class="panel">
-        <header>WIDGETS <small>click to add · DASH</small></header>
+        <header>WIDGETS <small>drag or click · DASH</small></header>
         <div class="panel__body">
-          <WidgetPalette @add="onAddWidget" />
+          <WidgetPalette @add="onAddWidget" @dragstart="onPaletteDragStart" @dragend="onDragEnd" />
         </div>
       </section>
 
@@ -110,8 +185,10 @@ function onDeleteField(id: string) {
         <div class="panel__body">
           <p v-if="!shape.groups.length" class="hint">Add a group, then add widgets to it.</p>
           <div v-for="g in shape.groups" :key="g.id" class="group">
-            <div class="group__head">
-              <AppIcon name="tree" :size="13" />
+            <div class="group__head" :class="{ selected: selectedGroup?.id === g.id }">
+              <button class="ghead-sel" title="Group settings" @click="sel = { kind: 'group', id: g.id }">
+                <AppIcon name="tree" :size="13" />
+              </button>
               <input
                 :value="g.label"
                 placeholder="Group label"
@@ -122,17 +199,29 @@ function onDeleteField(id: string) {
                 <AppIcon name="x" :size="13" />
               </button>
             </div>
-            <div class="group__body">
-              <p v-if="!g.fields.length" class="drop">Add a widget from the palette.</p>
-              <FieldCard
-                v-for="f in g.fields"
-                :key="f.id"
-                :field="f"
-                :selected="f.id === selectedFieldId"
-                @select="selectedFieldId = f.id"
-                @duplicate="apply((d) => duplicateField(d, shapeId, f.id))"
-                @delete="onDeleteField(f.id)"
-              />
+            <div
+              class="group__body"
+              @dragover.prevent="onBodyDragOver(g.id, g.fields.length)"
+              @drop.prevent="onDrop(g.id)"
+            >
+              <p v-if="!g.fields.length" class="drop" :class="{ over: overEmpty(g.id) }">
+                Drop a widget here.
+              </p>
+              <template v-for="(f, i) in g.fields" :key="f.id">
+                <div class="dropbar" :class="{ show: barAt(g.id, i) }"></div>
+                <div class="cardwrap" @dragover.prevent.stop="onCardDragOver(g.id, i, $event)">
+                  <FieldCard
+                    :field="f"
+                    :selected="selectedField?.id === f.id"
+                    @select="sel = { kind: 'field', id: f.id }"
+                    @duplicate="apply((d) => duplicateField(d, shapeId, f.id))"
+                    @delete="onDeleteField(f.id)"
+                    @dragstart="onFieldDragStart(f.id, $event)"
+                    @dragend="onDragEnd"
+                  />
+                </div>
+              </template>
+              <div class="dropbar" :class="{ show: barAt(g.id, g.fields.length) }"></div>
             </div>
           </div>
         </div>
@@ -143,7 +232,19 @@ function onDeleteField(id: string) {
         <header>INSPECTOR</header>
         <div class="panel__body">
           <FieldInspector v-if="selectedField" :field="selectedField" @update="onUpdateField" />
-          <p v-else class="hint">Select a field to edit its constraints, or adjust the schema name / target class above.</p>
+          <GroupInspector
+            v-else-if="selectedGroup"
+            :group="selectedGroup"
+            @update="onUpdateGroup"
+            @delete="onDeleteGroup"
+          />
+          <SchemaInspector
+            v-else
+            :shape="shape"
+            :prefixes="doc.prefixes"
+            @update-shape="onUpdateShape"
+            @update-prefixes="onUpdatePrefixes"
+          />
         </div>
       </section>
     </div>
@@ -161,21 +262,33 @@ function onDeleteField(id: string) {
   align-items: center;
   gap: 10px;
 }
-.schema-name {
-  font-weight: 600;
+.bar__title {
+  flex: 1;
   font-size: 14px;
-}
-.schema-name,
-.schema-tc {
-  padding: 6px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
+  font-weight: 600;
   color: var(--ink);
 }
-.schema-tc {
-  flex: 1;
+.bar__title .mono {
+  font-weight: 400;
   font-size: 12px;
+  color: var(--muted);
+}
+.btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.ghead-sel {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+}
+.group__head.selected {
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 .grid {
   display: grid;
@@ -250,6 +363,23 @@ function onDeleteField(id: string) {
   padding: 12px;
   text-align: center;
   margin: 0;
+}
+.drop.over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cardwrap {
+  /* wrapper so dragover can compute an insertion index per card */
+  display: block;
+}
+.dropbar {
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+.dropbar.show {
+  background: var(--accent);
 }
 .hint {
   font-size: 12px;

@@ -34,6 +34,7 @@ export type IconName =
   | "check"
   | "lock"
   | "cog"
+  | "grip"
   | "book"
   | "sun"
   | "moon"

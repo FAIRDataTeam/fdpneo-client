@@ -8,7 +8,11 @@
 import { computed, ref } from "vue";
 import { CATEGORIES, WIDGETS } from "./widgets";
 
-const emit = defineEmits<{ (e: "add", widgetId: string): void }>();
+const emit = defineEmits<{
+  (e: "add", widgetId: string): void;
+  (e: "dragstart", widgetId: string): void;
+  (e: "dragend"): void;
+}>();
 
 const query = ref("");
 
@@ -22,6 +26,13 @@ const filtered = computed(() => {
       w.editor.toLowerCase().includes(q),
   );
 });
+
+function startDrag(widgetId: string, ev: DragEvent) {
+  // setData is required for the drag to initiate in some browsers (Firefox).
+  ev.dataTransfer?.setData("text/plain", widgetId);
+  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
+  emit("dragstart", widgetId);
+}
 
 const byCategory = computed(() =>
   CATEGORIES.map((category) => ({
@@ -43,6 +54,8 @@ const byCategory = computed(() =>
         draggable="true"
         :title="w.editor"
         @click="emit('add', w.id)"
+        @dragstart="startDrag(w.id, $event)"
+        @dragend="emit('dragend')"
       >
         <span class="glyph" aria-hidden="true">{{ w.glyph }}</span>
         <span class="text">

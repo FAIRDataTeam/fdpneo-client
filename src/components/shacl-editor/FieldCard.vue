@@ -15,6 +15,8 @@ const emit = defineEmits<{
   (e: "select"): void;
   (e: "duplicate"): void;
   (e: "delete"): void;
+  (e: "dragstart", ev: DragEvent): void;
+  (e: "dragend"): void;
 }>();
 
 const glyph = computed(() => WIDGET_BY_ID[props.field.widgetId]?.glyph ?? "?");
@@ -28,7 +30,15 @@ const meta = computed(() => {
 </script>
 
 <template>
-  <div class="card" :class="{ selected }" @click="emit('select')">
+  <div
+    class="card"
+    :class="{ selected }"
+    draggable="true"
+    @click="emit('select')"
+    @dragstart="emit('dragstart', $event)"
+    @dragend="emit('dragend')"
+  >
+    <span class="grip" aria-hidden="true" title="Drag to reorder"><AppIcon name="grip" :size="14" /></span>
     <span class="glyph" aria-hidden="true">{{ glyph }}</span>
     <div class="main">
       <div class="title">
@@ -63,6 +73,16 @@ const meta = computed(() => {
 .card.selected {
   border-color: var(--accent-line);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.grip {
+  display: grid;
+  place-items: center;
+  color: var(--muted-2);
+  cursor: grab;
+  margin-left: -2px;
+}
+.card:active .grip {
+  cursor: grabbing;
 }
 .glyph {
   display: grid;
