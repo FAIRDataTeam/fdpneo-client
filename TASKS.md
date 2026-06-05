@@ -278,17 +278,25 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
 - ⬜ Minor remaining (non-blocking): the field inspector's read-only "group" line;
   richer drag image.
 
-### 4.3 Three-tab chrome + bidirectional sync — 🟡 STARTED (Monaco SHACL editor in)
+### 4.3 Three-tab chrome + bidirectional sync — ✅ DONE (verified live)
 - ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark
   themes, slim API — clones `SparqlEditor.vue`) and `status.ts` (`shaclStatus`,
   pure/non-destructive parse status). Wired into `SchemaEditorView`: the Turtle
   textarea is now Monaco with a live status pill (✓ N shapes · M properties /
   ✕ Invalid SHACL), an error strip, and a Copy button. **Text in/out only — no
   reserialise**, so it's safe ahead of the pass-through work. +4 tests (28 total).
-- ⬜ Still to do — the actual **3-tab chrome** (`SchemaTabs.vue`: SHACL / Visual
-  Editor / Form Preview; NEW pill; red dot on parse fail), **Tidy** (reserialise —
-  gated on the losslessness work below), and the bidirectional **`onShaclChange`
-  → model** sync (the SHACL tab today only *reads* status, doesn't drive a model).
+- ✅ **3-tab chrome** done (built inline in `SchemaEditorView`, not a separate
+  `SchemaTabs.vue`): SHACL / Visual Editor / Form Preview, with the **NEW pill** on
+  Visual Editor and a **red dot** on the SHACL tab when the Turtle fails to parse.
+- ✅ **Tidy** — a **lossless n3 reformat** (`tidyTurtle`), not a model reserialise:
+  model reserialise would drop SHACL features the model doesn't capture (and the
+  count-based lossless check fails for any shape without explicit groups, since
+  the serializer adds group structure). Disabled while the Turtle is invalid. +3
+  tests. **Verified live** (reformats a messy shape, keeps `sh:closed`, stays valid).
+- ✅ **Bidirectional sync**: Visual edit → model → serialize → Turtle (live);
+  SHACL edit → parse → model on entering the Visual/Preview tab (the right
+  granularity for a tabbed UI — you never see two tabs at once). NEW/red-dot +
+  Tidy **verified live**, 0 console errors.
 - **Sync (two one-way paths, no cycles):** Visual edit → model → serialize →
   Turtle; SHACL edit → parse → model (or error). Import existing `.ttl`
   (paste/upload) populates the editor.

@@ -8,7 +8,40 @@
  * indicator, not an authority on the document's full contents.
  */
 
+import { Parser, Writer } from "n3";
+import { NAMESPACES } from "@/rdf/namespaces";
 import { parseSchema } from "./parse";
+
+/**
+ * Lossless "Tidy": pretty-print the Turtle via n3 (every triple preserved),
+ * not via the editor model — model reserialisation would drop SHACL features
+ * the model doesn't capture. Declared prefixes are kept; the standard SHACL/
+ * DASH families are ensured so terms stay compact. Rejects on invalid Turtle.
+ */
+export function tidyTurtle(turtle: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let quads;
+    try {
+      quads = new Parser().parse(turtle); // synchronous; throws on invalid
+    } catch (e) {
+      reject(e instanceof Error ? e : new Error(String(e)));
+      return;
+    }
+    const prefixes: Record<string, string> = {
+      sh: NAMESPACES.sh, dash: NAMESPACES.dash, rdf: NAMESPACES.rdf,
+      rdfs: NAMESPACES.rdfs, xsd: NAMESPACES.xsd, dcat: NAMESPACES.dcat,
+      dct: NAMESPACES.dct, foaf: NAMESPACES.foaf,
+    };
+    const declRe = /@prefix\s+([\w-]*):\s*<([^>]*)>\s*\./g;
+    for (let m = declRe.exec(turtle); m !== null; m = declRe.exec(turtle)) {
+      const [, prefix, uri] = m;
+      if (prefix && uri) prefixes[prefix] = uri;
+    }
+    const writer = new Writer({ prefixes });
+    writer.addQuads(quads);
+    writer.end((err, result) => (err ? reject(err) : resolve(result)));
+  });
+}
 
 export interface ShaclStatus {
   ok: boolean;

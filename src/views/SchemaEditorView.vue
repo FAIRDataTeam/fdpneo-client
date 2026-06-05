@@ -29,7 +29,7 @@ import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
 import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
 import FormDesigner from "@/components/shacl-editor/FormDesigner.vue";
 import ShaclFormPreview from "@/components/shacl-editor/ShaclFormPreview.vue";
-import { shaclStatus } from "@/components/shacl-editor/status";
+import { shaclStatus, tidyTurtle } from "@/components/shacl-editor/status";
 import { parseSchema } from "@/components/shacl-editor/parse";
 import { serializeSchema } from "@/components/shacl-editor/serialize";
 import type { SchemaDocument } from "@/components/shacl-editor/model";
@@ -142,6 +142,19 @@ async function copyTurtle() {
     await navigator.clipboard.writeText(turtle.value);
   } catch {
     /* clipboard unavailable (e.g. insecure context) — no-op */
+  }
+}
+
+// Tidy: lossless pretty-print of the current Turtle (preserves every triple).
+const tidying = ref(false);
+async function tidy() {
+  tidying.value = true;
+  try {
+    turtle.value = await tidyTurtle(turtle.value);
+  } catch {
+    /* invalid Turtle — the status pill already flags it */
+  } finally {
+    tidying.value = false;
   }
 }
 
@@ -292,6 +305,7 @@ function onDelete() {
             @click="tab = 'shacl'"
           >
             <AppIcon name="code" :size="13" /> SHACL
+            <span v-if="!status.ok" class="dot" title="The Turtle doesn't parse" aria-label="parse error"></span>
           </button>
           <button
             class="tab"
@@ -301,6 +315,7 @@ function onDelete() {
             @click="tab = 'visual'"
           >
             <AppIcon name="tree" :size="13" /> Visual Editor
+            <span class="new-pill">NEW</span>
           </button>
           <button
             class="tab"
@@ -325,6 +340,15 @@ function onDelete() {
                 </template>
                 <template v-else>✕ Invalid SHACL</template>
               </span>
+              <button
+                type="button"
+                class="btn sm"
+                :disabled="!status.ok || tidying"
+                title="Reformat the Turtle (lossless)"
+                @click="tidy"
+              >
+                {{ tidying ? "Tidying…" : "Tidy" }}
+              </button>
               <button type="button" class="btn sm" @click="copyTurtle">
                 <AppIcon name="code" :size="12" /> Copy
               </button>
@@ -590,6 +614,23 @@ textarea:disabled {
 .tab.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+}
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--signal);
+}
+.new-pill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--warn);
+  background: var(--warn-soft);
+  padding: 1px 5px;
+  border-radius: var(--r-3);
 }
 .tabpanel {
   display: flex;
