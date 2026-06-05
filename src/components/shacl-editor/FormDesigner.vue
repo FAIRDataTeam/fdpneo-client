@@ -100,6 +100,17 @@ function onDeleteGroup() {
     sel.value = { kind: "schema" };
   }
 }
+function onMoveField(fieldId: string, dir: number) {
+  const s = shape.value;
+  if (!s) return;
+  for (const g of s.groups) {
+    const i = g.fields.findIndex((f) => f.id === fieldId);
+    if (i === -1) continue;
+    if (i + dir < 0 || i + dir >= g.fields.length) return; // at a boundary
+    apply((d) => moveField(d, props.shapeId, fieldId, g.id, i + dir));
+    return;
+  }
+}
 function onUpdateShape(patch: Partial<ShapeModel>) {
   apply((d) => updateShape(d, props.shapeId, patch));
 }
@@ -169,7 +180,7 @@ function overEmpty(groupId: string): boolean {
 
     <div class="grid">
       <!-- Palette -->
-      <section class="panel">
+      <section class="panel" role="region" aria-label="Widget palette">
         <header>WIDGETS <small>drag or click · DASH</small></header>
         <div class="panel__body">
           <WidgetPalette @add="onAddWidget" @dragstart="onPaletteDragStart" @dragend="onDragEnd" />
@@ -177,7 +188,7 @@ function overEmpty(groupId: string): boolean {
       </section>
 
       <!-- Canvas -->
-      <section class="panel">
+      <section class="panel" role="region" aria-label="Form canvas">
         <header>
           FORM CANVAS
           <button class="btn sm" @click="apply((d) => addGroup(d, shapeId))">+ Add group</button>
@@ -216,6 +227,7 @@ function overEmpty(groupId: string): boolean {
                     @select="sel = { kind: 'field', id: f.id }"
                     @duplicate="apply((d) => duplicateField(d, shapeId, f.id))"
                     @delete="onDeleteField(f.id)"
+                    @move="onMoveField(f.id, $event)"
                     @dragstart="onFieldDragStart(f.id, $event)"
                     @dragend="onDragEnd"
                   />
@@ -228,7 +240,7 @@ function overEmpty(groupId: string): boolean {
       </section>
 
       <!-- Inspector -->
-      <section class="panel">
+      <section class="panel" role="region" aria-label="Inspector">
         <header>INSPECTOR</header>
         <div class="panel__body">
           <FieldInspector v-if="selectedField" :field="selectedField" @update="onUpdateField" />

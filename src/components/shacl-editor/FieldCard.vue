@@ -17,7 +17,23 @@ const emit = defineEmits<{
   (e: "delete"): void;
   (e: "dragstart", ev: DragEvent): void;
   (e: "dragend"): void;
+  (e: "move", dir: number): void;
 }>();
+
+// Keyboard: Enter/Space selects; Alt+Arrow reorders (the accessible alternative
+// to drag-and-drop).
+function onKey(e: KeyboardEvent) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    emit("select");
+  } else if (e.altKey && e.key === "ArrowUp") {
+    e.preventDefault();
+    emit("move", -1);
+  } else if (e.altKey && e.key === "ArrowDown") {
+    e.preventDefault();
+    emit("move", 1);
+  }
+}
 
 const glyph = computed(() => WIDGET_BY_ID[props.field.widgetId]?.glyph ?? "?");
 const required = computed(() => (props.field.minCount ?? 0) > 0);
@@ -34,7 +50,12 @@ const meta = computed(() => {
     class="card"
     :class="{ selected }"
     draggable="true"
+    tabindex="0"
+    role="button"
+    :aria-pressed="selected"
+    :aria-label="`${field.name || 'unnamed'} field${required ? ', required' : ''}. Enter to edit, Alt+Arrow to reorder.`"
     @click="emit('select')"
+    @keydown="onKey"
     @dragstart="emit('dragstart', $event)"
     @dragend="emit('dragend')"
   >
@@ -73,6 +94,10 @@ const meta = computed(() => {
 .card.selected {
   border-color: var(--accent-line);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 .grip {
   display: grid;

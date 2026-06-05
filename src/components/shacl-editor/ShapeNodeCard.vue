@@ -9,10 +9,26 @@ import { Handle, Position } from "@vue-flow/core";
 import type { ShapeNode } from "./graph";
 
 defineProps<{ data: ShapeNode; selected?: boolean }>();
+const emit = defineEmits<{ (e: "activate"): void }>();
+
+function onKey(e: KeyboardEvent) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    emit("activate");
+  }
+}
 </script>
 
 <template>
-  <div class="shape-node" :class="{ selected }">
+  <div
+    class="shape-node"
+    :class="{ selected }"
+    tabindex="0"
+    role="button"
+    :aria-pressed="selected"
+    :aria-label="`Shape ${data.label || data.shapeIri}, ${data.propertyCount} properties. Enter to edit.`"
+    @keydown="onKey"
+  >
     <Handle type="target" :position="Position.Left" />
     <div class="shape-node__label">{{ data.label || data.shapeIri || "(unnamed)" }}</div>
     <div class="shape-node__tc mono">{{ data.targetClass || "no sh:targetClass" }}</div>
@@ -36,6 +52,10 @@ defineProps<{ data: ShapeNode; selected?: boolean }>();
 .shape-node.selected {
   border-color: var(--accent-line);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.shape-node:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .shape-node__label {
   font-weight: 600;

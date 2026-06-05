@@ -257,8 +257,15 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   **`SchemaInspector`** (identity, shape IRI/target class, **`@prefix` table**
   editor via `setPrefixes`); the inspector is now context-sensitive
   (field/group/schema) with a `Selection` model. +1 mutation test (204 total).
-- ⬜ Minor remaining (non-blocking): canvas **keyboard a11y** (shared with 4.1);
-  the field inspector's read-only "group" line; richer drag image.
+- ✅ **Keyboard a11y** (4.1 + 4.2): graph nodes are focusable (`tabindex`/role/
+  aria-label) with Enter/Space to drill in; field cards are focusable with
+  Enter/Space to select and **Alt+↑/↓ to reorder** (the accessible alternative to
+  drag); focus-visible rings; `role="region"`+aria-label on the canvas and the
+  three workbench panels. **Verified live** (Playwright keyboard-only): focus a
+  node → Enter drills in; focus a field → Enter selects → Alt+↓ reorders
+  (Title moved below Description), valid Turtle, 0 console errors.
+- ⬜ Minor remaining (non-blocking): the field inspector's read-only "group" line;
+  richer drag image.
 
 ### 4.3 Three-tab chrome + bidirectional sync — 🟡 STARTED (Monaco SHACL editor in)
 - ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark

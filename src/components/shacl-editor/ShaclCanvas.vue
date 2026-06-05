@@ -58,8 +58,12 @@ function onDragStop({ node }: NodeDragEvent) {
   store.setPosition(node.id, { x: node.position.x, y: node.position.y });
 }
 function onNodeClick({ node }: NodeMouseEvent) {
-  store.select(node.id);
-  emit("select", node.id);
+  activate(node.id);
+}
+// Keyboard activation (Enter/Space on a focused node) — same as a click.
+function activate(shapeIri: string) {
+  store.select(shapeIri);
+  emit("select", shapeIri);
 }
 function onPaneClick() {
   store.select(null);
@@ -68,7 +72,7 @@ function onPaneClick() {
 </script>
 
 <template>
-  <div class="canvas">
+  <div class="canvas" role="group" aria-label="Shape graph — Tab to a shape, Enter to edit it">
     <p v-if="!nodes.length" class="empty">
       No shapes yet — add a <code class="mono">sh:NodeShape</code> in the SHACL tab.
     </p>
@@ -86,7 +90,11 @@ function onPaneClick() {
       <Background :gap="16" />
       <Controls />
       <template #node-shapecard="slotProps">
-        <ShapeNodeCard :data="slotProps.data" :selected="slotProps.selected" />
+        <ShapeNodeCard
+          :data="slotProps.data"
+          :selected="slotProps.selected"
+          @activate="activate(slotProps.id)"
+        />
       </template>
     </VueFlow>
   </div>
