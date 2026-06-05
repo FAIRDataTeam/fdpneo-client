@@ -12,7 +12,10 @@ import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
 import { WIDGET_BY_ID } from "./widgets";
 
 let counter = 0;
-const nextId = (kind: string): string => `${kind}-${++counter}`;
+/** A fresh client-only id with the given prefix (`f`/`g`/`s`). Shared by the
+ * factories and the model mutations so ids never collide within a session. */
+export const genId = (kind: string): string => `${kind}-${++counter}`;
+const nextId = genId;
 
 /** A `:`-prefixed path derived from a label, e.g. "Text field" → ":textfield". */
 export function autoPath(name: string): string {

@@ -12,8 +12,19 @@
  * are unset.
  */
 
-import { DEFAULT_URI } from "@/rdf/namespaces";
+import { DEFAULT_URI, NAMESPACES } from "@/rdf/namespaces";
 import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
+
+// The serializer's own vocabulary. These must always be declared, even if the
+// model's prefix set (parsed from input) omitted one — otherwise emitting e.g.
+// `dash:editor` produces undeclared-prefix Turtle that won't parse back.
+const REQUIRED_PREFIXES: { prefix: string; uri: string }[] = [
+  { prefix: "sh", uri: NAMESPACES.sh },
+  { prefix: "dash", uri: NAMESPACES.dash },
+  { prefix: "rdf", uri: NAMESPACES.rdf },
+  { prefix: "rdfs", uri: NAMESPACES.rdfs },
+  { prefix: "xsd", uri: NAMESPACES.xsd },
+];
 
 /** Escape a string for a Turtle double-quoted literal. */
 function quote(s: string): string {
@@ -102,7 +113,11 @@ function serializeShape(shape: ShapeModel, out: string[]): void {
 export function serializeSchema(doc: SchemaDocument): string {
   const out: string[] = [];
 
-  for (const p of doc.prefixes) out.push(`@prefix ${p.prefix}: <${p.uri}> .`);
+  // The model's prefixes first (preserving order), then any required vocabulary
+  // prefix the model didn't already declare — so every term the tool emits resolves.
+  const declared = new Map(doc.prefixes.map((p) => [p.prefix, p.uri]));
+  for (const r of REQUIRED_PREFIXES) if (!declared.has(r.prefix)) declared.set(r.prefix, r.uri);
+  for (const [prefix, uri] of declared) out.push(`@prefix ${prefix}: <${uri}> .`);
   out.push(`@prefix : <${DEFAULT_URI}> .`);
   out.push("");
 

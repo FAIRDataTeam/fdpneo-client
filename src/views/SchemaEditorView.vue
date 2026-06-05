@@ -12,7 +12,7 @@
  * (Phase 4) is separate, still future work. Turtle is the source of truth
  * either way, so this stays compatible with a later visual layer.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useMutation } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/auth";
 import {
@@ -27,8 +27,12 @@ import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
 import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
+import FormDesigner from "@/components/shacl-editor/FormDesigner.vue";
 import { shaclStatus } from "@/components/shacl-editor/status";
 import { parseSchema } from "@/components/shacl-editor/parse";
+import { serializeSchema } from "@/components/shacl-editor/serialize";
+import type { SchemaDocument } from "@/components/shacl-editor/model";
+import { useShaclEditorStore } from "@/stores/shaclEditor";
 
 const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
@@ -58,16 +62,38 @@ const slugLocked = computed(() => savedId.value !== null);
 // Live, non-destructive parse status for the Turtle source (does not reserialise).
 const status = computed(() => shaclStatus(turtle.value));
 
+const editorStore = useShaclEditorStore();
 const tab = ref<"shacl" | "visual">("shacl");
 
-// The parsed model for the Visual Editor; null while the Turtle is invalid.
-const docModel = computed(() => {
+// Working model for the Visual Editor: parsed once when the tab opens, then
+// mutated in place (client ids stay stable, so field selection survives edits)
+// and serialised straight back to the Turtle — never reparsed per keystroke.
+const model = ref<SchemaDocument | null>(null);
+
+function safeParse(t: string): SchemaDocument | null {
   try {
-    return parseSchema(turtle.value);
+    return parseSchema(t);
   } catch {
     return null;
   }
+}
+
+watch(tab, (t) => {
+  if (t === "visual") {
+    model.value = safeParse(turtle.value);
+    editorStore.select(null); // start on the shape graph, not a drill-in
+  }
 });
+
+function onDocChange(next: SchemaDocument) {
+  model.value = next;
+  turtle.value = serializeSchema(next);
+}
+
+// Drill-in target: the shape selected in the graph, by stable shapeIri.
+const selectedShape = computed(
+  () => model.value?.shapes.find((s) => s.shapeIri === editorStore.selectedIri) ?? null,
+);
 
 async function copyTurtle() {
   try {
@@ -310,12 +336,23 @@ function onDelete() {
         </div>
 
         <div v-show="tab === 'visual'" class="tabpanel">
-          <p class="help">
-            Overview of the shapes in this schema and how they link
-            (<span class="mono">sh:node</span>/<span class="mono">sh:class</span>).
-            Drag to arrange; edit shapes in the SHACL tab.
-          </p>
-          <ShaclCanvas v-if="docModel" :doc="docModel" />
+          <template v-if="model">
+            <FormDesigner
+              v-if="selectedShape"
+              :doc="model"
+              :shape-id="selectedShape.id"
+              @update:doc="onDocChange"
+              @back="editorStore.select(null)"
+            />
+            <template v-else>
+              <p class="help">
+                Shapes in this schema and how they link
+                (<span class="mono">sh:node</span>/<span class="mono">sh:class</span>).
+                Click a shape to edit its form; drag to arrange.
+              </p>
+              <ShaclCanvas :doc="model" />
+            </template>
+          </template>
           <p v-else class="srcerror mono">Fix the SHACL to see the shape graph.</p>
         </div>
       </div>

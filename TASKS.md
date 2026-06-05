@@ -226,18 +226,29 @@ The framework-independent core all three tabs sit on. `npm run typecheck` +
   its **form designer** (4.2) — selection updates the store but isn't wired to a
   panel yet. Graph⇄designer composition (drill-in vs. split-pane) still to settle.
 
-### 4.2 Per-shape form designer (the handoff 3-column workbench) — ⬜
-- **Palette** (`WidgetPalette.vue`): searchable, categorised full DASH widget
-  list; drag onto the canvas.
-- **Form canvas** (`FormCanvas.vue` + `GroupCard.vue` / `FieldCard.vue`):
-  group cards (one per `sh:PropertyGroup`) holding field cards (one per
-  `sh:property`); HTML5 drag-and-drop to create-from-palette, reorder within a
-  group, and move across groups (renumber `sh:order`).
-- **Inspector** (`Inspector.vue`): context-sensitive Field / Group / Schema
-  panels — path, name, description, cardinality, nodeKind, datatype/class,
-  min/maxLength, `sh:pattern`, `sh:in` chip editor, defaults/order; Schema panel
-  has the shape IRI / target class / prefix-table editor.
-- Every mutation runs `mutate(fn)` → re-serialize → update the SHACL tab.
+### 4.2 Per-shape form designer (the handoff 3-column workbench) — 🟡 STARTED (works; verified)
+- ✅ Landed: the 3-column `FormDesigner.vue` (drill-in from a graph node) +
+  `WidgetPalette.vue` (searchable, categorised **full DASH** set) + `FieldCard.vue`
+  (glyph · name · required ● · multi badge · mono meta · duplicate/delete) +
+  `FieldInspector.vue` (name/description/path, min/max count, nodeKind, datatype
+  for Literal / class for IRI, `sh:in`). Group add/rename/delete and schema
+  name/target-class inline in the canvas header.
+- ✅ Pure `mutations.ts` (add/update/delete/duplicate field, move across groups,
+  add/update/delete group, update shape — clone + renumber `sh:order`). Clones
+  via **JSON** not `structuredClone` (callers pass a Vue reactive proxy). +9 tests.
+- ✅ Wiring: the Visual Editor holds a **persistent `model`** (parsed once on tab
+  entry, mutated in place so client ids — hence field selection — stay stable),
+  re-serialised to Turtle on every edit. Serializer now always declares its own
+  vocab prefixes (sh/dash/rdf/rdfs/xsd) so emitting `dash:editor` never produces
+  undeclared-prefix Turtle.
+- ✅ **Verified live** (Playwright + Keycloak): drilled into a shape, added a
+  Boolean widget, edited its label in the inspector → SHACL tab showed valid
+  "✓ 2 shapes · 4 properties", 0 console errors. (Two real bugs found & fixed in
+  the process: structuredClone-on-proxy; undeclared `dash:` prefix.)
+- ⬜ Still to do: **drag-and-drop** (palette→canvas, reorder within a group, move
+  across groups — today palette is click-to-add, order is add-order); `sh:in`
+  **chip** editor (today comma-separated) + `sh:pattern`/min-max-length controls;
+  Group & Schema **inspector** panels (prefix-table editor); the field-card drag grip.
 
 ### 4.3 Three-tab chrome + bidirectional sync — 🟡 STARTED (Monaco SHACL editor in)
 - ✅ Landed: `TurtleEditor.vue` (Monaco + Turtle Monarch grammar, light/dark
