@@ -69,6 +69,16 @@ async function gotoSchemas() {
   await router.push("/schemas");
 }
 
+async function gotoPolicies() {
+  open.value = false;
+  await router.push("/policies");
+}
+
+async function gotoLicenses() {
+  open.value = false;
+  await router.push("/licenses");
+}
+
 async function signOut() {
   open.value = false;
   await auth.logout();
@@ -127,6 +137,12 @@ onUnmounted(() => {
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSchemas">
         <AppIcon name="code" :size="14" /> Schemas
+      </button>
+      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoPolicies">
+        <AppIcon name="shield" :size="14" /> Policies
+      </button>
+      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoLicenses">
+        <AppIcon name="book" :size="14" /> Licenses
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoResourceTypes">
         <AppIcon name="tree" :size="14" /> Resource types

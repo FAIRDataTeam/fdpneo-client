@@ -493,11 +493,24 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   (`owl:versionInfo` on the policy record) is available now and is a cheaper
   partial substitute if wanted.
 
-### 5.4 License + record pickers (adjacent; follow-up) — ⬜
-- A small **license manager** over `/licenses` (list/get/put/validate — SHACL,
-  not the ODRL profile), and pickers in `EntityForm`: `dct:rights` → published
-  `/policies`, `dct:license` → published `/licenses` (both currently excluded
-  from the dynamic form). Smaller than the composer; sequence after 5.1–5.2.
+### 5.4 License manager — ✅ DONE (verified live, full lifecycle)
+- ✅ `api/licenses.ts` (list/get/put/delete/validate, mirrors `policies.ts`) +
+  `useLicenses` + `components/license-editor/licenseDoc.ts` (serialize/parse the
+  tiny `dct:title`/`source`/`description` doc) + `LicensesView.vue` (lifecycle:
+  list + simple form + live preview). New `/licenses` route; **added the missing
+  nav links for Policies *and* Licenses** in `UserMenu` (Policies had no menu
+  entry either). +7 tests; 253 total green.
+- ✅ **Verified live** (Playwright + Keycloak, real server): compose →
+  Validate "Valid ✓" → Publish (`PUT /licenses/{id}`) → appears in the managed
+  list → Delete removes it; 0 console errors. (The earlier server 500
+  `UnknownShapeError: …#LicenseDocumentShape` was fixed server-side 2026-06-06 —
+  `PUT`/`validate` now return 200; re-verified directly + via the UI.)
+
+### 5.5 Record pickers (`dct:rights` / `dct:license`) — ⬜
+- Pickers in `EntityForm`: `dct:rights` → published `/policies`, `dct:license` →
+  published `/licenses` (both currently excluded from the dynamic form). A
+  metadata-form change (touches `entityForms.ts` + `EntityForm.vue`); sequence
+  after the license write path is unblocked.
 
 ### Risks
 - **Lower than before** — the save path is no longer blocked. Main risk is the

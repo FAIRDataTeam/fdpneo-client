@@ -88,6 +88,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Policies", requiresAuth: true },
   },
   {
+    path: "/licenses",
+    name: "licenses",
+    component: () => import("@/views/LicensesView.vue"),
+    meta: { title: "Licenses", requiresAuth: true },
+  },
+  {
     path: "/admin/resource-definitions",
     name: "resource-definitions",
     component: () => import("@/views/ResourceDefinitionAdminView.vue"),
