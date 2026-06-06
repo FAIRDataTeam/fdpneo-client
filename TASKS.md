@@ -435,12 +435,20 @@ import; **`TurtleEditor`** (Monaco, read-only) for the live preview; CSS tokens,
 `AppIcon`, view chrome, the `validateSample`-style wiring for when the endpoint
 lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
 
-### 5.0 Vocab + model + serializer + parser + round-trip — ⬜ (do first, no UI)
-- `vocab.ts` (actions/operators/leftOperands/conflict — the closed sets above),
-  `model.ts` (`OfferModel { iri, assigner, conflict, rules: Rule[] }`,
-  `Rule { kind, action, constraints }`, `Constraint { leftOperand, operator,
-  rightOperand }`), `serialize.ts` + `parse.ts`. **Round-trip test seeded with
-  the real bundled `public-read-steward-modify.ttl`.**
+### 5.0 Vocab + model + serializer + parser + round-trip — ✅ DONE (verified)
+- `vocab.ts` (actions/operators/leftOperands/conflict — the ADR-0006 closed sets,
+  with per-operand operator + rightOperand-kind metadata), `model.ts`
+  (`OfferModel { iri, assigner, conflict, rules, prefixes }`, `Rule { kind,
+  action, constraints }`, `Constraint { leftOperand, operator, rightOperand,
+  rightIsIri }`), `serialize.ts` (hand-rolled deterministic, always declares
+  odrl/fdp-pol/xsd; dateTime gets `^^xsd:dateTime`, IRIs vs literals via
+  `rightIsIri`), `parse.ts` (n3-based, compacts to prefixed names).
+- ✅ **6 round-trip tests** seeded with the real bundled
+  `public-read-steward-modify.ttl`: parses the 4 permissions + steward-role
+  constraints; serialize is valid, drops no triples, idempotent;
+  `parse(serialize(m)) ≡ m`; a rich offer (assigner, conflict, prohibition,
+  `odrl:assignee` IRI + `odrl:dateTime` constraints) round-trips with the
+  datatype preserved. typecheck/lint/build green (234 tests total).
 
 ### 5.1 Offer composer + client-side validation — ⬜
 - `OdrlComposer.vue` — action picker (4), per-rule constraint builder (leftOperand
