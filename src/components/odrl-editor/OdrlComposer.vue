@@ -19,7 +19,7 @@ import {
 } from "./mutations";
 import { validateOffer } from "./validate";
 
-const props = defineProps<{ offer: OfferModel }>();
+const props = withDefaults(defineProps<{ offer: OfferModel; showId?: boolean }>(), { showId: true });
 const emit = defineEmits<{ (e: "update:offer", offer: OfferModel): void }>();
 
 const issues = computed(() => validateOffer(props.offer));
@@ -51,8 +51,8 @@ const valuePlaceholder = (lo: string) =>
   <div class="composer">
     <section class="panel">
       <h3>Policy</h3>
-      <label class="f">
-        <span>Id</span>
+      <label v-if="showId" class="f">
+        <span>Id <em>the Offer IRI</em></span>
         <input class="mono" :value="offer.iri" @input="apply((o) => updateOffer(o, { iri: val($event) }))" />
       </label>
       <label class="f">

@@ -468,20 +468,23 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   `odrl:Offer`/`permission`/`action odrl:modify`/`fdp-pol:role`/`"steward"`,
   0 console errors.
 
-### 5.2 Save + lifecycle (now buildable) — ⬜
-- `api/policies.ts` mirroring `api/schemas.ts`: `listPolicies` → `PolicyInfo[]`,
-  `getPolicyTurtle(id)`, `putPolicy(id, turtle)`, `deletePolicy(id)`,
-  `validatePolicy(id, turtle)` → `{ conforms, violations }`. Raw snake_case +
-  camelCase mappers; `normaliseError` like `schemas.ts`. A `usePolicies`
-  composable for the list cache (mirroring `useSchemas`).
-- `PolicyEditorView` as a lifecycle surface (reuse the `SchemaEditorView` shape):
-  master list of managed policies (id · title · permission/prohibition counts ·
-  state · version) + the composer; **slug → IRI** (`{base}/policies/{id}`, the
-  server derives it); set `dct:title`; **Save** = `PUT` (surfaces server profile
-  violations inline via `parseFdpError`, like the schema editor); **Validate** =
-  `POST …/validate` dry-run; **Delete** (handle 409-still-referenced). Keep
-  Copy/Download Turtle. (Publication state transitions: thin, or defer to a
-  follow-up — the write itself works without them.)
+### 5.2 Save + lifecycle — ✅ DONE (verified live against the server)
+- ✅ `api/policies.ts` (mirrors `schemas.ts`): `listPolicies`, `getPolicyTurtle`,
+  `putPolicy`, `deletePolicy`, `validatePolicy` → `{ conforms, violations }`
+  (violation detail flattened); raw mappers + `normaliseError`. `usePolicies` +
+  `useInvalidatePolicies` composables. +4 tests.
+- ✅ `PolicyEditorView` is a lifecycle surface (mirrors `SchemaEditorView`):
+  managed-policy list (title/id · `nP·nX` · state) + New; load (`GET` → parse →
+  model); slug → derived Offer IRI `{base}/policies/{id}` (serialized as the
+  subject so the server stores it there); **Save** = `PUT` (server profile
+  violations surface inline via `parseFdpError`); **Validate** = `POST …/validate`
+  dry-run; **Delete** (confirm, handles 409); Copy. Composer's Id field hidden
+  (`:show-id="false"`) since the slug owns the IRI.
+- ✅ **Verified live** (Playwright + Keycloak, real server): composed a
+  permit-modify+role=steward offer → Validate "Conforms ✓" → Publish (`PUT`) →
+  appears in the managed list at `<{base}/policies/{slug}>` → Delete removes it;
+  0 console errors. Publication-state transitions (draft→published) left as a
+  thin follow-up — the write persists as a draft and is fully functional.
 
 ### 5.3 Agreement history view — 🚫 server-blocked (deferred)
 - No `/agreements` endpoint exists; Agreements are PDP-materialized into the
