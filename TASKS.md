@@ -392,6 +392,28 @@ history are server-blocked** (need a coordinated fdp-server change, like
 `/schemas` was). The composer + preview + client-side validation (5.1) is fully
 buildable now.
 
+**✅ Server backend now planned (2026-06-05, server ADR-0012 + server Phase 14):**
+the gap above is being closed. The server is making ODRL **first-class managed
+documents** as **two subsystems**, symmetric with `/schemas`:
+
+- **`/policies`** — `odrl:Offer` documents, profile-validated, **PDP-enforced**
+  via `dct:rights`. CRUD mirrors `/schemas`: `GET /policies` (catalog, public),
+  `GET /policies/{id}` (public, dereferenceable), `PUT /policies/{id}` (admin,
+  validates against the same `parser.py` profile this editor mirrors),
+  `POST /policies/{id}/validate` (dry-run), `DELETE` (admin, 409 if referenced).
+  Documents have descriptive metadata + the draft/published/archived lifecycle
+  (Phase 12). → **5.2 save unblocks**: target `PUT /policies/{id}`; wire
+  "Publish" to the state endpoint; **5.3 history** comes from versioning + the
+  audit graph as before.
+- **`/licenses`** — license documents referenced descriptively via `dct:license`
+  (not enforced). New client work: a small **license picker/manager** that reads
+  the published `/licenses` catalog, plus a `dct:license` picker in the record
+  form. Mirror the `dct:rights` picker that reads `/policies`.
+
+Treat this as the server-coordination contract; build 5.0/5.1 now, and wire 5.2
+to `/policies` as soon as server Phase 14.2 lands. Mirror the `/schemas` api
+module pattern for `policies.ts`/`licenses.ts` (Raw snake_case + mappers).
+
 **Decisions (2026-06-05):** (1) **build client-complete now, defer save** — full
 composer + live preview + client-side profile validation + Copy/Download Turtle;
 "Publish" wired to a seam but disabled with a "server endpoint pending" note;
