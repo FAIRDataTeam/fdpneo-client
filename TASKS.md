@@ -375,49 +375,43 @@ test), server architecture §13 (ProjectOak functional reference),
 
 ---
 
-## Phase 5 — Visual ODRL editor — ⬜ OPEN (planned 2026-06-05; PolicyEditorView is a 21-line stub)
+## Phase 5 — Visual ODRL editor — ⬜ OPEN (re-planned 2026-06-06; PolicyEditorView is a 21-line stub)
 
 A **guided** Offer composer (not a canvas) at `/policies` →
 `PolicyEditorView.vue`, under `src/components/odrl-editor/`. Much smaller than
-Phase 4: no Vue Flow, no DnD — just typed forms + a live Turtle preview.
+Phase 4: no Vue Flow, no DnD — typed forms + a live Turtle preview. Because
+offers are now first-class managed records (below), the view is a **full
+lifecycle surface** like `SchemaEditorView`: list → load → compose → validate →
+save → delete.
 
-**⚠️ Server gap (verified live 2026-06-05):** there is **no `/offers` or
-`/policies` endpoint**. Offers are **profile-bundled config**
-(`server/profiles/default/offers/*.ttl`, applied by `profiles/applier.py`); a
-record references one by an **intrinsic w3id.org IRI** via `dct:rights`
-(`…/offers/public-read-steward-modify` — not fetchable locally, 404s).
-**Agreements** are PDP-materialized into the record's audit graph on PERMIT
-(likely a hidden `/meta` graph). So **5.2 persist-to-server and 5.3 Agreement
-history are server-blocked** (need a coordinated fdp-server change, like
-`/schemas` was). The composer + preview + client-side validation (5.1) is fully
-buildable now.
+**✅ Server `/policies` + `/licenses` are now LIVE** (verified on the running
+server 2026-06-06; server ADR-0012 / Phase 14). ODRL is first-class — the
+earlier "server gap" is closed. Both subsystems are symmetric with `/schemas`
+(JSON list/validate, `text/turtle` get/put; snake_case raw + camelCase mappers):
 
-**✅ Server backend now planned (2026-06-05, server ADR-0012 + server Phase 14):**
-the gap above is being closed. The server is making ODRL **first-class managed
-documents** as **two subsystems**, symmetric with `/schemas`:
+- **`/policies`** — `odrl:Offer` docs, profile-validated **on every write** and
+  **PDP-enforced** via `dct:rights`. `GET /policies` → `{ policies: PolicyInfo[] }`
+  (`PolicyInfo = { id, iri, title?, assigner?, permissions, prohibitions, state?,
+  version? }`); `GET /policies/{id}` → Turtle (dereferenceable);
+  `PUT /policies/{id}` (admin, body Turtle, returns `PolicyInfo`);
+  `DELETE /policies/{id}` (admin, 409 if a record still references it);
+  `POST /policies/{id}/validate` → `{ conforms, violations[] }` (auth, dry-run).
+  Stored at `{base}/policies/{id}` with `dct:title` + `owl:versionInfo` (bumped
+  per write) + draft/published/archived state (Phase 12). **→ 5.2 save unblocked.**
+- **`/licenses`** — descriptive license docs (PEP never evaluates), referenced via
+  `dct:license`, SHACL-validated against a server license shape; same CRUD shape.
+  Adjacent to the ODRL composer (see 5.4).
+- **No `/agreements` endpoint** — Agreements are still PDP-materialized into the
+  record's audit graph; **5.3 stays deferred.**
 
-- **`/policies`** — `odrl:Offer` documents, profile-validated, **PDP-enforced**
-  via `dct:rights`. CRUD mirrors `/schemas`: `GET /policies` (catalog, public),
-  `GET /policies/{id}` (public, dereferenceable), `PUT /policies/{id}` (admin,
-  validates against the same `parser.py` profile this editor mirrors),
-  `POST /policies/{id}/validate` (dry-run), `DELETE` (admin, 409 if referenced).
-  Documents have descriptive metadata + the draft/published/archived lifecycle
-  (Phase 12). → **5.2 save unblocks**: target `PUT /policies/{id}`; wire
-  "Publish" to the state endpoint; **5.3 history** comes from versioning + the
-  audit graph as before.
-- **`/licenses`** — license documents referenced descriptively via `dct:license`
-  (not enforced). New client work: a small **license picker/manager** that reads
-  the published `/licenses` catalog, plus a `dct:license` picker in the record
-  form. Mirror the `dct:rights` picker that reads `/policies`.
-
-Treat this as the server-coordination contract; build 5.0/5.1 now, and wire 5.2
-to `/policies` as soon as server Phase 14.2 lands. Mirror the `/schemas` api
-module pattern for `policies.ts`/`licenses.ts` (Raw snake_case + mappers).
-
-**Decisions (2026-06-05):** (1) **build client-complete now, defer save** — full
-composer + live preview + client-side profile validation + Copy/Download Turtle;
-"Publish" wired to a seam but disabled with a "server endpoint pending" note;
-5.3 deferred. (2) **Hardcode the ADR-0006 closed vocabulary** in `vocab.ts`.
+**Decisions:** (1, updated 2026-06-06) **build the real save** against
+`PUT /policies/{id}` + `POST …/validate` — the earlier "defer save / stub
+Publish" decision is obsolete now the endpoint is live; keep Copy/Download too.
+(2) **Hardcode the ADR-0006 closed vocabulary** in `vocab.ts` (the server
+validates against the same profile, so the client mirrors it for guidance but
+isn't the authority — surface server violations inline). (3) Guided composer is
+primary with a **read-only** Turtle preview, not a raw editable tab (out-of-
+profile authoring is exactly what the guided UI exists to prevent).
 
 ### The profile contract (server `policy/model.py` + `parser.py`; ADR-0006) — don't invent
 - `<iri> a odrl:Offer`; optional `odrl:assigner <iri>`; optional `odrl:conflict`
@@ -457,27 +451,45 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
 - `OdrlPreview.vue` — live Turtle preview + validation banner. Wire into
   `PolicyEditorView` (replaces the stub).
 
-### 5.2 Offer save — 🚫 server-blocked (build the seam + Copy/Download now)
-- Live preview ✅ buildable. **Save**: Copy/Download Turtle now; "Publish" wired
-  behind a clear API seam, disabled with a "server endpoint pending" note until
-  fdp-server exposes an offer CRUD/validate endpoint (mirror the `/schemas`
-  pattern: `putOffer` + a `validate` dry-run surfacing structured errors inline).
-- **Reference an offer from a record** (`dct:rights` picker in `EntityForm`,
-  currently excluded there) also needs an offer-**list** endpoint — blocked.
+### 5.2 Save + lifecycle (now buildable) — ⬜
+- `api/policies.ts` mirroring `api/schemas.ts`: `listPolicies` → `PolicyInfo[]`,
+  `getPolicyTurtle(id)`, `putPolicy(id, turtle)`, `deletePolicy(id)`,
+  `validatePolicy(id, turtle)` → `{ conforms, violations }`. Raw snake_case +
+  camelCase mappers; `normaliseError` like `schemas.ts`. A `usePolicies`
+  composable for the list cache (mirroring `useSchemas`).
+- `PolicyEditorView` as a lifecycle surface (reuse the `SchemaEditorView` shape):
+  master list of managed policies (id · title · permission/prohibition counts ·
+  state · version) + the composer; **slug → IRI** (`{base}/policies/{id}`, the
+  server derives it); set `dct:title`; **Save** = `PUT` (surfaces server profile
+  violations inline via `parseFdpError`, like the schema editor); **Validate** =
+  `POST …/validate` dry-run; **Delete** (handle 409-still-referenced). Keep
+  Copy/Download Turtle. (Publication state transitions: thin, or defer to a
+  follow-up — the write itself works without them.)
 
 ### 5.3 Agreement history view — 🚫 server-blocked (deferred)
-- Read-only Agreements for an Offer (assigner/assignee/action/timestamp), from
-  the record's audit graph. Needs steward-scoped audit-graph access (the `/meta`
-  graphs are hidden from anonymous SPARQL). Defer until that exists.
+- No `/agreements` endpoint exists; Agreements are PDP-materialized into the
+  record's audit graph (hidden `/meta`, not in anonymous SPARQL). Defer until the
+  server exposes steward-scoped audit access. Policy **version** history
+  (`owl:versionInfo` on the policy record) is available now and is a cheaper
+  partial substitute if wanted.
+
+### 5.4 License + record pickers (adjacent; follow-up) — ⬜
+- A small **license manager** over `/licenses` (list/get/put/validate — SHACL,
+  not the ODRL profile), and pickers in `EntityForm`: `dct:rights` → published
+  `/policies`, `dct:license` → published `/licenses` (both currently excluded
+  from the dynamic form). Smaller than the composer; sequence after 5.1–5.2.
 
 ### Risks
-- The **persist path is genuinely server-blocked** — the editor is client-complete
-  but offers can't be stored until fdp-server adds the endpoint (a real server task).
-- Build the API seam so swapping the stub for the real endpoint is a one-file change.
+- **Lower than before** — the save path is no longer blocked. Main risk is the
+  client profile-validation (`validate.ts`) drifting from `parser.py`; mitigate
+  by treating the server `POST …/validate` as the authority and surfacing its
+  violations, with `validate.ts` only as fast inline guidance.
 
-References: server architecture §8, ADR-0006
-(`server/docs/adr/0006-odrl-profile-permission-prohibition.md`),
-`server/profiles/default/offers/public-read-steward-modify.ttl`.
+References: server ADR-0006 + **ADR-0012**
+(`server/docs/adr/0012-first-class-odrl-policy-and-license-documents.md`),
+`server/src/fdp/policy/parser.py` (validation oracle),
+`server/src/fdp/metadata/policies.py` (the `/policies` API to mirror),
+`server/profiles/default/offers/public-read-steward-modify.ttl` (round-trip seed).
 
 ---
 
