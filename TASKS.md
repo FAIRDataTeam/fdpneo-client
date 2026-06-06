@@ -450,14 +450,23 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   `odrl:assignee` IRI + `odrl:dateTime` constraints) round-trips with the
   datatype preserved. typecheck/lint/build green (234 tests total).
 
-### 5.1 Offer composer + client-side validation — ⬜
-- `OdrlComposer.vue` — action picker (4), per-rule constraint builder (leftOperand
-  select → operator select filtered per operand → typed value input), permission/
-  prohibition toggle, conflict-strategy picker (deny-wins default).
-- `validate.ts` — pure, mirrors `parser.py` (per-operand operator/value rules);
-  the composer is structurally unable to emit out-of-profile constructs (CLAUDE.md).
-- `OdrlPreview.vue` — live Turtle preview + validation banner. Wire into
-  `PolicyEditorView` (replaces the stub).
+### 5.1 Offer composer + client-side validation — ✅ DONE (verified live)
+- ✅ `factories.ts` + `mutations.ts` (pure, JSON-clone — add/delete/update rules
+  & constraints, updateOffer) + `validate.ts` (mirrors `parser.py`: action set,
+  per-operand operator/value/IRI rules, empty-offer warning). +8 tests.
+- ✅ `OdrlComposer.vue` — guided form: id/assigner/conflict-picker; +Permission/
+  +Prohibition; per rule an action select (4 actions) + constraint builder
+  (leftOperand → operator filtered per operand → value input typed per operand,
+  datetime gets a date-time picker) + inline errors. Structurally can't emit
+  out-of-profile constructs.
+- ✅ `OdrlPreview.vue` — live Turtle preview (reuses the Monaco `TurtleEditor`,
+  read-only) + validation banner. Wired into `PolicyEditorView` (replaces the
+  stub) as a composer | preview layout with Copy Turtle.
+- ✅ **Verified live** (Playwright + Keycloak): composed a Permit-Modify rule
+  with a role=steward constraint → empty value showed "✕ Role needs a value"
+  (banner + inline) → filled → "✓ Valid"; Copied Turtle had the correct
+  `odrl:Offer`/`permission`/`action odrl:modify`/`fdp-pol:role`/`"steward"`,
+  0 console errors.
 
 ### 5.2 Save + lifecycle (now buildable) — ⬜
 - `api/policies.ts` mirroring `api/schemas.ts`: `listPolicies` → `PolicyInfo[]`,
