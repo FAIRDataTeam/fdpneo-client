@@ -7,10 +7,21 @@
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
 import { parseKeywords } from "@/api/entityForms";
+import { usePublishedPolicies } from "@/composables/usePolicies";
+import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
 
 const props = defineProps<{ spec: EntitySpec }>();
 const model = defineModel<EntityModel>({ required: true });
+
+// Managed-document catalogs for `kind: "ref"` pickers (dct:rights / dct:license).
+// Only PUBLISHED docs are offered for assignment (ADR-0012 §4).
+const { policies } = usePublishedPolicies();
+const { licenses } = usePublishedLicenses();
+function refOptions(source?: string): { iri: string; label: string }[] {
+  const list = source === "licenses" ? licenses.value : policies.value;
+  return list.map((d) => ({ iri: d.iri, label: d.title || d.id }));
+}
 
 function asText(key: string): string {
   const v = model.value[key];
@@ -60,6 +71,20 @@ const fields = computed(() => props.spec.fields);
         :model-value="asText(f.key)"
         @update:model-value="model[f.key] = $event"
       />
+
+      <template v-else-if="f.kind === 'ref'">
+        <input
+          :list="`ref-${f.key}`"
+          type="url"
+          :value="asText(f.key)"
+          :placeholder="f.placeholder ?? 'select or paste an IRI'"
+          :aria-label="f.label"
+          @input="model[f.key] = ($event.target as HTMLInputElement).value"
+        />
+        <datalist :id="`ref-${f.key}`">
+          <option v-for="o in refOptions(f.source)" :key="o.iri" :value="o.iri">{{ o.label }}</option>
+        </datalist>
+      </template>
 
       <input
         v-else

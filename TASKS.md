@@ -506,11 +506,35 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   `UnknownShapeError: …#LicenseDocumentShape` was fixed server-side 2026-06-06 —
   `PUT`/`validate` now return 200; re-verified directly + via the UI.)
 
-### 5.5 Record pickers (`dct:rights` / `dct:license`) — ⬜
-- Pickers in `EntityForm`: `dct:rights` → published `/policies`, `dct:license` →
-  published `/licenses` (both currently excluded from the dynamic form). A
-  metadata-form change (touches `entityForms.ts` + `EntityForm.vue`); sequence
-  after the license write path is unblocked.
+### 5.5 Record pickers (`dct:rights` / `dct:license`) — 🟢 DONE in the form (render verified live); save blocked by an unrelated PDP issue
+- ✅ New `FieldKind: "ref"` + `FieldSpec.source` ("policies"|"licenses") in
+  `entityForms.ts`; `F.rights` (dct:rights → policies) added to the static DCAT
+  specs, `F.license` switched to ref(licenses); `applyModel` routes `ref` through
+  `setIri`. `EntityForm.vue` renders a `ref` as a free-text IRI `<input>` +
+  `<datalist>` of managed docs from `usePolicies`/`useLicenses`.
+- ✅ **The fix that mattered:** the live form is **SHACL-shape-driven**
+  (`fieldsFromShape`), not the static `ENTITY_SPECS`, so the first cut never
+  appeared. `fieldsFromShape` now maps `dct:license` → ref(licenses) and **appends
+  a `dct:rights` ref(policies) field** (it's `SHACL_EXCLUDED`, so it never comes
+  from the shape, but any record can opt into a policy). Spec updated.
+- ✅ +1 unit test (`dct:rights`/`dct:license` round-trip as IRIs);
+  typecheck/lint/build green (254 total).
+- ✅ **Live-verified (render):** in the real create-catalog form both pickers
+  appear and populate from the seeded `/policies` + `/licenses` catalogs —
+  "Access policy" = `…/policies/vpol5`, "License" = `…/licenses/vlic5`.
+- ✅ **Pickers request published-only** (`listPolicies(true)`/`listLicenses(true)`
+  → `?published=true`; `usePublishedPolicies`/`usePublishedLicenses` with their
+  own cache keys; `EntityForm` uses them — managers still show all incl. drafts).
+  +1 test. (ADR-0012 §4: only PUBLISHED is assignable.)
+- ⚠️ **Save round-trip still NOT confirmed — server re-seed pending (not 5.5):**
+  record save 403s *"policy denies modify on …/catalog/…"*. Root cause (per the
+  server agent): the **system-default offer is missing at its new managed IRI**
+  (`/policies/system-default` → 404) after the 14.5 IRI change, so the root
+  resolves to deny. Fix is server-side — re-deploy + re-seed (`fdp profile apply
+  --force` / factory-reset). **When `GET /policies/system-default` returns 200 and
+  lists as PUBLISHED, re-run:** create a catalog with an Access policy + License →
+  save → confirm `dct:rights`/`dct:license` persist. (Token already carries the
+  `steward` realm role, so it's the offer, not the IdP.) See [[pdp-modify-denied]].
 
 ### Risks
 - **Lower than before** — the save path is no longer blocked. Main risk is the

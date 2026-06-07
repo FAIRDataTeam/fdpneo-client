@@ -116,20 +116,44 @@ dcat:Dataset a sh:NodeShape ;
   const fields = fieldsFromShape(SHAPE, `${NS.dcat}Dataset`);
   const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
 
-  it("orders title then description then the rest, and excludes structural/managed/blank-node fields", () => {
-    expect(fields.map((f) => f.key)).toEqual(["title", "description", "keyword", "license", "theme"]);
+  it("orders title then description then the rest, and appends the access-policy picker", () => {
+    expect(fields.map((f) => f.key)).toEqual(["title", "description", "keyword", "license", "theme", "rights"]);
   });
 
-  it("maps datatype/nodeKind/cardinality to the right kinds", () => {
+  it("maps datatype/nodeKind/cardinality to the right kinds; license/rights are managed-doc pickers", () => {
     expect(byKey.title?.kind).toBe("text");
     expect(byKey.title?.required).toBe(true);
     expect(byKey.description?.kind).toBe("textarea");
     expect(byKey.keyword?.kind).toBe("keywords"); // repeatable literal
-    expect(byKey.license?.kind).toBe("iri"); // single IRI
+    expect(byKey.license?.kind).toBe("ref"); // managed-license picker (5.5)
+    expect(byKey.license?.source).toBe("licenses");
     expect(byKey.theme?.kind).toBe("iris"); // repeatable IRI
+    expect(byKey.rights?.kind).toBe("ref"); // appended access-policy picker
+    expect(byKey.rights?.source).toBe("policies");
   });
 
   it("returns [] when the shape isn't present (caller falls back to the static spec)", () => {
     expect(fieldsFromShape("@prefix x: <http://x/> . x:a x:b x:c .", `${NS.dcat}Dataset`)).toEqual([]);
+  });
+});
+
+describe("ref fields (dct:rights / dct:license) write + read as IRIs (5.5)", () => {
+  it("buildCreateTurtle emits ref values as IRIs and modelFromTurtle reads them back", async () => {
+    const spec = specFor("dataset");
+    const iri = "http://x/dataset/d1";
+    const model = {
+      ...emptyModel(spec),
+      title: "D",
+      rights: "http://x/policies/p1",
+      license: "http://x/licenses/cc0",
+    };
+    const ttl = await buildCreateTurtle(iri, spec, model, null);
+    const store = parseTurtle(ttl);
+    expect(one(store, iri, `${NS.dct}rights`)).toBe("http://x/policies/p1");
+    expect(one(store, iri, `${NS.dct}license`)).toBe("http://x/licenses/cc0");
+
+    const back = modelFromTurtle(ttl, iri, spec);
+    expect(back.rights).toBe("http://x/policies/p1");
+    expect(back.license).toBe("http://x/licenses/cc0");
   });
 });

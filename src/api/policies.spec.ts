@@ -39,6 +39,14 @@ describe("listPolicies", () => {
       permissions: 0, prohibitions: 0, state: null, version: null,
     });
   });
+
+  it("requests published-only when asked (assignment picker)", async () => {
+    mockGet.mockResolvedValue({ data: { policies: [] } });
+    await listPolicies(true);
+    expect(mockGet.mock.calls[0]![1]).toEqual({ params: { published: true } });
+    await listPolicies();
+    expect(mockGet.mock.calls[1]![1]).toBeUndefined();
+  });
 });
 
 describe("putPolicy", () => {

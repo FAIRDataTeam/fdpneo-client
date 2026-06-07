@@ -34,7 +34,7 @@ import {
  */
 export type EntityType = string;
 
-export type FieldKind = "text" | "textarea" | "iri" | "keywords" | "iris";
+export type FieldKind = "text" | "textarea" | "iri" | "keywords" | "iris" | "ref";
 
 export interface FieldSpec {
   key: string;
@@ -51,6 +51,12 @@ export interface FieldSpec {
    * single-value `text`/`iri` fields.
    */
   autocomplete?: string;
+  /**
+   * For `kind: "ref"` — the managed-document catalog to suggest IRIs from: the
+   * published `/policies` (an `odrl:Offer` for `dct:rights`) or `/licenses` (for
+   * `dct:license`). The field stays a free-text IRI input with a `<datalist>`.
+   */
+  source?: "policies" | "licenses";
 }
 
 export interface EntitySpec {
@@ -71,7 +77,8 @@ const F = {
   title: { key: "title", predicate: `${NS.dct}title`, label: "Title", kind: "text", required: true } as FieldSpec,
   description: { key: "description", predicate: `${NS.dct}description`, label: "Description", kind: "textarea" } as FieldSpec,
   publisher: { key: "publisher", predicate: `${NS.dct}publisher`, label: "Publisher (IRI)", kind: "iri", placeholder: "https://example.org/org", autocomplete: "publisher" } as FieldSpec,
-  license: { key: "license", predicate: `${NS.dct}license`, label: "License (IRI)", kind: "iri", placeholder: "https://creativecommons.org/licenses/by/4.0/", autocomplete: "license" } as FieldSpec,
+  license: { key: "license", predicate: `${NS.dct}license`, label: "License", kind: "ref", source: "licenses", placeholder: "a managed license IRI", help: "From Licenses; or paste any IRI." } as FieldSpec,
+  rights: { key: "rights", predicate: `${NS.dct}rights`, label: "Access policy", kind: "ref", source: "policies", placeholder: "a managed policy IRI", help: "An ODRL Offer from Policies (dct:rights)." } as FieldSpec,
   keywords: { key: "keywords", predicate: `${NS.dcat}keyword`, label: "Keywords", kind: "keywords", help: "Comma-separated." } as FieldSpec,
   theme: { key: "theme", predicate: `${NS.dcat}theme`, label: "Theme (IRI)", kind: "iri", autocomplete: "theme" } as FieldSpec,
   format: { key: "format", predicate: `${NS.dct}format`, label: "Format", kind: "text", placeholder: "text/csv", autocomplete: "mime" } as FieldSpec,
@@ -87,7 +94,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Catalog",
     prefix: "catalog",
     childTypes: ["dataset", "data-service"],
-    fields: [F.title, F.description, F.publisher, F.license],
+    fields: [F.title, F.description, F.publisher, F.license, F.rights],
   },
   dataset: {
     type: "dataset",
@@ -95,7 +102,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Dataset",
     prefix: "dataset",
     childTypes: ["distribution"],
-    fields: [F.title, F.description, F.publisher, F.license, F.keywords, F.theme],
+    fields: [F.title, F.description, F.publisher, F.license, F.keywords, F.theme, F.rights],
   },
   distribution: {
     type: "distribution",
@@ -103,7 +110,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Distribution",
     prefix: "distribution",
     childTypes: [],
-    fields: [F.title, F.description, F.format, F.license, F.downloadURL, F.accessURL],
+    fields: [F.title, F.description, F.format, F.license, F.downloadURL, F.accessURL, F.rights],
   },
   "data-service": {
     type: "data-service",
@@ -111,7 +118,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Data service",
     prefix: "data-service",
     childTypes: [],
-    fields: [F.title, F.description, F.publisher, F.endpointURL],
+    fields: [F.title, F.description, F.publisher, F.endpointURL, F.rights],
   },
 };
 
@@ -164,7 +171,7 @@ function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityMo
     const scalar = typeof value === "string" ? value : "";
     if (f.kind === "keywords") setLiterals(store, iri, f.predicate, list);
     else if (f.kind === "iris") setIris(store, iri, f.predicate, list);
-    else if (f.kind === "iri") setIri(store, iri, f.predicate, scalar);
+    else if (f.kind === "iri" || f.kind === "ref") setIri(store, iri, f.predicate, scalar);
     else setLiteral(store, iri, f.predicate, scalar);
   }
 }
@@ -274,6 +281,11 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
       label: first(p, "name") || shortLabel(path),
       kind,
     };
+    if (path === `${NS.dct}license`) {
+      field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI
+      field.source = "licenses";
+      field.label = first(p, "name") || "License";
+    }
     if (required) field.required = true;
     const description = first(p, "description");
     if (description) field.help = description;
@@ -283,5 +295,8 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
   const rank = (f: FieldSpec) =>
     f.predicate === `${NS.dct}title` ? 0 : f.predicate === `${NS.dct}description` ? 1 : 2;
   fields.sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label));
+  // Always offer the access-policy picker — dct:rights is SHACL_EXCLUDED, so it
+  // never comes from the shape, but any record can opt into a policy (5.5).
+  fields.push({ ...F.rights });
   return fields;
 }

@@ -47,9 +47,15 @@ function normaliseError(err: unknown): never {
   throw err;
 }
 
-/** List managed licenses (public). */
-export async function listLicenses(): Promise<LicenseSummary[]> {
-  const res = await http.get<{ licenses?: RawLicense[] }>("/licenses");
+/**
+ * List managed licenses. Default returns all (manager); `publishedOnly`
+ * (`?published=true`) is the set offered for assignment via `dct:license`.
+ */
+export async function listLicenses(publishedOnly = false): Promise<LicenseSummary[]> {
+  const res = await http.get<{ licenses?: RawLicense[] }>(
+    "/licenses",
+    publishedOnly ? { params: { published: true } } : undefined,
+  );
   return (res.data.licenses ?? []).map(toSummary);
 }
 

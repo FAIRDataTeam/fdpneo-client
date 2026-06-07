@@ -78,9 +78,16 @@ function normaliseError(err: unknown): never {
   throw err;
 }
 
-/** List managed policies (public; includes drafts for admins). */
-export async function listPolicies(): Promise<PolicySummary[]> {
-  const res = await http.get<{ policies?: RawPolicy[] }>("/policies");
+/**
+ * List managed policies. Default returns all (incl. drafts) for the manager;
+ * `publishedOnly` (`?published=true`) is the set offered for *assignment* via
+ * `dct:rights` (ADR-0012 §4 — only PUBLISHED is discoverable/assignable).
+ */
+export async function listPolicies(publishedOnly = false): Promise<PolicySummary[]> {
+  const res = await http.get<{ policies?: RawPolicy[] }>(
+    "/policies",
+    publishedOnly ? { params: { published: true } } : undefined,
+  );
   return (res.data.policies ?? []).map(toSummary);
 }
 

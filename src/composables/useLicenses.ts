@@ -20,7 +20,24 @@ export interface UseLicenses {
 export function useLicenses(): UseLicenses {
   const query = useQuery({
     queryKey: LICENSES_KEY,
-    queryFn: listLicenses,
+    queryFn: () => listLicenses(),
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  return {
+    licenses: computed(() => query.data.value ?? []),
+    isLoading: computed(() => query.isLoading.value),
+    isError: computed(() => query.isError.value),
+  };
+}
+
+export const PUBLISHED_LICENSES_KEY = ["licenses", "published"] as const;
+
+/** Published licenses only — the set assignable via `dct:license`. */
+export function usePublishedLicenses(): UseLicenses {
+  const query = useQuery({
+    queryKey: PUBLISHED_LICENSES_KEY,
+    queryFn: () => listLicenses(true),
     staleTime: 5 * 60_000,
     retry: 1,
   });

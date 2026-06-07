@@ -21,7 +21,24 @@ export interface UsePolicies {
 export function usePolicies(): UsePolicies {
   const query = useQuery({
     queryKey: POLICIES_KEY,
-    queryFn: listPolicies,
+    queryFn: () => listPolicies(),
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  return {
+    policies: computed(() => query.data.value ?? []),
+    isLoading: computed(() => query.isLoading.value),
+    isError: computed(() => query.isError.value),
+  };
+}
+
+export const PUBLISHED_POLICIES_KEY = ["policies", "published"] as const;
+
+/** Published policies only — the set assignable via `dct:rights` (ADR-0012). */
+export function usePublishedPolicies(): UsePolicies {
+  const query = useQuery({
+    queryKey: PUBLISHED_POLICIES_KEY,
+    queryFn: () => listPolicies(true),
     staleTime: 5 * 60_000,
     retry: 1,
   });
