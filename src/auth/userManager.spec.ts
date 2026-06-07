@@ -44,4 +44,15 @@ describe("userManager OIDC resolution", () => {
     const m = getUserManager();
     expect(m.settings.authority).toBe("http://env-authority");
   });
+
+  // Security audit R-06: tokens must persist in sessionStorage, not localStorage.
+  it("stores tokens in sessionStorage, not localStorage", async () => {
+    window.sessionStorage.clear();
+    window.localStorage.clear();
+    const m = getUserManager();
+    await m.settings.userStore!.set("probe", "v");
+    expect(await m.settings.userStore!.get("probe")).toBe("v");
+    expect(window.sessionStorage.length).toBeGreaterThan(0); // landed in sessionStorage
+    expect(window.localStorage.length).toBe(0); // never in localStorage
+  });
 });

@@ -1,0 +1,46 @@
+# Dependency vulnerability scan + SBOM for the FDP client (security audit R-12).
+#
+# Gates pull requests on known-vulnerable npm dependencies (npm audit, high+)
+# and publishes a CycloneDX SBOM artifact. Runs on PRs, pushes to main, and
+# weekly so advisories published after a merge are still caught.
+name: security-scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  npm-deps:
+    name: npm deps (audit + SBOM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: npm audit (fails on high/critical)
+        run: npm audit --audit-level=high
+
+      - name: Generate CycloneDX SBOM
+        if: always() # produce the SBOM even when the audit gate fails
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-file sbom.cdx.json
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-npm
+          path: sbom.cdx.json
+          if-no-files-found: warn

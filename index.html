@@ -15,6 +15,26 @@
       rel="stylesheet"
     />
     <title>FAIR Data Point</title>
+    <!--
+      Security audit R-06 — Content Security Policy.
+      Serve the CSP as an HTTP *response header* from the static host / CDN (NOT a
+      <meta> here: a meta tag can't express frame-ancestors/form-action and would
+      break the Vite dev server). Recommended production policy (template the API
+      and IdP origins for your deployment):
+
+        Content-Security-Policy:
+          default-src 'self';
+          script-src 'self';
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+          font-src  'self' https://fonts.gstatic.com;
+          img-src   'self' data:;
+          connect-src 'self' https://API.ORIGIN https://IDP.ORIGIN;
+          frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+      Notes: 'unsafe-inline' in style-src is required (Vue/PrimeVue inject inline
+      styles); script-src stays 'self' (the production build has no inline JS).
+      Also send X-Content-Type-Options, X-Frame-Options, Referrer-Policy, HSTS.
+    -->
   </head>
   <body>
     <div id="app"></div>

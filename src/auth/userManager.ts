@@ -8,7 +8,7 @@
  * that for tests.
  */
 
-import { UserManager } from "oidc-client-ts";
+import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 import type { OIDCBootstrap } from "@/api/config";
 
 let instance: UserManager | null = null;
@@ -46,6 +46,12 @@ function build(): UserManager {
     scope: "openid profile email",
     loadUserInfo: false,
     automaticSilentRenew: true,
+    // Keep tokens in sessionStorage, not the default localStorage (security
+    // audit R-06): they are scoped to the tab, cleared on close, and not shared
+    // across tabs — reducing the window for XSS token theft. Silent renew /
+    // the IdP SSO session re-establishes the session within a tab.
+    userStore: new WebStorageStateStore({ store: window.sessionStorage }),
+    stateStore: new WebStorageStateStore({ store: window.sessionStorage }),
   });
 }
 
