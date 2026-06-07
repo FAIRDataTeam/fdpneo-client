@@ -261,6 +261,13 @@ a failed login redirect:
 
 The client is a static SPA.
 
+> **Toolchain:** **Node.js ≥ 20** (Vite 8 requires Node 20.19+/22.12+). The
+> build uses **Vite 8**, whose **Rolldown** bundler takes `build.rollupOptions.
+> output.manualChunks` as a *function* (not Rollup's object map) — see
+> `vite.config.ts` if you adjust chunking. `npm install` reports **0 known
+> vulnerabilities**; the toolchain (Vite/Vitest) is dev-only and never shipped in
+> `dist/`.
+
 ```bash
 cd fdp-client
 npm install

@@ -33,14 +33,17 @@ export default defineConfig(() => {
       sourcemap: true,
       rollupOptions: {
         output: {
-          // Split the visual editors out — they're heavy (Vue Flow + N3) and
-          // only loaded when stewards open them.
-          manualChunks: {
-            "vendor-vue": ["vue", "vue-router", "pinia"],
-            "vendor-flow": ["@vue-flow/core", "@vue-flow/background", "@vue-flow/controls"],
-            "vendor-rdf": ["n3"],
-            "vendor-charts": ["chart.js", "vue-chartjs"],
-            "vendor-monaco": ["monaco-editor"],
+          // Split heavy vendors into stable, cacheable chunks. Function form
+          // (matched on module id) because Vite 8's Rolldown bundler takes
+          // `manualChunks` as a function, not the object map Rollup accepted.
+          manualChunks(id: string) {
+            if (!id.includes("node_modules")) return;
+            if (id.includes("@vue-flow")) return "vendor-flow";
+            if (id.includes("monaco-editor")) return "vendor-monaco";
+            if (id.includes("chart.js") || id.includes("vue-chartjs")) return "vendor-charts";
+            if (/node_modules\/n3\//.test(id)) return "vendor-rdf";
+            if (/node_modules\/(vue|vue-router|pinia|@vue)\//.test(id)) return "vendor-vue";
+            return;
           },
         },
       },
