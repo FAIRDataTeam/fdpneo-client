@@ -106,6 +106,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Settings", requiresAuth: true },
   },
   {
+    path: "/account/profile",
+    name: "profile",
+    component: () => import("@/views/ProfileView.vue"),
+    meta: { title: "Profile", requiresAuth: true },
+  },
+  {
     path: "/account/tokens",
     name: "api-keys",
     component: () => import("@/views/ApiKeysView.vue"),

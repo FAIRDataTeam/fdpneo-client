@@ -59,6 +59,11 @@ async function gotoSettings() {
   await router.push("/admin/settings");
 }
 
+async function gotoProfile() {
+  open.value = false;
+  await router.push("/account/profile");
+}
+
 async function gotoTokens() {
   open.value = false;
   await router.push("/account/tokens");
@@ -149,6 +154,9 @@ onUnmounted(() => {
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSettings">
         <AppIcon name="cog" :size="14" /> Settings
+      </button>
+      <button class="item" role="menuitem" @click="gotoProfile">
+        <AppIcon name="user" :size="14" /> Profile
       </button>
       <button class="item" role="menuitem" @click="gotoTokens">
         <AppIcon name="lock" :size="14" /> Access tokens

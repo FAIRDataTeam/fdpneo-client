@@ -506,7 +506,7 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   `UnknownShapeError: …#LicenseDocumentShape` was fixed server-side 2026-06-06 —
   `PUT`/`validate` now return 200; re-verified directly + via the UI.)
 
-### 5.5 Record pickers (`dct:rights` / `dct:license`) — 🟢 DONE in the form (render verified live); save blocked by an unrelated PDP issue
+### 5.5 Record pickers (`dct:rights` / `dct:license`) — ✅ DONE (full round-trip verified live)
 - ✅ New `FieldKind: "ref"` + `FieldSpec.source` ("policies"|"licenses") in
   `entityForms.ts`; `F.rights` (dct:rights → policies) added to the static DCAT
   specs, `F.license` switched to ref(licenses); `applyModel` routes `ref` through
@@ -519,22 +519,18 @@ lands. Validation oracle to mirror: `server/src/fdp/policy/parser.py`.
   from the shape, but any record can opt into a policy). Spec updated.
 - ✅ +1 unit test (`dct:rights`/`dct:license` round-trip as IRIs);
   typecheck/lint/build green (254 total).
-- ✅ **Live-verified (render):** in the real create-catalog form both pickers
-  appear and populate from the seeded `/policies` + `/licenses` catalogs —
-  "Access policy" = `…/policies/vpol5`, "License" = `…/licenses/vlic5`.
 - ✅ **Pickers request published-only** (`listPolicies(true)`/`listLicenses(true)`
   → `?published=true`; `usePublishedPolicies`/`usePublishedLicenses` with their
   own cache keys; `EntityForm` uses them — managers still show all incl. drafts).
-  +1 test. (ADR-0012 §4: only PUBLISHED is assignable.)
-- ⚠️ **Save round-trip still NOT confirmed — server re-seed pending (not 5.5):**
-  record save 403s *"policy denies modify on …/catalog/…"*. Root cause (per the
-  server agent): the **system-default offer is missing at its new managed IRI**
-  (`/policies/system-default` → 404) after the 14.5 IRI change, so the root
-  resolves to deny. Fix is server-side — re-deploy + re-seed (`fdp profile apply
-  --force` / factory-reset). **When `GET /policies/system-default` returns 200 and
-  lists as PUBLISHED, re-run:** create a catalog with an Access policy + License →
-  save → confirm `dct:rights`/`dct:license` persist. (Token already carries the
-  `steward` realm role, so it's the offer, not the IdP.) See [[pdp-modify-denied]].
+  +1 test. (ADR-0012 §4: only PUBLISHED is assignable.) 255 total green.
+- ✅ **Save round-trip verified live (2026-06-07, after the server re-seed):**
+  created a catalog through the form with Access policy = the published
+  `…/policies/system-default` (shown in the picker) + License = a CC BY 4.0 IRI →
+  saved → an **authenticated** GET of the record shows `dcterms:rights
+  <…/policies/system-default>` and `dcterms:license <…/by/4.0/>` persisted. (NB:
+  records save as drafts, so an *anonymous* GET returns nothing — verify with a
+  token.) The earlier modify-deny is gone — `system-default` is back at its
+  managed IRI as PUBLISHED. See [[pdp-modify-denied]] (resolved).
 
 ### Risks
 - **Lower than before** — the save path is no longer blocked. Main risk is the
@@ -852,9 +848,49 @@ Coordinated work, in dependency order:
 ### 9.9 Reset to defaults — ✅ done (10.7, verified live)
 - Legacy `ResetToDefaults`. Server: no endpoint.
 
-### 9.10 User profile page
-- View/edit the signed-in user's profile (legacy `Profile`). Mostly IdP-backed;
-  scope depends on 9.3.
+### 9.10 User profile page — ✅ DONE (verified live)
+- `ProfileView.vue` (route `/account/profile`, in `UserMenu`): read-only identity
+  from the OIDC token claims (name, username, email, `sub`, role chips) + a
+  "Manage account" deep link to the Keycloak account console (`{iss}/account`).
+  No server endpoint. Verified live: shows Admin User / admin@fdp.local /
+  STEWARD·ADMIN, link → `…/realms/fdp-dev/account`; typecheck/lint/build, 255 tests.
+
+### 9.11 Phase 9 completion plan (2026-06-07)
+Re-probed the live server: still **no** `/users`, `/members`, or version-history
+endpoints; only publication `/state` (already done). Dispositions (decided w/ user):
+
+**Build now — no server dependency:**
+- **9.10 User profile — ✅ DONE (verified live).** Read-only profile at `/account/profile`, sourced
+  from the OIDC token claims via the auth store (`user.profile`: name, email,
+  preferred_username, `sub`; plus `roles`). A "Manage account" button deep-links to
+  the Keycloak **account console** (`{oidc-authority}/account`) for editing — the
+  IdP owns identity. Linked from `UserMenu`. Pure client; gate + live-verify.
+
+**Coordinated — client wants it, blocked on a new server endpoint:**
+- **9.3 User management — BUILD against a server `/users` facade (server work
+  first).** Per the user, build it; but there is **no `/users` API**, so it can't
+  proceed until the server exposes one. Proposed contract for the server team:
+  - `GET /users` → `[{ id, username, email, roles[], enabled }]` (admin)
+  - `POST /users` (create/invite), `PATCH /users/{id}` (roles/enabled),
+    `DELETE /users/{id}` — all admin-scoped, a thin facade over the IdP.
+  Client work once it lands (mirrors the resource-def admin): `api/users.ts` +
+  `useUsers` + `UsersAdminView` (route `/admin/users`, admin-gated, in `UserMenu`).
+  **Not buildable/verifiable now — flag to the server team; this is the one
+  remaining coordinated build for Phase 9.**
+
+**Server-blocked — deferred to v1.x (precise blockers):**
+- **9.1 record version history.** Needs a server endpoint for per-record versions
+  (`/{path}/versions`, or `/meta` exposing `owl:versionInfo` history);
+  `versionInfo` isn't on the public record graph today. State half ✅ done.
+- **9.2 record membership / sharing.** Needs `/members` CRUD. Defer.
+- **9.8 FDP Index.** Kept deferred (separate service); revisit if an index
+  endpoint appears.
+
+**Already done:** 9.1-state, 9.4, 9.5, 9.6, 9.7, 9.9.
+
+**Net:** completing Phase 9 = ship **9.10** now; **9.3** is the lone remaining
+*coordinated* build (server `/users` first); **9.1-history / 9.2 / 9.8** are
+genuinely server-blocked and deferred to v1.x.
 
 ---
 
