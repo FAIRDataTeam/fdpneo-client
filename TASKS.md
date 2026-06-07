@@ -869,7 +869,9 @@ endpoints; only publication `/state` (already done). Dispositions (decided w/ us
 **Coordinated — client wants it, blocked on a new server endpoint:**
 - **9.3 User management — BUILD against a server `/users` facade (server work
   first).** Per the user, build it; but there is **no `/users` API**, so it can't
-  proceed until the server exposes one. Proposed contract for the server team:
+  proceed until the server exposes one. **Full spec handed to the server team:**
+  [docs/server-requests/users-facade.md](docs/server-requests/users-facade.md).
+  Contract in brief:
   - `GET /users` → `[{ id, username, email, roles[], enabled }]` (admin)
   - `POST /users` (create/invite), `PATCH /users/{id}` (roles/enabled),
     `DELETE /users/{id}` — all admin-scoped, a thin facade over the IdP.
