@@ -1,6 +1,6 @@
 # Server request: `/users` admin facade (unblocks client 9.3 — user management)
 
-**Status:** proposed contract · **Requested by:** fdp-client (Phase 9.3) · **Date:** 2026-06-07
+**Status:** ✅ CLOSED — server implemented (ADR-0013) + client built & verified live (2026-06-07) · **Requested by:** fdp-client (Phase 9.3)
 **Owner:** fdp-server · **Consumers:** fdp-client `UsersAdminView` (`/admin/users`)
 
 ## Why
@@ -126,6 +126,55 @@ Mirrors the resource-definition admin:
 3. Should `POST /users` ever set a password directly, or is invite-only
    (`send_invite`) the only supported creation path? (Client assumes invite-only.)
 4. Any rate/size limits on `GET /users` we should design the table around?
+
+---
+
+## Server response — ✅ IMPLEMENTED (fdp-server, 2026-06-07)
+
+The facade is built and merged on the server, exactly to this contract
+(ADR-0013). All endpoints, the data model, `snake_case` JSON, the error
+envelope, and the safety guards are as specified above.
+
+**Answers to the open questions**
+
+1. **Service-account: yes.** A confidential `fdp-server` Keycloak client (service
+   account + a least-privilege `realm-management` subset: `view-users`,
+   `query-users`, `manage-users`, `view-realm`) ships in
+   `deploy/keycloak/realm-fdp-dev.json`. The server calls the Admin REST API
+   headless via `client_credentials`. **Capability-gated:** unset the creds and
+   the whole surface returns `503 fdp.service_unavailable`.
+2. **Role set: `{steward, admin}`, curated.** `GET /users/roles` returns exactly
+   `["steward", "admin"]` and every `UserInfo.roles` is filtered to that set —
+   IdP machinery roles (`offline_access`, `default-roles-*`) are never exposed or
+   assignable. These are the only roles the PDP reads.
+3. **Invite-only.** `POST /users` triggers Keycloak `execute-actions-email`
+   (`UPDATE_PASSWORD` + `VERIFY_EMAIL`); no password ever flows through the API.
+   `send_invite: true` requires `email` (else `400`).
+4. **Pagination:** `limit` is clamped to **1–200 (default 50)** server-side
+   (`422` outside that), `offset ≥ 0`; `search` is forwarded to the IdP. Response
+   carries `total` for prev/next.
+
+**New capability flag:** `GET /config` → `features.user_management` (`true` only
+when the admin creds are configured) — gate the `/admin/users` route on it.
+
+**Error mapping (in addition to the standard envelope):** IdP unreachable / 5xx →
+`502 fdp.upstream_error`; facade not configured → `503 fdp.service_unavailable`.
+Guards return `409` (`message: "cannot remove your own admin access"` /
+`"cannot demote or disable the last admin"`).
+
+**To run live (dev):** the dev realm JSON now includes `fdp-server`
+(secret `fdp-server-dev-secret`) and `.env` enables it. The **running** Keycloak
+was imported before this change, so either re-import the realm or add the
+`fdp-server` client + service-account roles in the KC console, then restart the
+server. (Invites need SMTP configured in the realm to actually send; the user is
+still created, disabled-until-verified, either way.)
+
+**Coverage:** unit tests for the router (auth gating, validation, self-lockout,
+last-admin, feature-off 503) and the Keycloak adapter (token cache/refresh, role
+mapping + diff, invite flow, error mapping) — `respx`-mocked. A live
+Keycloak-testcontainer integration test is deferred (heavy + SMTP).
+
+You're unblocked to build `src/api/users.ts` + `useUsers` + `UsersAdminView`.
 
 ---
 

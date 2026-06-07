@@ -13,6 +13,7 @@ const ALL_ON: FeatureFlags = {
   data_provider: true,
   search: true,
   index: true,
+  user_management: true,
 };
 
 describe("routeFeatureBlocked", () => {

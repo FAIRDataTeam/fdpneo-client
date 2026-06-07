@@ -761,11 +761,10 @@ the Phase 10 table.
 - Per-record user roles (legacy `EntitySettings` + `memberships` API). Server:
   `/members`, `/members/{userUuid}` deferred to v1.x.
 
-### 9.3 User management (admin)
-- List / create / edit users and roles (legacy `Users`, `UserCreate`,
-  `UserDetail`). Server: no `/users` API — identities live in the IdP
-  (Keycloak). Decide whether this belongs in the client at all or stays an IdP
-  admin task; if in-client, the server needs a users facade.
+### 9.3 User management (admin) — ✅ DONE (2026-06-07, verified live)
+- Built on the server `/users` facade (ADR-0013): `api/users.ts` + `useUsers` +
+  `UsersAdminView` (`/admin/users`, admin + `user_management`-feature gated).
+  See the completion plan in §9.11 for details and the live-verification result.
 
 ### 9.4 API keys / personal access tokens — ✅ done (10.4, verified live)
 - Legacy `ApiKeys`. Server: no token-issuing endpoint.
@@ -866,19 +865,23 @@ endpoints; only publication `/state` (already done). Dispositions (decided w/ us
   the Keycloak **account console** (`{oidc-authority}/account`) for editing — the
   IdP owns identity. Linked from `UserMenu`. Pure client; gate + live-verify.
 
-**Coordinated — client wants it, blocked on a new server endpoint:**
-- **9.3 User management — BUILD against a server `/users` facade (server work
-  first).** Per the user, build it; but there is **no `/users` API**, so it can't
-  proceed until the server exposes one. **Full spec handed to the server team:**
+**Coordinated — ✅ DONE (server facade shipped + client built, verified live):**
+- **9.3 User management — ✅ DONE.** Server shipped the `/users` facade
+  (ADR-0013) to the spec at
   [docs/server-requests/users-facade.md](docs/server-requests/users-facade.md).
-  Contract in brief:
-  - `GET /users` → `[{ id, username, email, roles[], enabled }]` (admin)
-  - `POST /users` (create/invite), `PATCH /users/{id}` (roles/enabled),
-    `DELETE /users/{id}` — all admin-scoped, a thin facade over the IdP.
-  Client work once it lands (mirrors the resource-def admin): `api/users.ts` +
-  `useUsers` + `UsersAdminView` (route `/admin/users`, admin-gated, in `UserMenu`).
-  **Not buildable/verifiable now — flag to the server team; this is the one
-  remaining coordinated build for Phase 9.**
+  Client built: regenerated `schema.ts` (`npm run generate-api` — adds
+  `features.user_management`, `/users*`, `UserInfo`); `api/users.ts`
+  (list/search+paging, roles, create/invite, patch, delete; snake↔camel) +
+  `useUsers`/`useAssignableRoles`/`useInvalidateUsers` + `UsersAdminView`
+  (route `/admin/users`, **feature-gated** via `meta.feature: user_management`
+  + admin-gated; in `UserMenu` behind `canManageUsers`). Searchable table, inline
+  role/enabled editor, invite-create, delete, **self-lockout guards** (can't
+  delete self / drop own admin / disable self). +5 tests; PERMISSIVE +
+  featureGate.spec updated for the new flag.
+- ✅ **Verified live** (real server + Keycloak facade configured): listed
+  admin/alice; self-delete disabled; created+invited a user (appears); edited it
+  to add `admin` (persisted server-side: `['steward','admin']`); deleted (204);
+  0 console errors.
 
 **Server-blocked — deferred to v1.x (precise blockers):**
 - **9.1 record version history.** Needs a server endpoint for per-record versions
@@ -890,9 +893,10 @@ endpoints; only publication `/state` (already done). Dispositions (decided w/ us
 
 **Already done:** 9.1-state, 9.4, 9.5, 9.6, 9.7, 9.9.
 
-**Net:** completing Phase 9 = ship **9.10** now; **9.3** is the lone remaining
-*coordinated* build (server `/users` first); **9.1-history / 9.2 / 9.8** are
-genuinely server-blocked and deferred to v1.x.
+**Net (updated 2026-06-07):** **9.10 and 9.3 are now DONE & verified live.** The
+only Phase-9 items left are genuinely server-blocked: **9.1 record version
+history**, **9.2 membership**, **9.8 FDP Index** — all deferred to v1.x pending
+their endpoints. Everything else in Phase 9 is complete.
 
 ---
 

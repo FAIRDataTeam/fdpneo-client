@@ -9,10 +9,15 @@
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
 import AppIcon from "./AppIcon.vue";
 
 const auth = useAuthStore();
+const config = useConfigStore();
 const router = useRouter();
+
+/** Admin + the server's user-management facade is configured (ADR-0013). */
+const canManageUsers = computed(() => auth.isAdmin && config.isEnabled("user_management"));
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
@@ -57,6 +62,11 @@ async function gotoResourceTypes() {
 async function gotoSettings() {
   open.value = false;
   await router.push("/admin/settings");
+}
+
+async function gotoUsers() {
+  open.value = false;
+  await router.push("/admin/users");
 }
 
 async function gotoProfile() {
@@ -154,6 +164,9 @@ onUnmounted(() => {
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSettings">
         <AppIcon name="cog" :size="14" /> Settings
+      </button>
+      <button v-if="canManageUsers" class="item" role="menuitem" @click="gotoUsers">
+        <AppIcon name="user" :size="14" /> Users
       </button>
       <button class="item" role="menuitem" @click="gotoProfile">
         <AppIcon name="user" :size="14" /> Profile

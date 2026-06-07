@@ -32,6 +32,7 @@ const PERMISSIVE: FeatureFlags = {
   data_provider: true,
   search: true,
   index: true,
+  user_management: true,
 };
 
 export const useConfigStore = defineStore("config", () => {
