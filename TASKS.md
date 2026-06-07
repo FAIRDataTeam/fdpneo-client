@@ -375,7 +375,7 @@ test), server architecture §13 (ProjectOak functional reference),
 
 ---
 
-## Phase 5 — Visual ODRL editor — ⬜ OPEN (re-planned 2026-06-06; PolicyEditorView is a 21-line stub)
+## Phase 5 — Visual ODRL editor — ✅ MOSTLY DONE (5.0–5.2, 5.4, 5.5 built & verified live 2026-06-06/07; only 5.3 Agreement history is server-blocked)
 
 A **guided** Offer composer (not a canvas) at `/policies` →
 `PolicyEditorView.vue`, under `src/components/odrl-editor/`. Much smaller than
@@ -1002,12 +1002,12 @@ the SPARQL workarounds are not.
 - Tests: `search.spec.ts` (4, search + saved-query clients); `dynamicTypeCatalog.spec.ts`
   useSearch cases rewritten to assert the `POST /search` request + result mapping.
   Full suite 137 green; typecheck+lint clean.
-- **Live verification pending datastore:** `POST /search` 500s on this box because
-  the index lives in **Postgres (:5432 down)**; `/me/saved-queries` → 401 (route
-  live, auth-gated). Contract is complete and unit-tested with mocks; happy-path
-  verify once Postgres is up. Facet *value* labels are best-effort
-  (`license`→`licenseLabel`, IRI→`shortLabel`); refine with `/labels` (10.6) after
-  seeing real values. (`FacetValue` carries no label; dimension `label` is server-set.)
+- **Live verification — ✅ DONE 2026-06-07 (datastore healthy).** `POST /search`
+  returns results (6 records, `type`+`license` facets); `SearchView` renders the
+  result cards + facet groups from the live index; saved-query create → list →
+  delete works end-to-end via `/me/saved-queries`. (Earlier this was deferred
+  because Postgres was down.) 0 console errors. Facet *value* labels remain
+  best-effort (`license`→`licenseLabel`, IRI→`shortLabel`).
 - **Search** — replace the SPARQL body in `useSearch.ts` with `POST /search`
   `{ query, types[], license?, from?, to?, offset, limit }` → `{ items, total,
   facets: { type, license } }`. Render facet counts from the response (drop the
