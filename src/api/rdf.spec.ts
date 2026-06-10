@@ -2,11 +2,18 @@
  * Unit tests for the RDF → view-model mapping.
  *
  * The Turtle fixtures mirror what the FDP server returns for a record
- * (DCAT vocabulary, absolute IRIs). `mapRecord` takes the resource IRI
- * explicitly, so these tests don't depend on the API-base env var.
+ * (DCAT vocabulary, absolute IRIs under `http://localhost:8000`). `iriToId`
+ * strips the configured API base to derive the path id the client routes on,
+ * so we pin `runtimeApiUrl` to that origin here. (The runtime default is now
+ * `/` / same-origin, under which absolute IRIs would not be stripped.)
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/runtimeConfig", () => ({
+  runtimeApiUrl: () => "http://localhost:8000",
+  runtimePublicOrigin: () => "http://localhost:5173",
+}));
 import {
   iriToId,
   licenseLabel,
