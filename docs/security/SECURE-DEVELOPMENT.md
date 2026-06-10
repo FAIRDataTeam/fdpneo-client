@@ -7,9 +7,17 @@ rules**. Reference: `../../SECURITY-AUDIT-2026-06-10.md`.
 
 ---
 
-## Part A — Remediation to implement now
+## Part A — Remediation status
 
 ### A-1 (Low–Med) — Validate URL schemes before binding user-controlled values into `:href`/`:src`
+
+> **Status: DONE (2026-06-10).** Implemented as `safeHref` in
+> `src/composables/safeUrl.ts` (allowlists `http`/`https`/`mailto`, strips
+> ignorable control/whitespace chars by code point so a `java\tscript:` smuggle
+> is caught, returns the cleaned value). Wired into `PropList.vue` for publisher
+> and license links (renders plain text + no `<a>` when unsafe; adds
+> `rel="noopener noreferrer"`). Covered by `src/composables/safeUrl.spec.ts`. The
+> lesson is now standing rule 2 below. Kept here for context.
 
 **Problem.** `components/metadata/PropList.vue` binds metadata-derived IRIs straight into
 href: `<a :href="record.publisherUri">` (line 42) and `<a :href="record.licenseUri">`
