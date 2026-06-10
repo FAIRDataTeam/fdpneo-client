@@ -30,7 +30,10 @@ Pre-1.0 software: security fixes land on `main`.
 - **Auth:** Authorization-Code + PKCE via `oidc-client-ts`; no implicit flow.
 - **Token storage:** access/refresh tokens are kept in `sessionStorage`
   (tab-scoped, cleared on close), not `localStorage`.
-- **XSS:** Vue auto-escaping; no `v-html`/`innerHTML` sinks.
+- **XSS:** Vue auto-escaping; no `v-html`/`innerHTML` sinks. User-controlled
+  metadata IRIs bound into `:href` pass through a scheme allowlist
+  (`http`/`https`/`mailto`, in `src/composables/safeUrl.ts`) so a crafted
+  `javascript:`/`data:` IRI cannot run script on click.
 
 ## Deployment (serving layer)
 

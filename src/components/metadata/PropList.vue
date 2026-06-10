@@ -4,6 +4,7 @@ import type { FdpRecord } from "@/data/sampleRecord";
 import PropRow from "./PropRow.vue";
 import AppChip from "@/components/shared/AppChip.vue";
 import { useLabels } from "@/composables/useLabels";
+import { safeHref } from "@/composables/safeUrl";
 
 const props = defineProps<{ record: FdpRecord }>();
 
@@ -24,6 +25,12 @@ const licenseText = computed(
   () => labels.value[props.record.licenseUri] || props.record.license,
 );
 
+// Record IRIs come from user-controlled RDF metadata; allowlist the scheme
+// before binding into `:href` so a `javascript:`/`data:` IRI can't run script.
+// When unsafe, fall back to plain text (no link) rather than a live href.
+const publisherHref = computed(() => safeHref(props.record.publisherUri));
+const licenseHref = computed(() => safeHref(props.record.licenseUri));
+
 // Prefer resolved theme labels keyed by IRI; fall back to the mapper's short
 // labels when the record carries no theme IRIs (e.g. fixtures).
 const themeChips = computed(() =>
@@ -39,10 +46,20 @@ const themeChips = computed(() =>
 <template>
   <dl class="list">
     <PropRow label="Publisher">
-      <a :href="record.publisherUri" class="accent">{{ publisherText }}</a>
+      <a
+        v-if="publisherHref"
+        :href="publisherHref"
+        class="accent"
+        rel="noopener noreferrer"
+        >{{ publisherText }}</a
+      >
+      <span v-else>{{ publisherText }}</span>
     </PropRow>
     <PropRow label="License">
-      <a :href="record.licenseUri" class="accent">{{ licenseText }}</a>
+      <a v-if="licenseHref" :href="licenseHref" class="accent" rel="noopener noreferrer">{{
+        licenseText
+      }}</a>
+      <span v-else>{{ licenseText }}</span>
     </PropRow>
     <PropRow label="Themes">
       <div class="themes">
