@@ -20,6 +20,8 @@ export interface SchemaSummary {
   iri: string;
   targetClass: string | null;
   version: number | null;
+  /** False for protected shapes (the FDP root schema): editable but not deletable. */
+  deletable: boolean;
 }
 
 export interface SchemaViolation {
@@ -39,6 +41,7 @@ interface RawSummary {
   iri?: string;
   target_class?: string | null;
   version?: number | null;
+  deletable?: boolean;
 }
 
 interface RawViolation {
@@ -54,6 +57,9 @@ function toSummary(raw: RawSummary): SchemaSummary {
     iri: raw.iri ?? "",
     targetClass: raw.target_class ?? null,
     version: raw.version ?? null,
+    // Default to deletable when absent (older servers); the FDP root schema
+    // reports false so its Delete action is suppressed.
+    deletable: raw.deletable ?? true,
   };
 }
 

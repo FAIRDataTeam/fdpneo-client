@@ -1,0 +1,7 @@
+The following are notes about the GUI that should be refined:
+1. Where is the text at the top left part of the window "Erasmus MC - Research data" comes from? This should come from the title of the FAIR Data Point, defined in the FAIR Data Point (repository) metadata record. The base URL of the FDP can remain.
+2. The API link at the bottom right of the page does not open anything. It should open the OpenAPI UI in another window.
+3. The About link at the bottom right of the page does not open anything.
+4. The Specification link at the bottom right of the page does not open anything. It should open the URL https://specs.fairdatapoint.org in another window.
+5. When we click the user icon at the top right of the window and select Schemas, it does not show any available schema. In the default deployment, the FDP comes configured with DCAT-based schemas for resources, datasets, catalogs, FAIR Data Point, distribution, etc. They should be shown as available schemas so the user could either edit and existing or add a new one.
+6. When we click the user icon at the top right of the window and select Schemas, the Schema adding/editing UI is very narrow. It should use better the width of the browser.

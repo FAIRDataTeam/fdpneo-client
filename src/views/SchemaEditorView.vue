@@ -60,6 +60,12 @@ const loadingShape = ref(false);
 
 const slugLocked = computed(() => savedId.value !== null);
 
+// Protected shapes (the FDP root schema) report `deletable: false` from the
+// list: editing is allowed, deletion is not. Resolve the flag for the schema
+// currently loaded so the Delete action can be suppressed.
+const currentSchema = computed(() => schemas.value.find((s) => s.id === savedId.value) ?? null);
+const canDelete = computed(() => currentSchema.value?.deletable !== false);
+
 // Live, non-destructive parse status for the Turtle source (does not reserialise).
 const status = computed(() => shaclStatus(turtle.value));
 
@@ -280,7 +286,16 @@ function onDelete() {
         <ul v-else class="schemas">
           <li v-for="s in schemas" :key="s.id">
             <button class="schema" :class="{ active: s.id === savedId }" @click="load(s.id)">
-              <span class="schema__id">{{ s.id }}</span>
+              <span class="schema__id">
+                {{ s.id }}
+                <AppIcon
+                  v-if="!s.deletable"
+                  name="lock"
+                  :size="11"
+                  class="schema__lock"
+                  aria-label="Protected — can't be deleted"
+                />
+              </span>
               <span v-if="s.targetClass" class="schema__tc mono">{{ s.targetClass }}</span>
               <span v-if="s.version != null" class="schema__v mono">v{{ s.version }}</span>
             </button>
@@ -370,13 +385,17 @@ function onDelete() {
             {{ save.isPending.value ? "Saving…" : savedId ? "Save new version" : "Publish schema" }}
           </button>
           <button
-            v-if="savedId"
+            v-if="savedId && canDelete"
             class="btn ghost danger"
             :disabled="!auth.isAdmin || remove.isPending.value"
             @click="onDelete"
           >
             Delete
           </button>
+          <span v-else-if="savedId && !canDelete" class="protected">
+            <AppIcon name="lock" :size="13" />
+            Protected — the FDP root schema can't be deleted (editing is allowed).
+          </span>
         </div>
 
         <div class="testbed">
@@ -469,9 +488,13 @@ function onDelete() {
 .page {
   flex: 1;
   padding: 36px 80px 48px;
-  max-width: 1000px;
+  /* The authoring workbench (schema list + Monaco + visual canvas) needs room;
+     use the browser width up to a generous cap rather than the narrow reading
+     measure used elsewhere. */
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 .eyebrow {
   font-size: 11px;
@@ -531,10 +554,17 @@ h1 {
   background: var(--accent-soft);
 }
 .schema__id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 13px;
   color: var(--ink);
+}
+.schema__lock {
+  color: var(--muted);
+  flex: none;
 }
 .schema__tc {
   font-size: 10px;
@@ -728,6 +758,13 @@ textarea:disabled {
 }
 .btn.danger {
   color: var(--signal);
+}
+.protected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 @media (max-width: 900px) {

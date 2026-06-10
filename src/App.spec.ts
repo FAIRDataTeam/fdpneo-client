@@ -33,7 +33,9 @@ describe("App", () => {
     expect(wrapper.text()).toContain("FAIR");
     expect(wrapper.text()).toContain("DATA POINT");
     expect(wrapper.text()).toContain("neo");
-    expect(wrapper.text()).toContain("Erasmus MC");
+    // Deployment name comes from the repository record's dct:title; with no
+    // server reachable in the test it falls back to the neutral default.
+    expect(wrapper.text()).toContain("FAIR Data Point");
     expect(wrapper.text()).toContain("Sign in");
   });
 });

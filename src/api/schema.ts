@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/healthz": {
+    "/fdp-api/healthz": {
         parameters: {
             query?: never;
             header?: never;
@@ -15,7 +15,7 @@ export interface paths {
          * Healthz
          * @description Liveness probe. Does not check downstream dependencies.
          */
-        get: operations["healthz_healthz_get"];
+        get: operations["healthz_fdp_api_healthz_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -24,7 +24,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/info": {
+    "/fdp-api/info": {
         parameters: {
             query?: never;
             header?: never;
@@ -32,7 +32,7 @@ export interface paths {
             cookie?: never;
         };
         /** App Info */
-        get: operations["app_info_info_get"];
+        get: operations["app_info_fdp_api_info_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -41,7 +41,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/readyz": {
+    "/fdp-api/readyz": {
         parameters: {
             query?: never;
             header?: never;
@@ -49,7 +49,7 @@ export interface paths {
             cookie?: never;
         };
         /** Readiness */
-        get: operations["readiness_readyz_get"];
+        get: operations["readiness_fdp_api_readyz_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -58,7 +58,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/config": {
+    "/fdp-api/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -69,7 +69,7 @@ export interface paths {
          * Bootstrap Config
          * @description Self-describing config payload. Unauthenticated. No secrets.
          */
-        get: operations["bootstrap_config_config_get"];
+        get: operations["bootstrap_config_fdp_api_config_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -78,7 +78,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/labels": {
+    "/fdp-api/labels": {
         parameters: {
             query?: never;
             header?: never;
@@ -86,7 +86,7 @@ export interface paths {
             cookie?: never;
         };
         /** Labels Lookup */
-        get: operations["labels_lookup_labels_get"];
+        get: operations["labels_lookup_fdp_api_labels_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -95,7 +95,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/me/dashboard": {
+    "/fdp-api/me/dashboard": {
         parameters: {
             query?: never;
             header?: never;
@@ -103,7 +103,7 @@ export interface paths {
             cookie?: never;
         };
         /** User Dashboard */
-        get: operations["user_dashboard_me_dashboard_get"];
+        get: operations["user_dashboard_fdp_api_me_dashboard_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -112,7 +112,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/me/api-keys": {
+    "/fdp-api/me/api-keys": {
         parameters: {
             query?: never;
             header?: never;
@@ -120,20 +120,20 @@ export interface paths {
             cookie?: never;
         };
         /** Api Key List */
-        get: operations["api_key_list_me_api_keys_get"];
+        get: operations["api_key_list_fdp_api_me_api_keys_get"];
         put?: never;
         /**
          * Api Key Create
          * @description Mint a key. The plaintext token is in the response **once** — store it now.
          */
-        post: operations["api_key_create_me_api_keys_post"];
+        post: operations["api_key_create_fdp_api_me_api_keys_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/me/api-keys/{key_id}": {
+    "/fdp-api/me/api-keys/{key_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -144,13 +144,13 @@ export interface paths {
         put?: never;
         post?: never;
         /** Api Key Revoke */
-        delete: operations["api_key_revoke_me_api_keys__key_id__delete"];
+        delete: operations["api_key_revoke_fdp_api_me_api_keys__key_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/search": {
+    "/fdp-api/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -160,14 +160,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Search */
-        post: operations["search_search_post"];
+        post: operations["search_fdp_api_search_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/me/saved-queries": {
+    "/fdp-api/me/saved-queries": {
         parameters: {
             query?: never;
             header?: never;
@@ -175,17 +175,17 @@ export interface paths {
             cookie?: never;
         };
         /** Saved Query List */
-        get: operations["saved_query_list_me_saved_queries_get"];
+        get: operations["saved_query_list_fdp_api_me_saved_queries_get"];
         put?: never;
         /** Saved Query Create */
-        post: operations["saved_query_create_me_saved_queries_post"];
+        post: operations["saved_query_create_fdp_api_me_saved_queries_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/me/saved-queries/{query_id}": {
+    "/fdp-api/me/saved-queries/{query_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -194,16 +194,16 @@ export interface paths {
         };
         get?: never;
         /** Saved Query Update */
-        put: operations["saved_query_update_me_saved_queries__query_id__put"];
+        put: operations["saved_query_update_fdp_api_me_saved_queries__query_id__put"];
         post?: never;
         /** Saved Query Delete */
-        delete: operations["saved_query_delete_me_saved_queries__query_id__delete"];
+        delete: operations["saved_query_delete_fdp_api_me_saved_queries__query_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/settings": {
+    "/fdp-api/settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -211,7 +211,7 @@ export interface paths {
             cookie?: never;
         };
         /** Settings Read All */
-        get: operations["settings_read_all_settings_get"];
+        get: operations["settings_read_all_fdp_api_settings_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -220,7 +220,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/settings/{key}": {
+    "/fdp-api/settings/{key}": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,18 +228,18 @@ export interface paths {
             cookie?: never;
         };
         /** Settings Read One */
-        get: operations["settings_read_one_settings__key__get"];
+        get: operations["settings_read_one_fdp_api_settings__key__get"];
         /** Settings Write One */
-        put: operations["settings_write_one_settings__key__put"];
+        put: operations["settings_write_one_fdp_api_settings__key__put"];
         post?: never;
         /** Settings Delete One */
-        delete: operations["settings_delete_one_settings__key__delete"];
+        delete: operations["settings_delete_one_fdp_api_settings__key__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/admin/reset": {
+    "/fdp-api/admin/reset": {
         parameters: {
             query?: never;
             header?: never;
@@ -256,14 +256,14 @@ export interface paths {
          *     truncated and the deployment profile is force re-applied. The request
          *     body must carry the confirmation token.
          */
-        post: operations["admin_reset_admin_reset_post"];
+        post: operations["admin_reset_fdp_api_admin_reset_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/forms/autocomplete": {
+    "/fdp-api/forms/autocomplete": {
         parameters: {
             query?: never;
             header?: never;
@@ -271,7 +271,7 @@ export interface paths {
             cookie?: never;
         };
         /** Forms Autocomplete */
-        get: operations["forms_autocomplete_forms_autocomplete_get"];
+        get: operations["forms_autocomplete_fdp_api_forms_autocomplete_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -280,7 +280,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/metrics/summary": {
+    "/fdp-api/metrics/summary": {
         parameters: {
             query?: never;
             header?: never;
@@ -291,7 +291,7 @@ export interface paths {
          * Metrics Summary
          * @description Period totals: request count, unique visitors, status mix, mean latency.
          */
-        get: operations["metrics_summary_metrics_summary_get"];
+        get: operations["metrics_summary_fdp_api_metrics_summary_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -300,7 +300,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/metrics/timeseries/daily": {
+    "/fdp-api/metrics/timeseries/daily": {
         parameters: {
             query?: never;
             header?: never;
@@ -311,7 +311,7 @@ export interface paths {
          * Metrics Daily Series
          * @description One ``(bucket, request_count, unique_visitors)`` point per day.
          */
-        get: operations["metrics_daily_series_metrics_timeseries_daily_get"];
+        get: operations["metrics_daily_series_fdp_api_metrics_timeseries_daily_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -320,7 +320,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/metrics/top-resources": {
+    "/fdp-api/metrics/top-resources": {
         parameters: {
             query?: never;
             header?: never;
@@ -331,7 +331,7 @@ export interface paths {
          * Metrics Top Resources
          * @description The ``limit`` most-requested resources, ordered by request count.
          */
-        get: operations["metrics_top_resources_metrics_top_resources_get"];
+        get: operations["metrics_top_resources_fdp_api_metrics_top_resources_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -340,7 +340,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/metrics/geography": {
+    "/fdp-api/metrics/geography": {
         parameters: {
             query?: never;
             header?: never;
@@ -351,7 +351,7 @@ export interface paths {
          * Metrics Geography
          * @description Per-country counts, descending by request count.
          */
-        get: operations["metrics_geography_metrics_geography_get"];
+        get: operations["metrics_geography_fdp_api_metrics_geography_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -360,7 +360,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/data/{distribution_id}": {
+    "/fdp-api/data/{distribution_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -368,7 +368,7 @@ export interface paths {
             cookie?: never;
         };
         /** Data Download */
-        get: operations["data_download_data__distribution_id__get"];
+        get: operations["data_download_fdp_api_data__distribution_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -377,7 +377,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/data/{distribution_id}/sparql": {
+    "/fdp-api/data/{distribution_id}/sparql": {
         parameters: {
             query?: never;
             header?: never;
@@ -385,17 +385,17 @@ export interface paths {
             cookie?: never;
         };
         /** Data Sparql Get */
-        get: operations["data_sparql_get_data__distribution_id__sparql_get"];
+        get: operations["data_sparql_get_fdp_api_data__distribution_id__sparql_get"];
         put?: never;
         /** Data Sparql Post */
-        post: operations["data_sparql_post_data__distribution_id__sparql_post"];
+        post: operations["data_sparql_post_fdp_api_data__distribution_id__sparql_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/sparql": {
+    "/fdp-api/sparql": {
         parameters: {
             query?: never;
             header?: never;
@@ -403,17 +403,17 @@ export interface paths {
             cookie?: never;
         };
         /** Sparql Get */
-        get: operations["sparql_get_sparql_get"];
+        get: operations["sparql_get_fdp_api_sparql_get"];
         put?: never;
         /** Sparql Post */
-        post: operations["sparql_post_sparql_post"];
+        post: operations["sparql_post_fdp_api_sparql_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/spec": {
+    "/fdp-api/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -422,7 +422,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Repository
-         * @description Return the SHACL shape graph that validates Repository instances (https://w3id.org/fdp/o#Repository).
+         * @description Return the SHACL shape graph that validates Repository instances (http://localhost:8000/fdp-api/schemas/repository).
          */
         get: operations["getRepositorySpec"];
         put?: never;
@@ -433,7 +433,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{url_prefix}/spec": {
+    "/fdp-api/{url_prefix}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -441,7 +441,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ext Type Spec */
-        get: operations["ext_type_spec__url_prefix__spec_get"];
+        get: operations["ext_type_spec_fdp_api__url_prefix__spec_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -450,7 +450,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{url_prefix}/{record_id}/spec": {
+    "/fdp-api/{url_prefix}/{record_id}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -458,7 +458,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ext Instance Spec */
-        get: operations["ext_instance_spec__url_prefix___record_id__spec_get"];
+        get: operations["ext_instance_spec_fdp_api__url_prefix___record_id__spec_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -467,7 +467,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/expanded": {
+    "/fdp-api/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -487,7 +487,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{url_prefix}/{record_id}/expanded": {
+    "/fdp-api/{url_prefix}/{record_id}/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -495,7 +495,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ext Instance Expanded */
-        get: operations["ext_instance_expanded__url_prefix___record_id__expanded_get"];
+        get: operations["ext_instance_expanded_fdp_api__url_prefix___record_id__expanded_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -504,7 +504,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/page/{child_prefix}": {
+    "/fdp-api/page/{child_prefix}": {
         parameters: {
             query?: never;
             header?: never;
@@ -512,7 +512,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ext Root Page */
-        get: operations["ext_root_page_page__child_prefix__get"];
+        get: operations["ext_root_page_fdp_api_page__child_prefix__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -521,7 +521,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{url_prefix}/{record_id}/page/{child_prefix}": {
+    "/fdp-api/{url_prefix}/{record_id}/page/{child_prefix}": {
         parameters: {
             query?: never;
             header?: never;
@@ -529,7 +529,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ext Instance Page */
-        get: operations["ext_instance_page__url_prefix___record_id__page__child_prefix__get"];
+        get: operations["ext_instance_page_fdp_api__url_prefix___record_id__page__child_prefix__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -538,7 +538,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/state": {
+    "/fdp-api/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -548,14 +548,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** State Root */
-        post: operations["state_root_state_post"];
+        post: operations["state_root_fdp_api_state_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/{path}/state": {
+    "/fdp-api/{path}/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -565,14 +565,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** State Transition */
-        post: operations["state_transition__path__state_post"];
+        post: operations["state_transition_fdp_api__path__state_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/resource-definitions": {
+    "/fdp-api/resource-definitions": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,7 +580,7 @@ export interface paths {
             cookie?: never;
         };
         /** Rd List */
-        get: operations["rd_list_resource_definitions_get"];
+        get: operations["rd_list_fdp_api_resource_definitions_get"];
         put?: never;
         /**
          * Rd Create
@@ -595,14 +595,14 @@ export interface paths {
          *     the type's LDP endpoints (``/{urlPrefix}`` …) and OpenAPI paths appear
          *     immediately — no restart.
          */
-        post: operations["rd_create_resource_definitions_post"];
+        post: operations["rd_create_fdp_api_resource_definitions_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/resource-definitions/{slug}": {
+    "/fdp-api/resource-definitions/{slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -610,7 +610,7 @@ export interface paths {
             cookie?: never;
         };
         /** Rd Get */
-        get: operations["rd_get_resource_definitions__slug__get"];
+        get: operations["rd_get_fdp_api_resource_definitions__slug__get"];
         /**
          * Rd Replace
          * @description Replace an existing definition (admin only).
@@ -622,16 +622,16 @@ export interface paths {
          *     slug; renaming is a create, not a replace. As with create, ``schema``
          *     must resolve to a published SHACL shape.
          */
-        put: operations["rd_replace_resource_definitions__slug__put"];
+        put: operations["rd_replace_fdp_api_resource_definitions__slug__put"];
         post?: never;
         /** Rd Delete */
-        delete: operations["rd_delete_resource_definitions__slug__delete"];
+        delete: operations["rd_delete_fdp_api_resource_definitions__slug__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/schemas": {
+    "/fdp-api/schemas": {
         parameters: {
             query?: never;
             header?: never;
@@ -639,7 +639,7 @@ export interface paths {
             cookie?: never;
         };
         /** Schema List */
-        get: operations["schema_list_schemas_get"];
+        get: operations["schema_list_fdp_api_schemas_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -648,7 +648,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schemas/{schema_id}": {
+    "/fdp-api/schemas/{schema_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -656,7 +656,7 @@ export interface paths {
             cookie?: never;
         };
         /** Schema Get */
-        get: operations["schema_get_schemas__schema_id__get"];
+        get: operations["schema_get_fdp_api_schemas__schema_id__get"];
         /**
          * Schema Put
          * @description Publish (create or replace) a SHACL shape (admin only).
@@ -665,16 +665,16 @@ export interface paths {
          *     re-warms the SHACL validator. The stable IRI keeps resource-definition
          *     ``schema`` references valid across edits.
          */
-        put: operations["schema_put_schemas__schema_id__put"];
+        put: operations["schema_put_fdp_api_schemas__schema_id__put"];
         post?: never;
         /** Schema Delete */
-        delete: operations["schema_delete_schemas__schema_id__delete"];
+        delete: operations["schema_delete_fdp_api_schemas__schema_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/schemas/{schema_id}/validate": {
+    "/fdp-api/schemas/{schema_id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -687,14 +687,14 @@ export interface paths {
          * Schema Validate
          * @description Dry-run a sample record (Turtle body) against the shape (authenticated).
          */
-        post: operations["schema_validate_schemas__schema_id__validate_post"];
+        post: operations["schema_validate_fdp_api_schemas__schema_id__validate_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/policies": {
+    "/fdp-api/policies": {
         parameters: {
             query?: never;
             header?: never;
@@ -702,7 +702,7 @@ export interface paths {
             cookie?: never;
         };
         /** Policy List */
-        get: operations["policy_list_policies_get"];
+        get: operations["policy_list_fdp_api_policies_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -711,7 +711,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/policies/{policy_id}": {
+    "/fdp-api/policies/{policy_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -719,7 +719,7 @@ export interface paths {
             cookie?: never;
         };
         /** Policy Get */
-        get: operations["policy_get_policies__policy_id__get"];
+        get: operations["policy_get_fdp_api_policies__policy_id__get"];
         /**
          * Policy Put
          * @description Publish (create or replace) an ODRL Offer (admin only).
@@ -728,16 +728,16 @@ export interface paths {
          *     write bumps ``owl:versionInfo`` and clears the PDP authorization cache.
          *     The stable IRI keeps ``dct:rights`` references valid across edits.
          */
-        put: operations["policy_put_policies__policy_id__put"];
+        put: operations["policy_put_fdp_api_policies__policy_id__put"];
         post?: never;
         /** Policy Delete */
-        delete: operations["policy_delete_policies__policy_id__delete"];
+        delete: operations["policy_delete_fdp_api_policies__policy_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/policies/{policy_id}/validate": {
+    "/fdp-api/policies/{policy_id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -750,14 +750,14 @@ export interface paths {
          * Policy Validate
          * @description Dry-run a candidate Offer (Turtle body) against the profile (authenticated).
          */
-        post: operations["policy_validate_policies__policy_id__validate_post"];
+        post: operations["policy_validate_fdp_api_policies__policy_id__validate_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/licenses": {
+    "/fdp-api/licenses": {
         parameters: {
             query?: never;
             header?: never;
@@ -765,7 +765,7 @@ export interface paths {
             cookie?: never;
         };
         /** License List */
-        get: operations["license_list_licenses_get"];
+        get: operations["license_list_fdp_api_licenses_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -774,7 +774,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/licenses/{license_id}": {
+    "/fdp-api/licenses/{license_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -782,21 +782,21 @@ export interface paths {
             cookie?: never;
         };
         /** License Get */
-        get: operations["license_get_licenses__license_id__get"];
+        get: operations["license_get_fdp_api_licenses__license_id__get"];
         /**
          * License Put
          * @description Publish (create or replace) a license document (admin only).
          */
-        put: operations["license_put_licenses__license_id__put"];
+        put: operations["license_put_fdp_api_licenses__license_id__put"];
         post?: never;
         /** License Delete */
-        delete: operations["license_delete_licenses__license_id__delete"];
+        delete: operations["license_delete_fdp_api_licenses__license_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/licenses/{license_id}/validate": {
+    "/fdp-api/licenses/{license_id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -806,14 +806,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** License Validate */
-        post: operations["license_validate_licenses__license_id__validate_post"];
+        post: operations["license_validate_fdp_api_licenses__license_id__validate_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/users": {
+    "/fdp-api/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -821,17 +821,17 @@ export interface paths {
             cookie?: never;
         };
         /** User List */
-        get: operations["user_list_users_get"];
+        get: operations["user_list_fdp_api_users_get"];
         put?: never;
         /** User Create */
-        post: operations["user_create_users_post"];
+        post: operations["user_create_fdp_api_users_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/users/roles": {
+    "/fdp-api/users/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -839,7 +839,7 @@ export interface paths {
             cookie?: never;
         };
         /** User Roles */
-        get: operations["user_roles_users_roles_get"];
+        get: operations["user_roles_fdp_api_users_roles_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -848,7 +848,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{user_id}": {
+    "/fdp-api/users/{user_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -856,15 +856,15 @@ export interface paths {
             cookie?: never;
         };
         /** User Get */
-        get: operations["user_get_users__user_id__get"];
+        get: operations["user_get_fdp_api_users__user_id__get"];
         put?: never;
         post?: never;
         /** User Delete */
-        delete: operations["user_delete_users__user_id__delete"];
+        delete: operations["user_delete_fdp_api_users__user_id__delete"];
         options?: never;
         head?: never;
         /** User Update */
-        patch: operations["user_update_users__user_id__patch"];
+        patch: operations["user_update_fdp_api_users__user_id__patch"];
         trace?: never;
     };
     "/{path}": {
@@ -918,7 +918,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/page/{childPrefix}": {
+    "/fdp-api/page/{childPrefix}": {
         parameters: {
             query?: never;
             header?: never;
@@ -986,7 +986,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/catalog/spec": {
+    "/fdp-api/catalog/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -995,7 +995,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Catalog
-         * @description Return the SHACL shape graph that validates Catalog instances (http://www.w3.org/ns/dcat#Catalog).
+         * @description Return the SHACL shape graph that validates Catalog instances (http://localhost:8000/fdp-api/schemas/catalog).
          */
         get: operations["getCatalogTypeSpec"];
         put?: never;
@@ -1006,7 +1006,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/catalog/{id}/spec": {
+    "/fdp-api/catalog/{id}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1015,7 +1015,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Catalog
-         * @description Return the SHACL shape graph that validates Catalog instances (http://www.w3.org/ns/dcat#Catalog).
+         * @description Return the SHACL shape graph that validates Catalog instances (http://localhost:8000/fdp-api/schemas/catalog).
          */
         get: operations["getCatalogSpec"];
         put?: never;
@@ -1026,7 +1026,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/catalog/{id}/expanded": {
+    "/fdp-api/catalog/{id}/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -1046,7 +1046,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/catalog/{id}/page/{childPrefix}": {
+    "/fdp-api/catalog/{id}/page/{childPrefix}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1114,7 +1114,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dataset/spec": {
+    "/fdp-api/dataset/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1123,7 +1123,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Dataset
-         * @description Return the SHACL shape graph that validates Dataset instances (http://www.w3.org/ns/dcat#Dataset).
+         * @description Return the SHACL shape graph that validates Dataset instances (http://localhost:8000/fdp-api/schemas/dataset).
          */
         get: operations["getDatasetTypeSpec"];
         put?: never;
@@ -1134,7 +1134,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dataset/{id}/spec": {
+    "/fdp-api/dataset/{id}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1143,7 +1143,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Dataset
-         * @description Return the SHACL shape graph that validates Dataset instances (http://www.w3.org/ns/dcat#Dataset).
+         * @description Return the SHACL shape graph that validates Dataset instances (http://localhost:8000/fdp-api/schemas/dataset).
          */
         get: operations["getDatasetSpec"];
         put?: never;
@@ -1154,7 +1154,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dataset/{id}/expanded": {
+    "/fdp-api/dataset/{id}/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -1174,7 +1174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dataset/{id}/page/{childPrefix}": {
+    "/fdp-api/dataset/{id}/page/{childPrefix}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1242,7 +1242,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/data-service/spec": {
+    "/fdp-api/data-service/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1251,7 +1251,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for DataService
-         * @description Return the SHACL shape graph that validates DataService instances (http://www.w3.org/ns/dcat#DataService).
+         * @description Return the SHACL shape graph that validates DataService instances (http://localhost:8000/fdp-api/schemas/data-service).
          */
         get: operations["getDataServiceTypeSpec"];
         put?: never;
@@ -1262,7 +1262,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/data-service/{id}/spec": {
+    "/fdp-api/data-service/{id}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1271,7 +1271,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for DataService
-         * @description Return the SHACL shape graph that validates DataService instances (http://www.w3.org/ns/dcat#DataService).
+         * @description Return the SHACL shape graph that validates DataService instances (http://localhost:8000/fdp-api/schemas/data-service).
          */
         get: operations["getDataServiceSpec"];
         put?: never;
@@ -1282,7 +1282,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/data-service/{id}/expanded": {
+    "/fdp-api/data-service/{id}/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -1350,7 +1350,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/distribution/spec": {
+    "/fdp-api/distribution/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1359,7 +1359,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Distribution
-         * @description Return the SHACL shape graph that validates Distribution instances (http://www.w3.org/ns/dcat#Distribution).
+         * @description Return the SHACL shape graph that validates Distribution instances (http://localhost:8000/fdp-api/schemas/distribution).
          */
         get: operations["getDistributionTypeSpec"];
         put?: never;
@@ -1370,7 +1370,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/distribution/{id}/spec": {
+    "/fdp-api/distribution/{id}/spec": {
         parameters: {
             query?: never;
             header?: never;
@@ -1379,7 +1379,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Distribution
-         * @description Return the SHACL shape graph that validates Distribution instances (http://www.w3.org/ns/dcat#Distribution).
+         * @description Return the SHACL shape graph that validates Distribution instances (http://localhost:8000/fdp-api/schemas/distribution).
          */
         get: operations["getDistributionSpec"];
         put?: never;
@@ -1390,7 +1390,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/distribution/{id}/expanded": {
+    "/fdp-api/distribution/{id}/expanded": {
         parameters: {
             query?: never;
             header?: never;
@@ -2017,6 +2017,11 @@ export interface components {
             target_class?: string | null;
             /** Version */
             version?: number | null;
+            /**
+             * Deletable
+             * @default true
+             */
+            deletable: boolean;
         };
         /** SchemaListView */
         SchemaListView: {
@@ -2260,7 +2265,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    healthz_healthz_get: {
+    healthz_fdp_api_healthz_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2282,7 +2287,7 @@ export interface operations {
             };
         };
     };
-    app_info_info_get: {
+    app_info_fdp_api_info_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2302,7 +2307,7 @@ export interface operations {
             };
         };
     };
-    readiness_readyz_get: {
+    readiness_fdp_api_readyz_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2331,7 +2336,7 @@ export interface operations {
             };
         };
     };
-    bootstrap_config_config_get: {
+    bootstrap_config_fdp_api_config_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2351,7 +2356,7 @@ export interface operations {
             };
         };
     };
-    labels_lookup_labels_get: {
+    labels_lookup_fdp_api_labels_get: {
         parameters: {
             query: {
                 /** @description One or more IRIs to resolve. Repeat the parameter. */
@@ -2385,7 +2390,7 @@ export interface operations {
             };
         };
     };
-    user_dashboard_me_dashboard_get: {
+    user_dashboard_fdp_api_me_dashboard_get: {
         parameters: {
             query?: {
                 /** @description Maximum records in 'owned'. */
@@ -2423,7 +2428,7 @@ export interface operations {
             };
         };
     };
-    api_key_list_me_api_keys_get: {
+    api_key_list_fdp_api_me_api_keys_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2443,7 +2448,7 @@ export interface operations {
             };
         };
     };
-    api_key_create_me_api_keys_post: {
+    api_key_create_fdp_api_me_api_keys_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2476,7 +2481,7 @@ export interface operations {
             };
         };
     };
-    api_key_revoke_me_api_keys__key_id__delete: {
+    api_key_revoke_fdp_api_me_api_keys__key_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -2505,7 +2510,7 @@ export interface operations {
             };
         };
     };
-    search_search_post: {
+    search_fdp_api_search_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2538,7 +2543,7 @@ export interface operations {
             };
         };
     };
-    saved_query_list_me_saved_queries_get: {
+    saved_query_list_fdp_api_me_saved_queries_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2558,7 +2563,7 @@ export interface operations {
             };
         };
     };
-    saved_query_create_me_saved_queries_post: {
+    saved_query_create_fdp_api_me_saved_queries_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2591,7 +2596,7 @@ export interface operations {
             };
         };
     };
-    saved_query_update_me_saved_queries__query_id__put: {
+    saved_query_update_fdp_api_me_saved_queries__query_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -2626,7 +2631,7 @@ export interface operations {
             };
         };
     };
-    saved_query_delete_me_saved_queries__query_id__delete: {
+    saved_query_delete_fdp_api_me_saved_queries__query_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -2655,7 +2660,7 @@ export interface operations {
             };
         };
     };
-    settings_read_all_settings_get: {
+    settings_read_all_fdp_api_settings_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2675,7 +2680,7 @@ export interface operations {
             };
         };
     };
-    settings_read_one_settings__key__get: {
+    settings_read_one_fdp_api_settings__key__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2706,7 +2711,7 @@ export interface operations {
             };
         };
     };
-    settings_write_one_settings__key__put: {
+    settings_write_one_fdp_api_settings__key__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -2743,7 +2748,7 @@ export interface operations {
             };
         };
     };
-    settings_delete_one_settings__key__delete: {
+    settings_delete_one_fdp_api_settings__key__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -2772,7 +2777,7 @@ export interface operations {
             };
         };
     };
-    admin_reset_admin_reset_post: {
+    admin_reset_fdp_api_admin_reset_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2805,7 +2810,7 @@ export interface operations {
             };
         };
     };
-    forms_autocomplete_forms_autocomplete_get: {
+    forms_autocomplete_fdp_api_forms_autocomplete_get: {
         parameters: {
             query: {
                 /** @description Name of the configured autocomplete source. */
@@ -2841,7 +2846,7 @@ export interface operations {
             };
         };
     };
-    metrics_summary_metrics_summary_get: {
+    metrics_summary_fdp_api_metrics_summary_get: {
         parameters: {
             query?: {
                 /** @description Inclusive start date. */
@@ -2877,7 +2882,7 @@ export interface operations {
             };
         };
     };
-    metrics_daily_series_metrics_timeseries_daily_get: {
+    metrics_daily_series_fdp_api_metrics_timeseries_daily_get: {
         parameters: {
             query?: {
                 since?: string | null;
@@ -2911,7 +2916,7 @@ export interface operations {
             };
         };
     };
-    metrics_top_resources_metrics_top_resources_get: {
+    metrics_top_resources_fdp_api_metrics_top_resources_get: {
         parameters: {
             query?: {
                 since?: string | null;
@@ -2945,7 +2950,7 @@ export interface operations {
             };
         };
     };
-    metrics_geography_metrics_geography_get: {
+    metrics_geography_fdp_api_metrics_geography_get: {
         parameters: {
             query?: {
                 since?: string | null;
@@ -2979,7 +2984,7 @@ export interface operations {
             };
         };
     };
-    data_download_data__distribution_id__get: {
+    data_download_fdp_api_data__distribution_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3010,7 +3015,7 @@ export interface operations {
             };
         };
     };
-    data_sparql_get_data__distribution_id__sparql_get: {
+    data_sparql_get_fdp_api_data__distribution_id__sparql_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3041,7 +3046,7 @@ export interface operations {
             };
         };
     };
-    data_sparql_post_data__distribution_id__sparql_post: {
+    data_sparql_post_fdp_api_data__distribution_id__sparql_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3072,7 +3077,7 @@ export interface operations {
             };
         };
     };
-    sparql_get_sparql_get: {
+    sparql_get_fdp_api_sparql_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3092,7 +3097,7 @@ export interface operations {
             };
         };
     };
-    sparql_post_sparql_post: {
+    sparql_post_fdp_api_sparql_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3163,7 +3168,7 @@ export interface operations {
             };
         };
     };
-    ext_type_spec__url_prefix__spec_get: {
+    ext_type_spec_fdp_api__url_prefix__spec_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3194,7 +3199,7 @@ export interface operations {
             };
         };
     };
-    ext_instance_spec__url_prefix___record_id__spec_get: {
+    ext_instance_spec_fdp_api__url_prefix___record_id__spec_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3277,7 +3282,7 @@ export interface operations {
             };
         };
     };
-    ext_instance_expanded__url_prefix___record_id__expanded_get: {
+    ext_instance_expanded_fdp_api__url_prefix___record_id__expanded_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3309,7 +3314,7 @@ export interface operations {
             };
         };
     };
-    ext_root_page_page__child_prefix__get: {
+    ext_root_page_fdp_api_page__child_prefix__get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -3343,7 +3348,7 @@ export interface operations {
             };
         };
     };
-    ext_instance_page__url_prefix___record_id__page__child_prefix__get: {
+    ext_instance_page_fdp_api__url_prefix___record_id__page__child_prefix__get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -3379,7 +3384,7 @@ export interface operations {
             };
         };
     };
-    state_root_state_post: {
+    state_root_fdp_api_state_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3412,7 +3417,7 @@ export interface operations {
             };
         };
     };
-    state_transition__path__state_post: {
+    state_transition_fdp_api__path__state_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3447,7 +3452,7 @@ export interface operations {
             };
         };
     };
-    rd_list_resource_definitions_get: {
+    rd_list_fdp_api_resource_definitions_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3467,7 +3472,7 @@ export interface operations {
             };
         };
     };
-    rd_create_resource_definitions_post: {
+    rd_create_fdp_api_resource_definitions_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3500,7 +3505,7 @@ export interface operations {
             };
         };
     };
-    rd_get_resource_definitions__slug__get: {
+    rd_get_fdp_api_resource_definitions__slug__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3531,7 +3536,7 @@ export interface operations {
             };
         };
     };
-    rd_replace_resource_definitions__slug__put: {
+    rd_replace_fdp_api_resource_definitions__slug__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -3566,7 +3571,7 @@ export interface operations {
             };
         };
     };
-    rd_delete_resource_definitions__slug__delete: {
+    rd_delete_fdp_api_resource_definitions__slug__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -3595,7 +3600,7 @@ export interface operations {
             };
         };
     };
-    schema_list_schemas_get: {
+    schema_list_fdp_api_schemas_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3615,7 +3620,7 @@ export interface operations {
             };
         };
     };
-    schema_get_schemas__schema_id__get: {
+    schema_get_fdp_api_schemas__schema_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3646,7 +3651,7 @@ export interface operations {
             };
         };
     };
-    schema_put_schemas__schema_id__put: {
+    schema_put_fdp_api_schemas__schema_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -3677,7 +3682,7 @@ export interface operations {
             };
         };
     };
-    schema_delete_schemas__schema_id__delete: {
+    schema_delete_fdp_api_schemas__schema_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -3706,7 +3711,7 @@ export interface operations {
             };
         };
     };
-    schema_validate_schemas__schema_id__validate_post: {
+    schema_validate_fdp_api_schemas__schema_id__validate_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3737,7 +3742,7 @@ export interface operations {
             };
         };
     };
-    policy_list_policies_get: {
+    policy_list_fdp_api_policies_get: {
         parameters: {
             query?: {
                 published?: boolean;
@@ -3768,7 +3773,7 @@ export interface operations {
             };
         };
     };
-    policy_get_policies__policy_id__get: {
+    policy_get_fdp_api_policies__policy_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3799,7 +3804,7 @@ export interface operations {
             };
         };
     };
-    policy_put_policies__policy_id__put: {
+    policy_put_fdp_api_policies__policy_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -3830,7 +3835,7 @@ export interface operations {
             };
         };
     };
-    policy_delete_policies__policy_id__delete: {
+    policy_delete_fdp_api_policies__policy_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -3859,7 +3864,7 @@ export interface operations {
             };
         };
     };
-    policy_validate_policies__policy_id__validate_post: {
+    policy_validate_fdp_api_policies__policy_id__validate_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3890,7 +3895,7 @@ export interface operations {
             };
         };
     };
-    license_list_licenses_get: {
+    license_list_fdp_api_licenses_get: {
         parameters: {
             query?: {
                 published?: boolean;
@@ -3921,7 +3926,7 @@ export interface operations {
             };
         };
     };
-    license_get_licenses__license_id__get: {
+    license_get_fdp_api_licenses__license_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3952,7 +3957,7 @@ export interface operations {
             };
         };
     };
-    license_put_licenses__license_id__put: {
+    license_put_fdp_api_licenses__license_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -3983,7 +3988,7 @@ export interface operations {
             };
         };
     };
-    license_delete_licenses__license_id__delete: {
+    license_delete_fdp_api_licenses__license_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -4012,7 +4017,7 @@ export interface operations {
             };
         };
     };
-    license_validate_licenses__license_id__validate_post: {
+    license_validate_fdp_api_licenses__license_id__validate_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -4043,7 +4048,7 @@ export interface operations {
             };
         };
     };
-    user_list_users_get: {
+    user_list_fdp_api_users_get: {
         parameters: {
             query?: {
                 search?: string | null;
@@ -4076,7 +4081,7 @@ export interface operations {
             };
         };
     };
-    user_create_users_post: {
+    user_create_fdp_api_users_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -4109,7 +4114,7 @@ export interface operations {
             };
         };
     };
-    user_roles_users_roles_get: {
+    user_roles_fdp_api_users_roles_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -4129,7 +4134,7 @@ export interface operations {
             };
         };
     };
-    user_get_users__user_id__get: {
+    user_get_fdp_api_users__user_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -4160,7 +4165,7 @@ export interface operations {
             };
         };
     };
-    user_delete_users__user_id__delete: {
+    user_delete_fdp_api_users__user_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -4189,7 +4194,7 @@ export interface operations {
             };
         };
     };
-    user_update_users__user_id__patch: {
+    user_update_fdp_api_users__user_id__patch: {
         parameters: {
             query?: never;
             header?: never;

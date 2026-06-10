@@ -1510,6 +1510,119 @@ is complete. Status reflects the live v0.1.0 contract (see 10.0).
 
 ---
 
+## Phase 12 — Interface refinements (from `docs/interfacenotes.md`, 2026-06-10)
+
+Six GUI refinements raised after the first live run against the dev stack. Each
+was reproduced/diagnosed live on 2026-06-10 and **all six are now done** (gate
+green: lint + typecheck + 266 unit tests). 12.5 needed a coordinated `fdp-server`
+change, which shipped the same day; the client was wired against it (see 12.5).
+
+### 12.1 Header title from FDP metadata, not sample data — ✅ done (2026-06-10)
+- [`AppHeader.vue:48-50`](src/components/shared/AppHeader.vue#L48-L50) renders
+  `sampleDeployment.name` / `.host` — the hardcoded "Erasmus MC · Research data"
+  from [`src/data/sampleRecord.ts`](src/data/sampleRecord.ts#L105).
+- Source the name from the **repository root record's `dct:title`** via the
+  existing [`useRepository()`](src/composables/useRepository.ts) composable (it
+  already returns `title` + `iri`). Keep the host line, derived from `apiBase()`
+  (display host without scheme).
+- Loading/error fallback: a neutral label (host, or "FAIR Data Point") until the
+  record resolves — don't flash the sample string.
+- Drop the `sampleDeployment` import from the header; update
+  [`App.spec.ts`](src/App.spec.ts#L36) which asserts "Erasmus MC".
+- **Done:** header shows the live FDP title (`default` on the dev stack); no
+  sample text remains in the shell.
+
+### 12.2 Footer "API" link opens the OpenAPI UI — ✅ done (2026-06-10; corrected to /fdp-api/docs — caveat resolved, the path is public)
+- [`AppFooter.vue:46`](src/components/shared/AppFooter.vue#L46) `<a href="#">API</a>`
+  is dead. Point it at the server OpenAPI UI (`{API base}/docs`),
+  `target="_blank" rel="noopener"`. Derive the base from `runtimeApiUrl()`/
+  `apiBase()`, not a literal.
+- **Caveat (server):** on the current profile `/docs` and `/openapi.json` return
+  **401** — the authz layer covers them. Either the server exempts the docs routes
+  from auth, or we accept that the user authenticates in the new tab. The link
+  itself is client-only; the gating is a server call. See [[12.5]].
+- **Done:** clicking API opens the server docs in a new tab.
+
+### 12.3 Footer "About" link — small pop-up — ✅ done (2026-06-10)
+- **Decision (maintainer, 2026-06-10):** About opens a small pop-up showing the
+  client version, the server version, and a "© FAIR Data Team" copyright.
+- Built [`AboutDialog.vue`](src/components/shared/AboutDialog.vue) (centred modal;
+  Escape + backdrop-close, mirrors the ContainerBrowser overlay pattern). Client
+  version is inlined from `package.json` as `__APP_VERSION__` (`define` in both
+  [`vite.config.ts`](vite.config.ts) and [`vitest.config.ts`](vitest.config.ts),
+  declared in [`env.d.ts`](env.d.ts)); server name+version come from `useAppInfo`
+  (`GET /info`). Wired to the footer "About" trigger in
+  [`AppFooter.vue`](src/components/shared/AppFooter.vue).
+
+### 12.4 Footer "Specification" link → specs.fairdatapoint.org — ✅ done (2026-06-10)
+- [`AppFooter.vue:48`](src/components/shared/AppFooter.vue#L48) `<a href="#">Specification</a>`.
+  Set `href="https://specs.fairdatapoint.org"`, `target="_blank" rel="noopener"`.
+- **Done:** opens the spec site in a new tab. (Trivial — bundle with 12.2.)
+
+### 12.5 Schemas page shows the profile's DCAT shapes — ✅ done (2026-06-10; server shipped the fix, client wired against it)
+
+**Server resolution (2026-06-10):** `fdp-server` now stores profile-applied shapes
+in the managed namespace (`{base}/fdp-api/schemas/{slug}`), so the default DCAT
+shapes (catalog, dataset, data-service, distribution, repository) appear in
+`GET /fdp-api/schemas` and are editable. The list response gained
+`deletable: boolean`; the FDP root schema (`repository`) returns `deletable: false`.
+
+**Client work done:**
+- Regenerated API types — the spec lives at `/fdp-api/openapi.json` (not the
+  default `/openapi.json`, which the authz catch-all 404s/401s); fixed the
+  [`generate-api`](package.json) script path accordingly. `SchemaInfo` now carries
+  `deletable`.
+- Added `deletable` to [`SchemaSummary`](src/api/schemas.ts) + snake_case mapping
+  (defaults to `true` when absent).
+- [`SchemaEditorView.vue`](src/views/SchemaEditorView.vue): the default shapes now
+  render in the list (verified live: catalog/data-service/dataset/distribution/
+  repository); a lock icon marks protected shapes; the **Delete** action is
+  suppressed for `deletable === false` and replaced with a "protected — editing
+  allowed" note. Editing (PUT) of the root schema is still allowed.
+- Friendly error copy for `fdp.schema_protected` (403) and `fdp.conflict` (409,
+  schema still referenced by a resource definition) in
+  [`errorMessages.ts`](src/api/errorMessages.ts).
+- Bonus: corrected the 12.2 footer "API" link to the real `/fdp-api/docs` path
+  (both `/fdp-api/docs` and `/fdp-api/openapi.json` are public — the earlier 401
+  was the wrong default path, so the docs-auth caveat is resolved).
+
+Gate green (lint + typecheck + 266 unit tests, incl. a `deletable: false` mapping case).
+
+<details><summary>Original diagnosis (for the record)</summary>
+- User menu → **Schemas** ([`SchemaEditorView.vue`](src/views/SchemaEditorView.vue))
+  lists nothing on a default deployment, though the profile ships shapes for
+  Repository, Catalog, Dataset, Distribution, DataService, and more.
+- **Root cause (verified in GraphDB):** the client list comes from
+  `GET /fdp-api/schemas` → `{"schemas":[]}`. The server's `SchemaService.list_schemas`
+  (`fdp-server` `src/fdp/metadata/schemas.py:181`) only enumerates named graphs
+  whose IRI starts with `{base}/fdp-api/schemas/`. Profile-bootstrapped shapes are
+  stored under their **canonical IRIs** instead (`http://www.w3.org/ns/dcat#Catalog`,
+  `https://w3id.org/fdp/o#Repository`, …), so the `STRSTARTS` filter excludes them.
+- **Fix (coordinate with `fdp-server` — CLAUDE.md "API contract"):** the server
+  should surface the bootstrapped shapes through the schema listing — either
+  register profile shapes under the managed namespace on apply, or extend the
+  listing/endpoint to include profile + resource-definition shapes with a
+  `source` marker (profile vs published). Re-run `npm run generate-api` after.
+- **Client scope once the server returns them:** render the extra entries, tag
+  origin, let the user open an existing shape to **edit or clone** and **add a
+  new** one; guard edit/delete on origin + admin role (profile shapes likely
+  clone-to-edit, since editing writes under the managed namespace).
+- **Done:** the default DCAT-based shapes appear under Schemas; a user can open/
+  clone an existing one or add a new one.
+</details>
+
+### 12.6 Schema editor should use the browser width — ✅ done (2026-06-10)
+- [`SchemaEditorView.vue:469-475`](src/views/SchemaEditorView.vue#L469-L475) caps
+  `.page` at `max-width: 1000px; margin: 0 auto`, so the three-column workbench +
+  Monaco editor are cramped on a wide window.
+- Raise/remove the cap for this authoring surface (full width with the existing
+  ~80px side padding, or a much larger max e.g. 1600px), keeping the 900px
+  responsive single-column collapse. Verify Monaco and the Vue Flow canvas reflow.
+- **Done:** the Schemas editor fills the available width; no horizontal cramping
+  at common widths.
+
+---
+
 ## Open items
 
 - Theme tokens and final design system (likely arrives via Claude Design

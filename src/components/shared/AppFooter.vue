@@ -11,12 +11,22 @@
  * Right: an admin-only readiness indicator (`ReadinessStrip`) and the
  * documentation links.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import ReadinessStrip from "@/components/shared/ReadinessStrip.vue";
+import AboutDialog from "@/components/shared/AboutDialog.vue";
 import { useAppInfo } from "@/composables/useAppInfo";
 import { buildLabel } from "@/api/info";
+import { apiBase } from "@/api/rdf";
 
 const { data: info } = useAppInfo();
+
+// "API" opens the server's interactive OpenAPI UI (served at /fdp-api/docs);
+// base derived from the configured API origin. "Specification" links to the FDP
+// spec site. Both open in a new tab.
+const apiDocsUrl = computed(() => `${apiBase()}/fdp-api/docs`);
+const SPEC_URL = "https://specs.fairdatapoint.org";
+
+const aboutOpen = ref(false);
 
 const serverLabel = computed(() =>
   info.value ? `${info.value.name} v${info.value.version} · ${buildLabel(info.value)}` : "",
@@ -43,10 +53,11 @@ const serverTitle = computed(() => {
     </div>
     <div class="right">
       <ReadinessStrip />
-      <a href="#">API</a>
-      <a href="#">About</a>
-      <a href="#">Specification</a>
+      <a :href="apiDocsUrl" target="_blank" rel="noopener">API</a>
+      <button type="button" class="linkish" @click="aboutOpen = true">About</button>
+      <a :href="SPEC_URL" target="_blank" rel="noopener">Specification</a>
     </div>
+    <AboutDialog :open="aboutOpen" @close="aboutOpen = false" />
   </footer>
 </template>
 
@@ -73,5 +84,16 @@ footer {
 }
 .right a {
   color: inherit;
+}
+/* "About" is a button (opens a dialog) but should read as a footer link. */
+.linkish {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

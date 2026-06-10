@@ -7,12 +7,22 @@
  * E2E tests live separately under tests/e2e/ and run via `npm run test:e2e`.
  */
 
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig, configDefaults } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 
+// Mirror vite.config.ts's `__APP_VERSION__` define so components that read it
+// (e.g. AboutDialog) work under test.
+const pkg = JSON.parse(
+  readFileSync(fileURLToPath(new URL("./package.json", import.meta.url)), "utf-8"),
+) as { version: string };
+
 export default defineConfig({
   plugins: [vue()],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

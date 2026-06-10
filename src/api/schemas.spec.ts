@@ -24,8 +24,9 @@ describe("listSchemas", () => {
     mockGet.mockResolvedValue({
       data: {
         schemas: [
-          { id: "ontology", iri: "http://x/schemas/ontology", target_class: "http://x/Ontology", version: 3 },
+          { id: "ontology", iri: "http://x/schemas/ontology", target_class: "http://x/Ontology", version: 3, deletable: true },
           { id: "thing", iri: "http://x/schemas/thing" },
+          { id: "repository", iri: "http://x/schemas/repository", deletable: false },
         ],
       },
     });
@@ -35,14 +36,18 @@ describe("listSchemas", () => {
       iri: "http://x/schemas/ontology",
       targetClass: "http://x/Ontology",
       version: 3,
+      deletable: true,
     });
-    // Missing optionals default to null.
+    // Missing optionals default to null; missing `deletable` defaults to true.
     expect(out[1]).toEqual({
       id: "thing",
       iri: "http://x/schemas/thing",
       targetClass: null,
       version: null,
+      deletable: true,
     });
+    // Protected shapes report deletable: false.
+    expect(out[2]?.deletable).toBe(false);
   });
 
   it("tolerates an empty/absent list", async () => {

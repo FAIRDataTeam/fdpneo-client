@@ -32,6 +32,10 @@ const MESSAGES: Record<string, string> = {
     "The submission falls outside the FDP profile this server accepts.",
   "fdp.ldp.conflict":
     "Another change to this record landed first. Reload and re-apply your edits.",
+  "fdp.schema_protected":
+    "The FDP root schema can't be deleted — it's required by the deployment. You can still edit it.",
+  "fdp.conflict":
+    "A resource type still references this schema. Repoint or remove that type first, then delete the schema.",
   "fdp.ldp.gone":
     "This record was deleted. Its identifier is preserved for citations.",
   "fdp.sparql.parse":

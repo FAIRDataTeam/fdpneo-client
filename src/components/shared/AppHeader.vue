@@ -11,7 +11,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { apiBase } from "@/api/rdf";
-import { sampleDeployment } from "@/data/sampleRecord";
+import { useRepository } from "@/composables/useRepository";
 import AppLogo from "./AppLogo.vue";
 import AppIcon from "./AppIcon.vue";
 import ThemeToggle from "./ThemeToggle.vue";
@@ -21,6 +21,16 @@ const router = useRouter();
 const auth = useAuthStore();
 const config = useConfigStore();
 const query = ref("");
+
+// Deployment lockup: the title comes from the FDP repository (root) record's
+// `dct:title`; the host is derived from the configured API base. Until the
+// record resolves (or if it fails), fall back to a neutral label rather than
+// flashing placeholder text.
+const { data: repository } = useRepository();
+const deploymentName = computed(() => repository.value?.title?.trim() || "FAIR Data Point");
+const deploymentHost = computed(
+  () => apiBase().replace(/^https?:\/\//, "") || window.location.host,
+);
 
 // Quick-create: a top-level catalog under the repository root. Only shown to
 // users who can actually author (steward; admin implies steward).
@@ -46,8 +56,8 @@ defineProps<{ variant?: "default" | "minimal" }>();
       <AppLogo />
     </RouterLink>
     <div class="deployment">
-      <div class="deployment__name">{{ sampleDeployment.name }}</div>
-      <div class="deployment__host mono">{{ sampleDeployment.host }}</div>
+      <div class="deployment__name">{{ deploymentName }}</div>
+      <div class="deployment__host mono">{{ deploymentHost }}</div>
     </div>
     <div class="spacer" />
     <form

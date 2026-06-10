@@ -1,5 +1,8 @@
 /// <reference types="vite/client" />
 
+/** Client version, inlined from package.json at build time (see vite.config.ts). */
+declare const __APP_VERSION__: string;
+
 interface ImportMetaEnv {
   /** Base URL of the FDP server (e.g. https://fdp.example.org). Set at build time. */
   readonly VITE_FDP_API_URL: string;

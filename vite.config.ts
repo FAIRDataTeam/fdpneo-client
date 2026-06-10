@@ -13,13 +13,24 @@
  * time.
  */
 
+import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 
+// Client version, read from package.json at config time and inlined as a
+// compile-time constant (see `__APP_VERSION__` in env.d.ts). Surfaced in the
+// footer's About dialog.
+const pkg = JSON.parse(
+  readFileSync(fileURLToPath(new URL("./package.json", import.meta.url)), "utf-8"),
+) as { version: string };
+
 export default defineConfig(() => {
   return {
     plugins: [vue()],
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
