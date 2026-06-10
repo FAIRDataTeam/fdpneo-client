@@ -53,7 +53,7 @@ export interface FieldSpec {
   autocomplete?: string;
   /**
    * For `kind: "ref"` — the managed-document catalog to suggest IRIs from: the
-   * published `/policies` (an `odrl:Offer` for `dct:rights`) or `/licenses` (for
+   * published `/fdp-api/policies` (an `odrl:Offer` for `dct:rights`) or `/fdp-api/licenses` (for
    * `dct:license`). The field stays a free-text IRI input with a `<datalist>`.
    */
   source?: "policies" | "licenses";

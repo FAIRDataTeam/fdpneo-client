@@ -1,5 +1,5 @@
 /**
- * Schema admin client (server Phase 10.1, `/schemas`).
+ * Schema admin client (server Phase 10.1, `/fdp-api/schemas`).
  *
  * SHACL shapes are managed at runtime: list/read are public; create-replace
  * (`PUT`) and delete are admin-only; `validate` dry-runs a sample record
@@ -72,14 +72,14 @@ function normaliseError(err: unknown): never {
 
 /** List published shapes (public). */
 export async function listSchemas(): Promise<SchemaSummary[]> {
-  const res = await http.get<{ schemas?: RawSummary[] }>("/schemas");
+  const res = await http.get<{ schemas?: RawSummary[] }>("/fdp-api/schemas");
   return (res.data.schemas ?? []).map(toSummary);
 }
 
 /** Fetch a shape's Turtle (public). */
 export async function getSchemaTurtle(id: string): Promise<string> {
   try {
-    const res = await http.get<string>(`/schemas/${encodeURIComponent(id)}`, {
+    const res = await http.get<string>(`/fdp-api/schemas/${encodeURIComponent(id)}`, {
       headers: { Accept: "text/turtle" },
       responseType: "text",
       transformResponse: (d: unknown) => d,
@@ -93,7 +93,7 @@ export async function getSchemaTurtle(id: string): Promise<string> {
 /** Create or replace a shape (admin). Body is Turtle. */
 export async function putSchema(id: string, turtle: string): Promise<SchemaSummary> {
   try {
-    const res = await http.put<RawSummary>(`/schemas/${encodeURIComponent(id)}`, turtle, {
+    const res = await http.put<RawSummary>(`/fdp-api/schemas/${encodeURIComponent(id)}`, turtle, {
       headers: { "Content-Type": "text/turtle" },
       transformRequest: (d: unknown) => d,
     });
@@ -106,7 +106,7 @@ export async function putSchema(id: string, turtle: string): Promise<SchemaSumma
 /** Delete a shape (admin). 409 if a resource definition still references it. */
 export async function deleteSchema(id: string): Promise<void> {
   try {
-    await http.delete(`/schemas/${encodeURIComponent(id)}`);
+    await http.delete(`/fdp-api/schemas/${encodeURIComponent(id)}`);
   } catch (err) {
     normaliseError(err);
   }
@@ -116,7 +116,7 @@ export async function deleteSchema(id: string): Promise<void> {
 export async function validateSample(id: string, sampleTurtle: string): Promise<SchemaValidation> {
   try {
     const res = await http.post<{ conforms?: boolean; violations?: RawViolation[] }>(
-      `/schemas/${encodeURIComponent(id)}/validate`,
+      `/fdp-api/schemas/${encodeURIComponent(id)}/validate`,
       sampleTurtle,
       { headers: { "Content-Type": "text/turtle" }, transformRequest: (d: unknown) => d },
     );

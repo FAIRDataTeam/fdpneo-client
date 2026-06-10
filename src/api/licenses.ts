@@ -1,5 +1,5 @@
 /**
- * License admin client (server ADR-0012 / Phase 14.3, `/licenses`).
+ * License admin client (server ADR-0012 / Phase 14.3, `/fdp-api/licenses`).
  *
  * Managed, descriptive license documents (referenced via `dct:license`, not
  * PDP-enforced), validated by SHACL against the server license shape. CRUD +
@@ -53,7 +53,7 @@ function normaliseError(err: unknown): never {
  */
 export async function listLicenses(publishedOnly = false): Promise<LicenseSummary[]> {
   const res = await http.get<{ licenses?: RawLicense[] }>(
-    "/licenses",
+    "/fdp-api/licenses",
     publishedOnly ? { params: { published: true } } : undefined,
   );
   return (res.data.licenses ?? []).map(toSummary);
@@ -62,7 +62,7 @@ export async function listLicenses(publishedOnly = false): Promise<LicenseSummar
 /** Fetch a license document's Turtle (public). */
 export async function getLicenseTurtle(id: string): Promise<string> {
   try {
-    const res = await http.get<string>(`/licenses/${encodeURIComponent(id)}`, {
+    const res = await http.get<string>(`/fdp-api/licenses/${encodeURIComponent(id)}`, {
       headers: { Accept: "text/turtle" },
       responseType: "text",
       transformResponse: (d: unknown) => d,
@@ -76,7 +76,7 @@ export async function getLicenseTurtle(id: string): Promise<string> {
 /** Create or replace a license (admin). Body is Turtle; SHACL-validated server-side. */
 export async function putLicense(id: string, turtle: string): Promise<LicenseSummary> {
   try {
-    const res = await http.put<RawLicense>(`/licenses/${encodeURIComponent(id)}`, turtle, {
+    const res = await http.put<RawLicense>(`/fdp-api/licenses/${encodeURIComponent(id)}`, turtle, {
       headers: { "Content-Type": "text/turtle" },
       transformRequest: (d: unknown) => d,
     });
@@ -89,7 +89,7 @@ export async function putLicense(id: string, turtle: string): Promise<LicenseSum
 /** Delete a license (admin). 409 if a record still references it via dct:license. */
 export async function deleteLicense(id: string): Promise<void> {
   try {
-    await http.delete(`/licenses/${encodeURIComponent(id)}`);
+    await http.delete(`/fdp-api/licenses/${encodeURIComponent(id)}`);
   } catch (err) {
     normaliseError(err);
   }
@@ -99,7 +99,7 @@ export async function deleteLicense(id: string): Promise<void> {
 export async function validateLicense(id: string, turtle: string): Promise<PolicyValidation> {
   try {
     const res = await http.post<{ conforms?: boolean; violations?: Record<string, string | null>[] }>(
-      `/licenses/${encodeURIComponent(id)}/validate`,
+      `/fdp-api/licenses/${encodeURIComponent(id)}/validate`,
       turtle,
       { headers: { "Content-Type": "text/turtle" }, transformRequest: (d: unknown) => d },
     );

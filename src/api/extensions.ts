@@ -1,6 +1,6 @@
 /**
- * LDP read-extension endpoints (TASKS 10.9): `/page/{childPrefix}` and
- * `/expanded` (plus their `/{prefix}/{id}/…` instance variants).
+ * LDP read-extension endpoints (TASKS 10.9): `/fdp-api/page/{childPrefix}` and
+ * `/fdp-api/expanded` (plus their `/{prefix}/{id}/…` instance variants).
  *
  * Both return a **negotiated RDF graph** (we request Turtle), not JSON — the
  * OpenAPI advertises `application/json` but the handlers serialize RDF. So we
@@ -9,9 +9,9 @@
  * server-side and remove the named-graph-name coupling the SPARQL workarounds
  * had:
  *
- *  - `/page/{childPrefix}` lists a parent's children of one type, each carrying
+ *  - `/fdp-api/page/{childPrefix}` lists a parent's children of one type, each carrying
  *    its `dct:title` + `rdf:type`, with `X-FDP-Page-*` headers for paging.
- *  - `/expanded` returns a record merged with every ancestor reachable through
+ *  - `/fdp-api/expanded` returns a record merged with every ancestor reachable through
  *    `dct:isPartOf` — the breadcrumb trail in one call.
  *
  * `parentId`/`path` is the record's path id (`catalog/ad-cohort`), or `""` for
@@ -22,7 +22,7 @@ import { AxiosError } from "axios";
 import { http } from "./http";
 import { iriToId, one, parseTurtle, shortLabel, typedSubjects, NS } from "./rdf";
 
-/** One child row from a `/page` listing. */
+/** One child row from a `/fdp-api/page` listing. */
 export interface ChildRow {
   /** Path id, doubling as a `/records/:id` target. */
   id: string;
@@ -63,7 +63,7 @@ function normaliseError(err: unknown): never {
 
 /** `GET …/expanded` — record + ancestors as Turtle. `path` is `""` for root. */
 export async function fetchExpanded(path: string): Promise<string> {
-  const url = path ? `/${path}/expanded` : `/expanded`;
+  const url = path ? `/fdp-api/${path}/expanded` : `/fdp-api/expanded`;
   try {
     const res = await http.get<string>(url, {
       headers: TURTLE,
@@ -85,7 +85,9 @@ export async function fetchChildrenPage(
   childPrefix: string,
   opts: { limit?: number; offset?: number } = {},
 ): Promise<ChildPage> {
-  const base = parentId ? `/${parentId}/page/${childPrefix}` : `/page/${childPrefix}`;
+  const base = parentId
+    ? `/fdp-api/${parentId}/page/${childPrefix}`
+    : `/fdp-api/page/${childPrefix}`;
   const params = new URLSearchParams();
   if (opts.limit != null) params.set("limit", String(opts.limit));
   if (opts.offset != null) params.set("offset", String(opts.offset));

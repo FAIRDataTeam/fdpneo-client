@@ -17,6 +17,6 @@ export type SearchItem = components["schemas"]["SearchItem"];
 export type FacetDimension = components["schemas"]["FacetDimension"];
 
 export async function runSearch(req: SearchRequest): Promise<SearchResponse> {
-  const res = await http.post<SearchResponse>("/search", req);
+  const res = await http.post<SearchResponse>("/fdp-api/search", req);
   return res.data;
 }

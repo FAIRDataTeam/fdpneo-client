@@ -37,7 +37,7 @@ describe("runSearch", () => {
     const resp = { items: [], total: 0, facets: {} };
     mockPost.mockResolvedValueOnce({ data: resp });
     await expect(runSearch(body)).resolves.toEqual(resp);
-    expect(mockPost).toHaveBeenCalledWith("/search", body);
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/search", body);
   });
 });
 
@@ -45,14 +45,14 @@ describe("saved queries", () => {
   it("lists, unwrapping the queries array", async () => {
     mockGet.mockResolvedValueOnce({ data: { queries: [{ id: "1", name: "A" }] } });
     await expect(listSavedQueries()).resolves.toEqual([{ id: "1", name: "A" }]);
-    expect(mockGet).toHaveBeenCalledWith("/me/saved-queries");
+    expect(mockGet).toHaveBeenCalledWith("/fdp-api/me/saved-queries");
   });
 
   it("creates with name + query object", async () => {
     const input = { name: "Mine", query: { q: "cancer" } };
     mockPost.mockResolvedValueOnce({ data: { id: "1", ...input } });
     await createSavedQuery(input);
-    expect(mockPost).toHaveBeenCalledWith("/me/saved-queries", input);
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/me/saved-queries", input);
   });
 
   it("updates and deletes by id", async () => {
@@ -60,7 +60,7 @@ describe("saved queries", () => {
     mockDelete.mockResolvedValueOnce({});
     await updateSavedQuery("abc", { shared: true });
     await deleteSavedQuery("abc");
-    expect(mockPut).toHaveBeenCalledWith("/me/saved-queries/abc", { shared: true });
-    expect(mockDelete).toHaveBeenCalledWith("/me/saved-queries/abc");
+    expect(mockPut).toHaveBeenCalledWith("/fdp-api/me/saved-queries/abc", { shared: true });
+    expect(mockDelete).toHaveBeenCalledWith("/fdp-api/me/saved-queries/abc");
   });
 });

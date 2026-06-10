@@ -64,7 +64,7 @@ export async function transitionState(
   recordPath: string,
   to: MetadataState,
 ): Promise<StateTransitionResponse> {
-  const url = recordPath ? `/${recordPath}/state` : `/state`;
+  const url = recordPath ? `/fdp-api/${recordPath}/state` : `/fdp-api/state`;
   try {
     const res = await http.post<StateTransitionResponse>(url, { to });
     return res.data;

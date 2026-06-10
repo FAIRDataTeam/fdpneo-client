@@ -18,16 +18,16 @@ export type ApiKeyCreated = components["schemas"]["ApiKeyCreated"];
 export type ApiKeyCreateRequest = components["schemas"]["ApiKeyCreateRequest"];
 
 export async function listApiKeys(): Promise<ApiKeyInfo[]> {
-  const res = await http.get<components["schemas"]["ApiKeyList"]>("/me/api-keys");
+  const res = await http.get<components["schemas"]["ApiKeyList"]>("/fdp-api/me/api-keys");
   return res.data.keys ?? [];
 }
 
 /** Mint a key. The response carries the plaintext `key` exactly once. */
 export async function createApiKey(input: ApiKeyCreateRequest): Promise<ApiKeyCreated> {
-  const res = await http.post<ApiKeyCreated>("/me/api-keys", input);
+  const res = await http.post<ApiKeyCreated>("/fdp-api/me/api-keys", input);
   return res.data;
 }
 
 export async function revokeApiKey(id: string): Promise<void> {
-  await http.delete(`/me/api-keys/${encodeURIComponent(id)}`);
+  await http.delete(`/fdp-api/me/api-keys/${encodeURIComponent(id)}`);
 }

@@ -22,7 +22,7 @@ beforeEach(() => {
   vi.stubEnv("VITE_FDP_API_URL", "http://localhost:8000");
   mockGet.mockImplementation((url: string) => {
     switch (url) {
-      case "/metrics/summary":
+      case "/fdp-api/metrics/summary":
         return Promise.resolve({
           data: {
             period: PERIOD,
@@ -35,7 +35,7 @@ beforeEach(() => {
             status_5xx_count: 10,
           },
         });
-      case "/metrics/timeseries/daily":
+      case "/fdp-api/metrics/timeseries/daily":
         return Promise.resolve({
           data: {
             period: PERIOD,
@@ -45,7 +45,7 @@ beforeEach(() => {
             ],
           },
         });
-      case "/metrics/geography":
+      case "/fdp-api/metrics/geography":
         return Promise.resolve({
           data: {
             period: PERIOD,
@@ -55,7 +55,7 @@ beforeEach(() => {
             ],
           },
         });
-      case "/metrics/top-resources":
+      case "/fdp-api/metrics/top-resources":
         return Promise.resolve({
           data: {
             period: PERIOD,

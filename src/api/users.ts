@@ -1,5 +1,5 @@
 /**
- * User admin client (server ADR-0013, `/users`) — a thin, admin-scoped facade
+ * User admin client (server ADR-0013, `/fdp-api/users`) — a thin, admin-scoped facade
  * over the IdP. List/search, role + enabled management, invite-create, delete.
  * Capability-gated server-side (`features.user_management`); when the facade is
  * unconfigured the endpoints return 503 `fdp.service_unavailable`. JSON in/out;
@@ -68,18 +68,18 @@ export async function listUsers(params: ListUsersParams = {}): Promise<UserList>
   if (params.search?.trim()) query.search = params.search.trim();
   if (params.limit != null) query.limit = params.limit;
   if (params.offset != null) query.offset = params.offset;
-  const res = await http.get<{ users?: RawUser[]; total?: number }>("/users", { params: query });
+  const res = await http.get<{ users?: RawUser[]; total?: number }>("/fdp-api/users", { params: query });
   return { users: (res.data.users ?? []).map(toUser), total: res.data.total ?? 0 };
 }
 
 /** The FDP roles assignable to users (curated; e.g. ["steward","admin"]). */
 export async function listAssignableRoles(): Promise<string[]> {
-  const res = await http.get<{ roles?: string[] }>("/users/roles");
+  const res = await http.get<{ roles?: string[] }>("/fdp-api/users/roles");
   return res.data.roles ?? [];
 }
 
 export async function getUser(id: string): Promise<User> {
-  const res = await http.get<RawUser>(`/users/${encodeURIComponent(id)}`);
+  const res = await http.get<RawUser>(`/fdp-api/users/${encodeURIComponent(id)}`);
   return toUser(res.data);
 }
 
@@ -94,7 +94,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
     enabled: input.enabled ?? true,
     send_invite: input.sendInvite ?? true,
   };
-  const res = await http.post<RawUser>("/users", body);
+  const res = await http.post<RawUser>("/fdp-api/users", body);
   return toUser(res.data);
 }
 
@@ -106,10 +106,10 @@ export async function updateUser(id: string, patch: UpdateUserInput): Promise<Us
   if (patch.firstName !== undefined) body.first_name = patch.firstName;
   if (patch.lastName !== undefined) body.last_name = patch.lastName;
   if (patch.email !== undefined) body.email = patch.email;
-  const res = await http.patch<RawUser>(`/users/${encodeURIComponent(id)}`, body);
+  const res = await http.patch<RawUser>(`/fdp-api/users/${encodeURIComponent(id)}`, body);
   return toUser(res.data);
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  await http.delete(`/users/${encodeURIComponent(id)}`);
+  await http.delete(`/fdp-api/users/${encodeURIComponent(id)}`);
 }

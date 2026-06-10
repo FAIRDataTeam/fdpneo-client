@@ -69,7 +69,7 @@ function toDef(raw: RawDefinition): ResourceTypeDef {
 
 /** Fetch the deployment's resource-definition catalog. */
 export async function fetchResourceTypes(): Promise<ResourceTypeDef[]> {
-  const res = await http.get<{ definitions?: RawDefinition[] }>("/resource-definitions");
+  const res = await http.get<{ definitions?: RawDefinition[] }>("/fdp-api/resource-definitions");
   return (res.data.definitions ?? []).map(toDef);
 }
 
@@ -94,7 +94,7 @@ export interface ResourceTypeInput {
 
 /** Register a new type. Server requires the schema to be a published SHACL shape. */
 export async function createResourceType(input: ResourceTypeInput): Promise<ResourceTypeDef> {
-  const res = await http.post<RawDefinition>("/resource-definitions", input);
+  const res = await http.post<RawDefinition>("/fdp-api/resource-definitions", input);
   return toDef(res.data);
 }
 
@@ -104,7 +104,7 @@ export async function replaceResourceType(
   input: ResourceTypeInput,
 ): Promise<ResourceTypeDef> {
   const res = await http.put<RawDefinition>(
-    `/resource-definitions/${encodeURIComponent(slug)}`,
+    `/fdp-api/resource-definitions/${encodeURIComponent(slug)}`,
     input,
   );
   return toDef(res.data);
@@ -112,7 +112,7 @@ export async function replaceResourceType(
 
 /** Delete a type (the server rejects deleting the root Repository). */
 export async function deleteResourceType(slug: string): Promise<void> {
-  await http.delete(`/resource-definitions/${encodeURIComponent(slug)}`);
+  await http.delete(`/fdp-api/resource-definitions/${encodeURIComponent(slug)}`);
 }
 
 /**

@@ -10,6 +10,7 @@
 
 import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 import type { OIDCBootstrap } from "@/api/config";
+import { runtimePublicOrigin } from "@/runtimeConfig";
 
 let instance: UserManager | null = null;
 
@@ -40,8 +41,8 @@ function build(): UserManager {
   return new UserManager({
     authority: override.authority ?? import.meta.env.VITE_OIDC_AUTHORITY,
     client_id: override.client_id ?? import.meta.env.VITE_OIDC_CLIENT_ID,
-    redirect_uri: `${import.meta.env.VITE_PUBLIC_ORIGIN}/auth/callback`,
-    post_logout_redirect_uri: import.meta.env.VITE_PUBLIC_ORIGIN,
+    redirect_uri: `${runtimePublicOrigin()}/auth/callback`,
+    post_logout_redirect_uri: runtimePublicOrigin(),
     response_type: "code",
     scope: "openid profile email",
     loadUserInfo: false,

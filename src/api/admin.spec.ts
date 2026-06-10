@@ -23,6 +23,6 @@ describe("resetToFactoryDefaults", () => {
     const resp = { profileName: "default", profileVersion: "1", settingsCleared: 2, schemas: 3, offers: 1, resourceDefinitions: 5, seedRecords: 4 };
     mockPost.mockResolvedValueOnce({ data: resp });
     await expect(resetToFactoryDefaults("reset-to-factory-defaults")).resolves.toEqual(resp);
-    expect(mockPost).toHaveBeenCalledWith("/admin/reset", { confirmation: "reset-to-factory-defaults" });
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/admin/reset", { confirmation: "reset-to-factory-defaults" });
   });
 });

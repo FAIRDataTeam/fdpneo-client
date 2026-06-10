@@ -1,5 +1,5 @@
 /**
- * Metrics API — view models + fetchers over the server's `/metrics/*` endpoints.
+ * Metrics API — view models + fetchers over the server's `/fdp-api/metrics/*` endpoints.
  *
  * Deliberately mapped to what the server *actually* reports, not a richer
  * analytics shape. The server exposes request counts, unique visitors,
@@ -126,10 +126,10 @@ async function getJson<T>(path: string, params: Record<string, string | number>)
 export async function fetchOverview(range: TimeRange): Promise<MetricsOverview> {
   const since = sinceFor(range);
   const [summary, daily, geo, top] = await Promise.all([
-    getJson<SummaryResponse>("/metrics/summary", { since }),
-    getJson<DailySeriesResponse>("/metrics/timeseries/daily", { since }),
-    getJson<GeographyResponse>("/metrics/geography", { since }),
-    getJson<TopResourcesResponse>("/metrics/top-resources", { since, limit: 10 }),
+    getJson<SummaryResponse>("/fdp-api/metrics/summary", { since }),
+    getJson<DailySeriesResponse>("/fdp-api/metrics/timeseries/daily", { since }),
+    getJson<GeographyResponse>("/fdp-api/metrics/geography", { since }),
+    getJson<TopResourcesResponse>("/fdp-api/metrics/top-resources", { since, limit: 10 }),
   ]);
 
   return {
@@ -175,8 +175,8 @@ export async function fetchResourceMetrics(
 ): Promise<ResourceMetrics> {
   const since = sinceFor(range);
   const [summary, daily] = await Promise.all([
-    getJson<SummaryResponse>("/metrics/summary", { since, resource_iri: resourceIri }),
-    getJson<DailySeriesResponse>("/metrics/timeseries/daily", { since, resource_iri: resourceIri }),
+    getJson<SummaryResponse>("/fdp-api/metrics/summary", { since, resource_iri: resourceIri }),
+    getJson<DailySeriesResponse>("/fdp-api/metrics/timeseries/daily", { since, resource_iri: resourceIri }),
   ]);
   return {
     resourceIri,

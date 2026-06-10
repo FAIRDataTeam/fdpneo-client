@@ -19,6 +19,6 @@ export type DashboardItem = components["schemas"]["DashboardItem"];
 
 /** Fetch the signed-in user's dashboard. Requires auth (401 anonymous). */
 export async function fetchDashboard(): Promise<DashboardResponse> {
-  const res = await http.get<DashboardResponse>("/me/dashboard");
+  const res = await http.get<DashboardResponse>("/fdp-api/me/dashboard");
   return res.data;
 }

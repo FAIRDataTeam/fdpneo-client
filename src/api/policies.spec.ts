@@ -53,7 +53,7 @@ describe("putPolicy", () => {
   it("PUTs Turtle (untransformed) and maps the result", async () => {
     mockPut.mockResolvedValue({ data: { id: "p1", iri: "http://x/policies/p1", permissions: 1, prohibitions: 0 } });
     const out = await putPolicy("p1", "<> a odrl:Offer .");
-    expect(mockPut.mock.calls[0]![0]).toBe("/policies/p1");
+    expect(mockPut.mock.calls[0]![0]).toBe("/fdp-api/policies/p1");
     expect(mockPut.mock.calls[0]![1]).toBe("<> a odrl:Offer .");
     expect(out.id).toBe("p1");
     expect(out.permissions).toBe(1);
@@ -69,7 +69,7 @@ describe("validatePolicy", () => {
       },
     });
     const out = await validatePolicy("p1", "<> a odrl:Offer .");
-    expect(mockPost.mock.calls[0]![0]).toBe("/policies/p1/validate");
+    expect(mockPost.mock.calls[0]![0]).toBe("/fdp-api/policies/p1/validate");
     expect(out.conforms).toBe(false);
     expect(out.violations[0]?.message).toBe("unsupported odrl:action");
     expect(out.violations[0]?.detail).toContain("action: odrl:archive");

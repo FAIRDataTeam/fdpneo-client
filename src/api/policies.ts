@@ -1,5 +1,5 @@
 /**
- * Policy admin client (server ADR-0012 / Phase 14.2, `/policies`).
+ * Policy admin client (server ADR-0012 / Phase 14.2, `/fdp-api/policies`).
  *
  * First-class ODRL Offers, managed exactly like SHACL schemas: list/read are
  * public; create-replace (`PUT`) and delete are admin-only; `validate` dry-runs
@@ -85,7 +85,7 @@ function normaliseError(err: unknown): never {
  */
 export async function listPolicies(publishedOnly = false): Promise<PolicySummary[]> {
   const res = await http.get<{ policies?: RawPolicy[] }>(
-    "/policies",
+    "/fdp-api/policies",
     publishedOnly ? { params: { published: true } } : undefined,
   );
   return (res.data.policies ?? []).map(toSummary);
@@ -94,7 +94,7 @@ export async function listPolicies(publishedOnly = false): Promise<PolicySummary
 /** Fetch a policy's Offer Turtle (public, dereferenceable). */
 export async function getPolicyTurtle(id: string): Promise<string> {
   try {
-    const res = await http.get<string>(`/policies/${encodeURIComponent(id)}`, {
+    const res = await http.get<string>(`/fdp-api/policies/${encodeURIComponent(id)}`, {
       headers: { Accept: "text/turtle" },
       responseType: "text",
       transformResponse: (d: unknown) => d,
@@ -108,7 +108,7 @@ export async function getPolicyTurtle(id: string): Promise<string> {
 /** Create or replace a policy (admin). Body is Turtle; validated server-side. */
 export async function putPolicy(id: string, turtle: string): Promise<PolicySummary> {
   try {
-    const res = await http.put<RawPolicy>(`/policies/${encodeURIComponent(id)}`, turtle, {
+    const res = await http.put<RawPolicy>(`/fdp-api/policies/${encodeURIComponent(id)}`, turtle, {
       headers: { "Content-Type": "text/turtle" },
       transformRequest: (d: unknown) => d,
     });
@@ -121,7 +121,7 @@ export async function putPolicy(id: string, turtle: string): Promise<PolicySumma
 /** Delete a policy (admin). 409 if a record still references it via dct:rights. */
 export async function deletePolicy(id: string): Promise<void> {
   try {
-    await http.delete(`/policies/${encodeURIComponent(id)}`);
+    await http.delete(`/fdp-api/policies/${encodeURIComponent(id)}`);
   } catch (err) {
     normaliseError(err);
   }
@@ -131,7 +131,7 @@ export async function deletePolicy(id: string): Promise<void> {
 export async function validatePolicy(id: string, turtle: string): Promise<PolicyValidation> {
   try {
     const res = await http.post<{ conforms?: boolean; violations?: Record<string, string | null>[] }>(
-      `/policies/${encodeURIComponent(id)}/validate`,
+      `/fdp-api/policies/${encodeURIComponent(id)}/validate`,
       turtle,
       { headers: { "Content-Type": "text/turtle" }, transformRequest: (d: unknown) => d },
     );

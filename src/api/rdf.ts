@@ -11,6 +11,7 @@
 import { Parser, Store, Writer, DataFactory } from "n3";
 import type { Distribution, FdpRecord } from "@/data/sampleRecord";
 import type { RecordKind } from "@/types/record";
+import { runtimeApiUrl } from "@/runtimeConfig";
 
 // Wrap rather than destructure: pulling the bare method off DataFactory trips
 // @typescript-eslint/unbound-method (n3's factory functions don't use `this`).
@@ -25,8 +26,11 @@ export const NS = {
 const RDF_TYPE = `${NS.rdf}type`;
 
 /** Absolute base of the FDP API, without a trailing slash. */
-export const apiBase = (): string =>
-  (import.meta.env.VITE_FDP_API_URL || "").replace(/\/$/, "");
+export const apiBase = (): string => {
+  const url = runtimeApiUrl();
+  // "/" (same origin) carries no base prefix; otherwise strip a trailing slash.
+  return url === "/" ? "" : url.replace(/\/$/, "");
+};
 
 /** IRI → the path id the client routes on (`catalog/cohort`); IRI unchanged if it isn't under the base. */
 export function iriToId(iri: string): string {
@@ -59,7 +63,7 @@ export function anyObject(store: Store, predicate: string): string | undefined {
   return q?.object.value;
 }
 
-/** Distinct subjects in the store that carry an `rdf:type` (e.g. the children in a `/page` graph). */
+/** Distinct subjects in the store that carry an `rdf:type` (e.g. the children in a `/fdp-api/page` graph). */
 export function typedSubjects(store: Store): string[] {
   const out = new Set<string>();
   for (const q of store.getQuads(null, namedNode(RDF_TYPE), null, null)) {

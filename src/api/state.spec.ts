@@ -38,12 +38,12 @@ describe("transitionState", () => {
   it("POSTs {to} to the per-record state path", async () => {
     mockPost.mockResolvedValueOnce({ data: { record: "x", from_state: "DRAFT", to_state: "PUBLISHED" } });
     await transitionState("catalog/cohort", "PUBLISHED");
-    expect(mockPost).toHaveBeenCalledWith("/catalog/cohort/state", { to: "PUBLISHED" });
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/catalog/cohort/state", { to: "PUBLISHED" });
   });
   it("uses /state for the repository root", async () => {
     mockPost.mockResolvedValueOnce({ data: { record: "", from_state: "DRAFT", to_state: "PUBLISHED" } });
     await transitionState("", "PUBLISHED");
-    expect(mockPost).toHaveBeenCalledWith("/state", { to: "PUBLISHED" });
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/state", { to: "PUBLISHED" });
   });
 });
 

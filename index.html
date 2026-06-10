@@ -38,6 +38,9 @@
   </head>
   <body>
     <div id="app"></div>
+    <!-- Runtime config (window.__FDP_CONFIG__) — the container overwrites this
+         from env at start-up. Must load before the app module. -->
+    <script src="/config.js"></script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

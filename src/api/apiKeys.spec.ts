@@ -25,7 +25,7 @@ describe("apiKeys", () => {
   it("lists, unwrapping the keys array", async () => {
     mockGet.mockResolvedValueOnce({ data: { keys: [{ id: "1", label: "CI" }] } });
     await expect(listApiKeys()).resolves.toEqual([{ id: "1", label: "CI" }]);
-    expect(mockGet).toHaveBeenCalledWith("/me/api-keys");
+    expect(mockGet).toHaveBeenCalledWith("/fdp-api/me/api-keys");
   });
 
   it("creates with label + expiry and returns the one-time key", async () => {
@@ -33,12 +33,12 @@ describe("apiKeys", () => {
     mockPost.mockResolvedValueOnce({ data: created });
     const input = { label: "CI", expires_at: "2026-12-31T23:59:59Z" };
     await expect(createApiKey(input)).resolves.toEqual(created);
-    expect(mockPost).toHaveBeenCalledWith("/me/api-keys", input);
+    expect(mockPost).toHaveBeenCalledWith("/fdp-api/me/api-keys", input);
   });
 
   it("revokes by id", async () => {
     mockDelete.mockResolvedValueOnce({});
     await revokeApiKey("k1");
-    expect(mockDelete).toHaveBeenCalledWith("/me/api-keys/k1");
+    expect(mockDelete).toHaveBeenCalledWith("/fdp-api/me/api-keys/k1");
   });
 });

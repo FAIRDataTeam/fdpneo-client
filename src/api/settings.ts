@@ -20,14 +20,14 @@ export type SettingValue = components["schemas"]["SettingsValueResponse"]["value
 
 /** All settings keys → value object, merged with server defaults. */
 export async function fetchSettings(): Promise<SettingsValues> {
-  const res = await http.get<components["schemas"]["SettingsResponse"]>("/settings");
+  const res = await http.get<components["schemas"]["SettingsResponse"]>("/fdp-api/settings");
   return res.data.values ?? {};
 }
 
 /** Write one key (admin). Returns the stored value. Throws 422 on a bad shape. */
 export async function putSetting(key: string, value: SettingValue): Promise<SettingValue> {
   const res = await http.put<components["schemas"]["SettingsValueResponse"]>(
-    `/settings/${encodeURIComponent(key)}`,
+    `/fdp-api/settings/${encodeURIComponent(key)}`,
     value,
   );
   return res.data.value;
@@ -35,5 +35,5 @@ export async function putSetting(key: string, value: SettingValue): Promise<Sett
 
 /** Reset one key to its bundled default (admin). */
 export async function resetSetting(key: string): Promise<void> {
-  await http.delete(`/settings/${encodeURIComponent(key)}`);
+  await http.delete(`/fdp-api/settings/${encodeURIComponent(key)}`);
 }

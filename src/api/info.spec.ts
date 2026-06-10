@@ -1,8 +1,8 @@
 /**
- * Unit tests for the operational `/info` + `/readyz` layer.
+ * Unit tests for the operational `/fdp-api/info` + `/fdp-api/readyz` layer.
  *
  * `http` is mocked so the fetchers and label helpers are exercised against
- * canned server responses. `/readyz` is the interesting one: it answers 503
+ * canned server responses. `/fdp-api/readyz` is the interesting one: it answers 503
  * with a body when degraded, so we assert the fetcher widens the accepted
  * status range rather than throwing.
  */
@@ -48,7 +48,7 @@ describe("fetchAppInfo", () => {
   it("returns the server's AppInfo body", async () => {
     mockGet.mockResolvedValueOnce({ data: tagged });
     await expect(fetchAppInfo()).resolves.toEqual(tagged);
-    expect(mockGet).toHaveBeenCalledWith("/info");
+    expect(mockGet).toHaveBeenCalledWith("/fdp-api/info");
   });
 });
 

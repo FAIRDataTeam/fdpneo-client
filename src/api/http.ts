@@ -25,8 +25,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import { useAuthStore } from "@/stores/auth";
+import { runtimeApiUrl } from "@/runtimeConfig";
 
-const baseURL = import.meta.env.VITE_FDP_API_URL || "/";
+const baseURL = runtimeApiUrl();
 
 // Augment Axios's request config with a one-shot retry flag so we can detect
 // the "second 401 in a row" case and stop retrying.

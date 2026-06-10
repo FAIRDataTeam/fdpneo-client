@@ -1,7 +1,7 @@
 /**
- * Thin SPARQL client over the FDP server's `/sparql` endpoint.
+ * Thin SPARQL client over the FDP server's `/fdp-api/sparql` endpoint.
  *
- * The FDP server has no REST listing endpoints (`/page`, `/expanded` are
+ * The FDP server has no REST listing endpoints (`/fdp-api/page`, `/fdp-api/expanded` are
  * documented but unimplemented), so catalog/dataset enumeration and search
  * go through SPARQL. The endpoint:
  *
@@ -38,7 +38,7 @@ interface SparqlResultsJson {
 
 /** Run a SELECT and return its rows. */
 export async function sparqlSelect(query: string): Promise<SparqlBinding[]> {
-  const res = await http.get<SparqlResultsJson>("/sparql", {
+  const res = await http.get<SparqlResultsJson>("/fdp-api/sparql", {
     params: { query },
     headers: { Accept: "application/sparql-results+json" },
   });
@@ -76,7 +76,7 @@ interface SparqlBooleanJson {
  */
 export async function runSparqlQuery(query: string): Promise<SparqlQueryResult> {
   try {
-    const res = await http.post<string>("/sparql", query, {
+    const res = await http.post<string>("/fdp-api/sparql", query, {
       headers: {
         "Content-Type": "application/sparql-query",
         Accept: "application/sparql-results+json, text/turtle;q=0.9",

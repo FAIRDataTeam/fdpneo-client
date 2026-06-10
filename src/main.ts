@@ -25,7 +25,7 @@ import "./styles/main.css";
 // OIDC redirect URI. localhost and 127.0.0.1 are distinct origins; a mismatch
 // here is the usual cause of "server unreachable" on save. Warn loudly in dev.
 if (import.meta.env.DEV) {
-  const configured = import.meta.env.VITE_PUBLIC_ORIGIN;
+  const configured = window.__FDP_CONFIG__?.publicOrigin || import.meta.env.VITE_PUBLIC_ORIGIN;
   if (configured && window.location.origin !== configured) {
     console.warn(
       `[fdp] Origin mismatch: app loaded at ${window.location.origin} but ` +

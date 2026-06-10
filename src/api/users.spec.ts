@@ -50,7 +50,7 @@ describe("createUser", () => {
   it("POSTs an invite-style body in snake_case", async () => {
     mockPost.mockResolvedValue({ data: { id: "n1", username: "new", roles: ["steward"], enabled: true } });
     await createUser({ username: "new", email: "n@x", roles: ["steward"] });
-    expect(mockPost.mock.calls[0]![0]).toBe("/users");
+    expect(mockPost.mock.calls[0]![0]).toBe("/fdp-api/users");
     expect(mockPost.mock.calls[0]![1]).toMatchObject({ username: "new", email: "n@x", roles: ["steward"], enabled: true, send_invite: true });
   });
 });
@@ -59,7 +59,7 @@ describe("updateUser", () => {
   it("PATCHes only the provided fields, snake_cased", async () => {
     mockPatch.mockResolvedValue({ data: { id: "u1", username: "jdoe", roles: ["admin"], enabled: false } });
     await updateUser("u1", { roles: ["admin"], enabled: false });
-    expect(mockPatch.mock.calls[0]![0]).toBe("/users/u1");
+    expect(mockPatch.mock.calls[0]![0]).toBe("/fdp-api/users/u1");
     expect(mockPatch.mock.calls[0]![1]).toEqual({ roles: ["admin"], enabled: false });
   });
 });

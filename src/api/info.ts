@@ -2,11 +2,11 @@
  * Operational endpoints — `GET /info` (build/runtime metadata) and
  * `GET /readyz` (dependency readiness probe).
  *
- * `/info` is public and cheap; the footer shows it on every page. Build fields
+ * `/fdp-api/info` is public and cheap; the footer shows it on every page. Build fields
  * (`commit`, `built_at`) are null on a locally-developed checkout, in which
  * case we render "(unknown build)".
  *
- * `/readyz` returns **503** with a full `ReadinessReport` body when something
+ * `/fdp-api/readyz` returns **503** with a full `ReadinessReport` body when something
  * is down (not just on success), so we widen Axios's accepted status range and
  * read the body in both cases rather than throwing on 503.
  */
@@ -19,7 +19,7 @@ export type ReadinessReport = components["schemas"]["ReadinessReport"];
 
 /** Fetch server build + runtime metadata. */
 export async function fetchAppInfo(): Promise<AppInfo> {
-  const res = await http.get<AppInfo>("/info");
+  const res = await http.get<AppInfo>("/fdp-api/info");
   return res.data;
 }
 
@@ -29,7 +29,7 @@ export async function fetchAppInfo(): Promise<AppInfo> {
  * and surface the per-check detail instead of treating it as a failure.
  */
 export async function fetchReadiness(): Promise<ReadinessReport> {
-  const res = await http.get<ReadinessReport>("/readyz", {
+  const res = await http.get<ReadinessReport>("/fdp-api/readyz", {
     validateStatus: (status) => status === 200 || status === 503,
   });
   return res.data;

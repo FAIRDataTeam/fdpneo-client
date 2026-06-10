@@ -1,6 +1,6 @@
 /**
- * LDP read-extensions: `/page` parses the children graph (title + type) and the
- * `X-FDP-Page-Total` header; `/expanded` returns raw Turtle. URL shape differs
+ * LDP read-extensions: `/fdp-api/page` parses the children graph (title + type) and the
+ * `X-FDP-Page-Total` header; `/fdp-api/expanded` returns raw Turtle. URL shape differs
  * for the root vs an instance.
  */
 
@@ -46,13 +46,13 @@ describe("fetchChildrenPage", () => {
     mockGet.mockResolvedValueOnce({ data: "", headers: {} });
     await fetchChildrenPage("", "catalog", { limit: 10, offset: 20 });
     const url = mockGet.mock.calls[0]![0];
-    expect(url).toBe("/page/catalog?limit=10&offset=20");
+    expect(url).toBe("/fdp-api/page/catalog?limit=10&offset=20");
   });
 
   it("uses the instance URL for a non-root parent", async () => {
     mockGet.mockResolvedValueOnce({ data: "", headers: {} });
     await fetchChildrenPage("catalog/x", "dataset");
-    expect(mockGet.mock.calls[0]![0]).toBe("/catalog/x/page/dataset");
+    expect(mockGet.mock.calls[0]![0]).toBe("/fdp-api/catalog/x/page/dataset");
   });
 
   it("falls back to child count when the total header is absent", async () => {
@@ -66,12 +66,12 @@ describe("fetchExpanded", () => {
   it("requests the root /expanded and returns Turtle", async () => {
     mockGet.mockResolvedValueOnce({ data: "<a> <b> <c> .", headers: {} });
     await expect(fetchExpanded("")).resolves.toBe("<a> <b> <c> .");
-    expect(mockGet.mock.calls[0]![0]).toBe("/expanded");
+    expect(mockGet.mock.calls[0]![0]).toBe("/fdp-api/expanded");
   });
 
   it("requests an instance /expanded", async () => {
     mockGet.mockResolvedValueOnce({ data: "", headers: {} });
     await fetchExpanded("catalog/x");
-    expect(mockGet.mock.calls[0]![0]).toBe("/catalog/x/expanded");
+    expect(mockGet.mock.calls[0]![0]).toBe("/fdp-api/catalog/x/expanded");
   });
 });

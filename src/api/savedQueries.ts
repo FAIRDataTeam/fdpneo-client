@@ -16,20 +16,20 @@ export type SavedQueryCreate = components["schemas"]["SavedQueryCreate"];
 export type SavedQueryUpdate = components["schemas"]["SavedQueryUpdate"];
 
 export async function listSavedQueries(): Promise<SavedQueryView[]> {
-  const res = await http.get<components["schemas"]["SavedQueryList"]>("/me/saved-queries");
+  const res = await http.get<components["schemas"]["SavedQueryList"]>("/fdp-api/me/saved-queries");
   return res.data.queries ?? [];
 }
 
 export async function createSavedQuery(input: SavedQueryCreate): Promise<SavedQueryView> {
-  const res = await http.post<SavedQueryView>("/me/saved-queries", input);
+  const res = await http.post<SavedQueryView>("/fdp-api/me/saved-queries", input);
   return res.data;
 }
 
 export async function updateSavedQuery(id: string, patch: SavedQueryUpdate): Promise<SavedQueryView> {
-  const res = await http.put<SavedQueryView>(`/me/saved-queries/${encodeURIComponent(id)}`, patch);
+  const res = await http.put<SavedQueryView>(`/fdp-api/me/saved-queries/${encodeURIComponent(id)}`, patch);
   return res.data;
 }
 
 export async function deleteSavedQuery(id: string): Promise<void> {
-  await http.delete(`/me/saved-queries/${encodeURIComponent(id)}`);
+  await http.delete(`/fdp-api/me/saved-queries/${encodeURIComponent(id)}`);
 }

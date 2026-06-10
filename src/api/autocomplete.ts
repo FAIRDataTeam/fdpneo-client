@@ -20,7 +20,7 @@ export async function fetchAutocomplete(
 ): Promise<AutocompleteItem[]> {
   const params = new URLSearchParams({ source, prefix, limit: String(limit) });
   const res = await http.get<components["schemas"]["AutocompleteResponse"]>(
-    `/forms/autocomplete?${params.toString()}`,
+    `/fdp-api/forms/autocomplete?${params.toString()}`,
   );
   return res.data.items ?? [];
 }

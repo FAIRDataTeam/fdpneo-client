@@ -18,7 +18,7 @@ import { http } from "@/api/http";
 import { fieldsFromShape, type EntitySpec, type FieldSpec } from "@/api/entityForms";
 
 async function fetchShapeFields(spec: EntitySpec): Promise<FieldSpec[]> {
-  const res = await http.get<string>(`/${spec.prefix}/spec`, {
+  const res = await http.get<string>(`/fdp-api/${spec.prefix}/spec`, {
     headers: { Accept: "text/turtle" },
     responseType: "text",
     transformResponse: (d: unknown) => d,

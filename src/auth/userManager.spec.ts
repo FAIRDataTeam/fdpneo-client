@@ -50,8 +50,8 @@ describe("userManager OIDC resolution", () => {
     window.sessionStorage.clear();
     window.localStorage.clear();
     const m = getUserManager();
-    await m.settings.userStore!.set("probe", "v");
-    expect(await m.settings.userStore!.get("probe")).toBe("v");
+    await m.settings.userStore?.set("probe", "v");
+    expect(await m.settings.userStore?.get("probe")).toBe("v");
     expect(window.sessionStorage.length).toBeGreaterThan(0); // landed in sessionStorage
     expect(window.localStorage.length).toBe(0); // never in localStorage
   });

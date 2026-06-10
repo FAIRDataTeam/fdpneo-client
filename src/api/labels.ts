@@ -7,7 +7,7 @@
  * than showing raw URLs or the last-IRI-segment hack (`rdf.ts shortLabel`),
  * which stays as the offline fallback (see `useLabels`).
  *
- * `/labels` is public. If it fails (old server, or a downstream outage), the
+ * `/fdp-api/labels` is public. If it fails (old server, or a downstream outage), the
  * caller falls back to the IRI-derived label.
  */
 
@@ -23,6 +23,6 @@ export async function fetchLabels(iris: string[], lang = "en"): Promise<LabelMap
   const params = new URLSearchParams();
   for (const iri of unique) params.append("iri", iri);
   params.set("lang", lang);
-  const res = await http.get<components["schemas"]["LabelsResponse"]>(`/labels?${params.toString()}`);
+  const res = await http.get<components["schemas"]["LabelsResponse"]>(`/fdp-api/labels?${params.toString()}`);
   return res.data.labels ?? {};
 }

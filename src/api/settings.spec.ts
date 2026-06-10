@@ -26,7 +26,7 @@ describe("fetchSettings", () => {
   it("unwraps the values map", async () => {
     mockGet.mockResolvedValueOnce({ data: { values: { "search.filters": { filters: [] } } } });
     await expect(fetchSettings()).resolves.toEqual({ "search.filters": { filters: [] } });
-    expect(mockGet).toHaveBeenCalledWith("/settings");
+    expect(mockGet).toHaveBeenCalledWith("/fdp-api/settings");
   });
 
   it("tolerates a missing values map", async () => {
@@ -40,7 +40,7 @@ describe("putSetting", () => {
     const value = { filters: [{ field: "type" }] };
     mockPut.mockResolvedValueOnce({ data: { key: "search.filters", value } });
     await expect(putSetting("search.filters", value)).resolves.toEqual(value);
-    expect(mockPut).toHaveBeenCalledWith("/settings/search.filters", value);
+    expect(mockPut).toHaveBeenCalledWith("/fdp-api/settings/search.filters", value);
   });
 });
 
@@ -48,6 +48,6 @@ describe("resetSetting", () => {
   it("DELETEs the per-key path", async () => {
     mockDelete.mockResolvedValueOnce({});
     await resetSetting("forms.autocomplete-sources");
-    expect(mockDelete).toHaveBeenCalledWith("/settings/forms.autocomplete-sources");
+    expect(mockDelete).toHaveBeenCalledWith("/fdp-api/settings/forms.autocomplete-sources");
   });
 });

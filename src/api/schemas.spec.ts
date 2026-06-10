@@ -57,7 +57,7 @@ describe("putSchema", () => {
     const info = await putSchema("ontology", "@prefix sh: <…> .");
     expect(info.iri).toBe("http://x/schemas/ontology");
     expect(mockPut).toHaveBeenCalledWith(
-      "/schemas/ontology",
+      "/fdp-api/schemas/ontology",
       "@prefix sh: <…> .",
       expect.objectContaining({ headers: { "Content-Type": "text/turtle" } }),
     );

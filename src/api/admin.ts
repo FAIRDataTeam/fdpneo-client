@@ -16,6 +16,6 @@ export type ResetResponse = components["schemas"]["ResetResponse"];
 export const RESET_CONFIRMATION_TOKEN = "reset-to-factory-defaults";
 
 export async function resetToFactoryDefaults(confirmation: string): Promise<ResetResponse> {
-  const res = await http.post<ResetResponse>("/admin/reset", { confirmation });
+  const res = await http.post<ResetResponse>("/fdp-api/admin/reset", { confirmation });
   return res.data;
 }
