@@ -12,17 +12,18 @@ import { iriToId, NS } from "@/api/rdf";
 import { sparqlSelect, value } from "@/api/sparql";
 import type { CatalogSummary } from "@/data/sampleRecord";
 
-// Count children via their `dct:isPartOf` back-link (across their own named
-// graphs) rather than the catalog's forward `dcat:dataset` links — the latter
-// aren't maintained when a child is created, so isPartOf reflects reality.
+// Count children via the catalog's forward `ldp:contains` links, which the
+// server now maintains on the parent container when a child is created
+// (both `ldp:contains` and the typed DCAT relation). These live in the
+// catalog's own named graph, so the whole query stays within `GRAPH ?c`.
 const CATALOGS_QUERY = `SELECT ?c ?title ?desc ?modified (COUNT(DISTINCT ?child) AS ?n) WHERE {
   GRAPH ?c {
     ?c a <${NS.dcat}Catalog> ;
        <${NS.dct}title> ?title .
     OPTIONAL { ?c <${NS.dct}description> ?desc }
     OPTIONAL { ?c <${NS.dct}modified> ?modified }
+    OPTIONAL { ?c <${NS.ldp}contains> ?child }
   }
-  OPTIONAL { GRAPH ?child { ?child <${NS.dct}isPartOf> ?c } }
 } GROUP BY ?c ?title ?desc ?modified ORDER BY ?title`;
 
 async function fetchCatalogs(): Promise<CatalogSummary[]> {
