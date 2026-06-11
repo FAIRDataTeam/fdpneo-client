@@ -4,7 +4,7 @@ import MetaItem from "./MetaItem.vue";
 import RdfPreviewPanel from "./RdfPreviewPanel.vue";
 import RelatedList from "./RelatedList.vue";
 
-defineProps<{ record: FdpRecord; container?: string | null }>();
+defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>();
 </script>
 
 <template>
@@ -18,7 +18,7 @@ defineProps<{ record: FdpRecord; container?: string | null }>();
       </dl>
 
       <hr class="hr divider" />
-      <RdfPreviewPanel />
+      <RdfPreviewPanel :record-id="recordId ?? ''" />
 
       <hr class="hr divider" />
       <div class="eyebrow">Related</div>

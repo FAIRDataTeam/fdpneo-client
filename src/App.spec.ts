@@ -20,6 +20,11 @@ describe("App", () => {
       routes: [
         { path: "/", name: "browse", component: { template: "<div/>" } },
         { path: "/search", name: "search", component: { template: "<div/>" } },
+        {
+          path: "/advanced-search",
+          name: "advanced-search",
+          component: { template: "<div/>" },
+        },
         { path: "/dashboard", name: "dashboard", component: { template: "<div/>" } },
       ],
     });

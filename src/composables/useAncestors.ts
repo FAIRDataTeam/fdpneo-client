@@ -13,7 +13,13 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 import { queryKeys } from "@/api/queries";
 import { fetchExpanded } from "@/api/extensions";
-import { apiBase, NS, one, parseTurtle, shortLabel } from "@/api/rdf";
+import { apiBase, iriToId, NS, one, parseTurtle, shortLabel } from "@/api/rdf";
+
+/** A breadcrumb: a label plus its route target (`null` for the current record). */
+export interface Crumb {
+  label: string;
+  to: string | null;
+}
 
 export function useAncestors(id: Ref<string>) {
   const query = useQuery({
@@ -24,7 +30,7 @@ export function useAncestors(id: Ref<string>) {
     retry: false,
   });
 
-  const crumbs = computed<string[]>(() => {
+  const crumbs = computed<Crumb[]>(() => {
     const turtle = query.data.value;
     if (!turtle) return [];
     const store = parseTurtle(turtle);
@@ -32,16 +38,22 @@ export function useAncestors(id: Ref<string>) {
     // Follow dct:isPartOf from the record IRI upward, guarding against cycles.
     const chain: string[] = [];
     const seen = new Set<string>();
-    let cur: string | undefined = `${apiBase()}/${id.value}`;
+    const base = apiBase();
+    let cur: string | undefined = `${base}/${id.value}`;
     while (cur && !seen.has(cur)) {
       seen.add(cur);
       chain.push(cur);
       cur = one(store, cur, `${NS.dct}isPartOf`);
     }
 
-    return chain
-      .reverse()
-      .map((iri) => one(store, iri, `${NS.dct}title`) ?? shortLabel(iri));
+    const ordered = chain.reverse();
+    return ordered.map((iri, i) => {
+      const label = one(store, iri, `${NS.dct}title`) ?? shortLabel(iri);
+      // The last crumb is the current record — not a link. The repository root
+      // (the API base itself) is browsed at "/"; everything else at /records/:id.
+      const to = i === ordered.length - 1 ? null : iri === base ? "/" : `/records/${iriToId(iri)}`;
+      return { label, to };
+    });
   });
 
   return { crumbs };

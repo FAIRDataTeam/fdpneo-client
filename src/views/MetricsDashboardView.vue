@@ -29,6 +29,15 @@ const range = ref<TimeRange>("30d");
 
 const { data: overview, isLoading } = useMetricsOverview(range);
 
+// Distinguish a genuinely empty period from a bug: metrics aggregate on a
+// schedule, so recent activity can lag before it shows up here.
+const isEmpty = computed(
+  () =>
+    !!overview.value &&
+    overview.value.kpis.requests === 0 &&
+    overview.value.series.length === 0,
+);
+
 // Stewards land on a representative resource by default. When a "my records"
 // endpoint exists, drive this from ownership.
 const focusResource = ref(`${apiBase()}/dataset/ad-cohort-2024`);
@@ -70,6 +79,15 @@ function latency(ms: number | null): string {
     <div v-else-if="isLoading" class="loading">Loading metrics…</div>
 
     <template v-else-if="overview">
+      <div v-if="isEmpty" class="empty-note" role="status">
+        <strong>No activity recorded for this range yet.</strong>
+        <p>
+          Metrics are aggregated on a schedule, so recent visits can take a while
+          to appear here. On a fresh deployment, browse a few records and check
+          back later — or widen the time range.
+        </p>
+      </div>
+
       <section class="kpis">
         <KpiCard label="Requests" :value="fmt(overview.kpis.requests)" />
         <KpiCard
@@ -237,6 +255,23 @@ h1 {
   padding: 60px 20px;
   color: var(--muted);
   text-align: center;
+}
+.empty-note {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.empty-note strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+.empty-note p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 620px;
 }
 .signin {
   padding: 60px 20px;

@@ -16,6 +16,21 @@ import { parseFdpError, type ParsedError } from "@/api/errors";
 
 const props = defineProps<{ settingKey: string; value: SettingValue; canEdit: boolean }>();
 
+// Human-readable title + help for known keys; unknown keys fall back to the raw
+// dotted key with no help line. (The value is still edited as JSON below — a
+// per-key structured form editor is a planned follow-up, see TASKS 12.7.)
+const SETTING_META: Record<string, { title: string; help: string }> = {
+  "search.filters": {
+    title: "Search facets",
+    help: "The facet dimensions shown on the search page — each maps a label to the metadata property it filters on.",
+  },
+  "forms.autocomplete-sources": {
+    title: "Form autocomplete sources",
+    help: "Suggestion lists offered in authoring forms (e.g. licenses, media types) — either an inline set of IRI/label entries or a SPARQL-backed source.",
+  },
+};
+const meta = computed(() => SETTING_META[props.settingKey] ?? null);
+
 const pretty = (v: SettingValue) => JSON.stringify(v, null, 2);
 
 const draft = ref(pretty(props.value));
@@ -83,12 +98,16 @@ function onSave() {
 <template>
   <section class="setting">
     <header class="head">
-      <code class="key">{{ settingKey }}</code>
+      <div class="titles">
+        <span class="title">{{ meta?.title ?? settingKey }}</span>
+        <code v-if="meta" class="key">{{ settingKey }}</code>
+      </div>
       <div v-if="canEdit" class="actions">
         <button class="btn ghost sm" :disabled="busy" @click="reset.mutate()">Reset to default</button>
         <button class="btn primary sm" :disabled="!dirty || busy" @click="onSave">Save</button>
       </div>
     </header>
+    <p v-if="meta" class="help">{{ meta.help }}</p>
 
     <textarea
       v-model="draft"
@@ -123,12 +142,31 @@ function onSave() {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+}
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.title {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
 }
 .key {
-  font-size: 13px;
-  color: var(--ink);
-  font-weight: 600;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.help {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 70ch;
 }
 .actions {
   display: flex;

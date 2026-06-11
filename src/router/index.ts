@@ -38,6 +38,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Search", feature: "search" },
   },
   {
+    path: "/advanced-search",
+    name: "advanced-search",
+    component: () => import("@/views/AdvancedSearchView.vue"),
+    meta: { title: "Advanced search", feature: "search" },
+  },
+  {
     path: "/records/:id+",
     name: "record-detail",
     component: () => import("@/views/RecordDetailView.vue"),

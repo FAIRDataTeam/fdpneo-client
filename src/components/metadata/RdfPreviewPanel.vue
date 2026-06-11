@@ -1,9 +1,55 @@
 <script setup lang="ts">
-import { ref } from "vue";
+/**
+ * "View as RDF" — serialization + API links for the record on display.
+ *
+ * One component used by both the record sidecar and the repository hero, so the
+ * box is consistent everywhere. Each RDF button fetches the record through
+ * content negotiation (`Accept:` header) and opens the result in a new tab; a
+ * plain link can't set Accept and the server doesn't honour `?format=`. "API"
+ * opens the server's OpenAPI UI.
+ *
+ * `recordId` is the record's path id ("" for the repository root).
+ */
+import { computed, ref } from "vue";
+import { http } from "@/api/http";
+import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+const props = withDefaults(defineProps<{ recordId?: string }>(), { recordId: "" });
+
+const FORMATS = [
+  { label: "Turtle", accept: "text/turtle" },
+  { label: "JSON-LD", accept: "application/ld+json" },
+  { label: "RDF/XML", accept: "application/rdf+xml" },
+  { label: "N-Triples", accept: "application/n-triples" },
+] as const;
+
 const open = ref(true);
-const formats = ["Turtle", "JSON-LD", "RDF/XML", "N-Triples"] as const;
+const busy = ref<string | null>(null);
+
+const apiDocsUrl = computed(() => `${apiBase()}/fdp-api/docs`);
+
+async function view(fmt: (typeof FORMATS)[number]) {
+  if (busy.value) return;
+  busy.value = fmt.label;
+  try {
+    const path = props.recordId ? `/${props.recordId}` : "/";
+    const res = await http.get<string>(path, {
+      headers: { Accept: fmt.accept },
+      responseType: "text",
+      transformResponse: (d: unknown) => d,
+    });
+    const blob = new Blob([res.data], { type: fmt.accept });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener");
+    // Give the new tab time to read the blob before releasing it.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch {
+    // A failed fetch just leaves the panel as-is.
+  } finally {
+    busy.value = null;
+  }
+}
 </script>
 
 <template>
@@ -19,7 +65,19 @@ const formats = ["Turtle", "JSON-LD", "RDF/XML", "N-Triples"] as const;
       <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="14" color="var(--muted)" />
     </button>
     <div v-if="open" id="rdf-body" class="grid">
-      <button v-for="f in formats" :key="f" class="btn sm">{{ f }}</button>
+      <button
+        v-for="f in FORMATS"
+        :key="f.label"
+        type="button"
+        class="btn sm"
+        :disabled="busy !== null"
+        @click="view(f)"
+      >
+        {{ busy === f.label ? "Opening…" : f.label }}
+      </button>
+      <a class="btn sm api" :href="apiDocsUrl" target="_blank" rel="noopener">
+        <AppIcon name="link" :size="12" /> API
+      </a>
     </div>
   </section>
 </template>
@@ -56,5 +114,11 @@ const formats = ["Turtle", "JSON-LD", "RDF/XML", "N-Triples"] as const;
   width: 100%;
   justify-content: center;
   height: 28px;
+}
+.grid .api {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
 }
 </style>

@@ -4,7 +4,9 @@ import AppBreadcrumbs from "@/components/shared/AppBreadcrumbs.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import ContainerBrowser from "./ContainerBrowser.vue";
 
-defineProps<{ breadcrumbs: string[]; identifier: string }>();
+import type { Crumb } from "@/composables/useAncestors";
+
+defineProps<{ breadcrumbs: Crumb[]; identifier: string }>();
 
 const overlayOpen = ref(false);
 

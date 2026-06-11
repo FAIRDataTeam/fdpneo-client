@@ -23,6 +23,11 @@ import type { FacetItem } from "@/types/facet";
 import AppChip from "@/components/shared/AppChip.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+// `routeName` lets the same search UI live under a different route (e.g. the
+// "Advanced search" page's Text tab) while keeping its URL-synced state on that
+// route instead of bouncing to /search.
+const props = withDefaults(defineProps<{ routeName?: string }>(), { routeName: "search" });
+
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -61,7 +66,7 @@ function pushUrl() {
     if (v && v.length) next[k] = v;
   }
   offset.value = 0;
-  void router.replace({ name: "search", query: next });
+  void router.replace({ name: props.routeName, query: next });
 }
 
 function toggleFacet(group: string, value: string) {

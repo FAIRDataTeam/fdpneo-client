@@ -1629,7 +1629,17 @@ Gate green (lint + typecheck + 266 unit tests, incl. a `deletable: false` mappin
 Diagnosed live on 2026-06-11; **not yet implemented**. All client-only unless
 noted.
 
-### 12.7 Settings UI — friendlier titles + structured editors — ⬜
+### 12.7 Settings UI — friendlier titles + structured editors — 🟡 partial (titles done 2026-06-11; structured editors deferred)
+- **Done (a):** [`SettingEditor`](src/components/admin/SettingEditor.vue) now shows
+  a human title + help line for known keys (`search.filters` → "Search facets",
+  `forms.autocomplete-sources` → "Form autocomplete sources"), with the raw key
+  kept as a secondary label; unknown keys fall back to the raw key. Value is
+  still edited as JSON.
+- **Deferred (b):** replacing the JSON textarea with per-key structured form
+  editors (sources list with inline items/aliases + sparql kind; facet rows).
+  Held back deliberately — it's a sizable, careful build on live instance config,
+  and the `search.filters` JSON shape still needs confirming from `GET /settings`
+  before designing its editor.
 - [`SettingsView.vue`](src/views/SettingsView.vue) renders every server settings
   key via [`SettingEditor.vue`](src/components/admin/SettingEditor.vue) as a **raw
   JSON textarea**. The two notable keys are `forms.autocomplete-sources` and
@@ -1655,7 +1665,17 @@ noted.
 - **Done:** the two keys edit through friendly forms that round-trip to identical
   JSON; unknown keys still render as JSON.
 
-### 12.8 RDF/API box — make it consistent, record-scoped, and wired — ⬜
+### 12.8 RDF/API box — make it consistent, record-scoped, and wired — ✅ done (2026-06-11)
+- **Implemented:** [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue)
+  is now the single "View as RDF" component (Turtle / JSON-LD / RDF/XML /
+  N-Triples + **API**), taking a `recordId` ("" = root). Each RDF button fetches
+  the record via `Accept`-header content negotiation and opens the result in a
+  new tab (blob URL); "API" opens `/fdp-api/docs`. Used by both the record
+  sidecar ([`AboutSidecar`](src/components/metadata/AboutSidecar.vue), scoped to
+  the record) and the repository hero ([`MetadataBrowseView`](src/views/MetadataBrowseView.vue),
+  scoped to the root) — the divergent "Catalogs"/3-button variant is gone.
+  *API target = OpenAPI UI root (`/fdp-api/docs`); deep-linking to the record-read
+  operation is a possible later refinement.*
 - Two inconsistent, **non-functional** boxes:
   - Repository hero ([`MetadataBrowseView.vue:48-59`](src/views/MetadataBrowseView.vue#L48-L59)):
     a "Catalogs" card with dead `Turtle` / `JSON-LD` / `API` `<button>`s.
@@ -1691,7 +1711,7 @@ noted.
   `record.modified`) and not sample-derived; fix if needed.
 - **Done:** Container reflects the displayed record's real parent and links to it.
 
-### 12.10 Surface the SPARQL playground via "Advanced search" — ⬜
+### 12.10 Surface the SPARQL playground via "Advanced search" — ✅ done (2026-06-11)
 - [`SparqlPlaygroundView.vue`](src/views/SparqlPlaygroundView.vue) (`/sparql`,
   feature-gated `sparql`) exists but is **linked nowhere**.
 - Add an **"Advanced search"** link beneath the header search field
@@ -1703,8 +1723,40 @@ noted.
   unchanged; the wrapper only toggles tabs.
 - **Done:** SPARQL is reachable from the main UI via "Advanced search"; text and
   SPARQL live behind one tabbed entry.
+- **Implemented (2026-06-11):** new [`AdvancedSearchView`](src/views/AdvancedSearchView.vue)
+  with Text | SPARQL tabs (SPARQL tab gated on the `sparql` flag), `/advanced-search`
+  route, and an "Advanced search" link under the header search box. `SearchView`
+  gained an optional `routeName` prop so its URL-synced state stays on the
+  advanced page instead of bouncing to `/search`.
 
-### 12.11 Metrics dashboard shows no data — aggregation lag + empty state — ⬜ (mostly SERVER/OPS)
+### 12.12 Breadcrumbs (and the Container value) are clickable — ✅ done (2026-06-11; notes #12 + 12.9-link)
+- [`useAncestors`](src/composables/useAncestors.ts) now returns `Crumb { label, to }`
+  (root → `/`, ancestors → `/records/:id`, current record → no link).
+  [`AppBreadcrumbs`](src/components/shared/AppBreadcrumbs.vue) renders a RouterLink
+  per crumb that has a target (back-compatible: still accepts plain strings, so
+  [`StewardSubnav`](src/components/metadata/StewardSubnav.vue) is unchanged);
+  [`SecondaryNav`](src/components/metadata/SecondaryNav.vue) prop retyped to `Crumb[]`.
+- **Done:** every ancestor crumb navigates; the current record stays plain text.
+
+### 12.13 Container child records show under the record — ✅ done (2026-06-11; note #13)
+- **Diagnosis (verified live):** the dataset *was* created and wired correctly
+  (`dcat:Dataset`, `dct:isPartOf` the catalog, catalog has `dcat:dataset` +
+  `ldp:contains` forward links). The bug was client-side: [`RecordDetailView`](src/views/RecordDetailView.vue)
+  only rendered a "Distributions" section and never listed a container's child
+  records.
+- **Fix:** new [`useChildRecords`](src/composables/useChildRecords.ts) fetches one
+  LDP page per child type (`fetchChildrenPage`) and merges them; the detail view
+  gained a **"Contents"** section listing child records as links (and now hides
+  the Distributions section when empty).
+- **Done:** datasets/data-services show under their catalog (and catalogs under
+  the repository).
+
+### 12.11 Metrics dashboard shows no data — aggregation lag + empty state — ✅ done (server fixed the pipeline; client empty-state added 2026-06-11)
+- **Client (done):** [`MetricsDashboardView`](src/views/MetricsDashboardView.vue)
+  now shows an explanatory empty-state when a range has no activity (requests 0
+  and no series), instead of silent zeros — notes that metrics aggregate on a
+  schedule and recent activity may lag.
+- Original diagnosis + server ask kept below for the record.
 
 User report: the metrics dashboard shows nothing and never changes on refresh.
 

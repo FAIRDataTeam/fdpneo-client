@@ -1,12 +1,24 @@
 <script setup lang="ts">
-defineProps<{ items: string[] }>();
+import { computed } from "vue";
+
+/** A crumb is either a plain label or a label with a route target. */
+type BreadcrumbItem = string | { label: string; to?: string | null };
+
+const props = defineProps<{ items: BreadcrumbItem[] }>();
+
+const crumbs = computed(() =>
+  props.items.map((it) =>
+    typeof it === "string" ? { label: it, to: null } : { label: it.label, to: it.to ?? null },
+  ),
+);
 </script>
 
 <template>
   <nav class="bc" aria-label="Breadcrumb">
-    <template v-for="(it, i) in items" :key="i">
+    <template v-for="(it, i) in crumbs" :key="i">
       <span v-if="i > 0" class="sep">/</span>
-      <span :class="['crumb', i === items.length - 1 ? 'current' : '']">{{ it }}</span>
+      <RouterLink v-if="it.to" :to="it.to" class="crumb link">{{ it.label }}</RouterLink>
+      <span v-else :class="['crumb', i === crumbs.length - 1 ? 'current' : '']">{{ it.label }}</span>
     </template>
   </nav>
 </template>
@@ -24,6 +36,13 @@ defineProps<{ items: string[] }>();
 }
 .crumb {
   font-weight: 400;
+}
+.crumb.link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.crumb.link:hover {
+  text-decoration: underline;
 }
 .crumb.current {
   color: var(--ink-2);

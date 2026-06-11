@@ -13,6 +13,7 @@ import { sampleDeployment } from "@/data/sampleRecord";
 import { apiBase } from "@/api/rdf";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
 import MetaItem from "@/components/metadata/MetaItem.vue";
+import RdfPreviewPanel from "@/components/metadata/RdfPreviewPanel.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const auth = useAuthStore();
@@ -51,11 +52,8 @@ const totalRecords = computed(() =>
         <MetaItem label="Conforms to" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
         <div class="gap" />
         <MetaItem label="License">CC BY 4.0 · open metadata</MetaItem>
-        <div class="hero__card-actions">
-          <button class="btn sm"><AppIcon name="code" :size="12" /> Turtle</button>
-          <button class="btn sm">JSON-LD</button>
-          <button class="btn sm">API</button>
-        </div>
+        <div class="gap" />
+        <RdfPreviewPanel record-id="" />
       </aside>
     </div>
   </section>

@@ -26,6 +26,7 @@ import PropList from "@/components/metadata/PropList.vue";
 import DistributionList from "@/components/metadata/DistributionList.vue";
 import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
+import { useChildRecords } from "@/composables/useChildRecords";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -49,6 +50,15 @@ const childCreateLinks = computed(() => {
   }));
 });
 
+// Child records of this container (e.g. a catalog's datasets/data-services),
+// listed in the "Contents" section. Child types come from the runtime catalog.
+const childTypes = computed(() =>
+  entityType.value
+    ? childSpecs(entityType.value).map((s) => ({ prefix: s.prefix, label: s.label }))
+    : [],
+);
+const { children: childRecords } = useChildRecords(id, childTypes);
+
 // Real breadcrumb trail from /expanded (record + dct:isPartOf ancestors).
 const { crumbs: breadcrumbs } = useAncestors(toRef(id));
 
@@ -56,7 +66,7 @@ const { crumbs: breadcrumbs } = useAncestors(toRef(id));
 // record itself in the trail (root → … → parent → record).
 const container = computed(() => {
   const c = breadcrumbs.value;
-  return c.length >= 2 ? (c[c.length - 2] ?? null) : null;
+  return c.length >= 2 ? (c[c.length - 2]?.label ?? null) : null;
 });
 
 // Publication state + transition controls (owner-or-admin; server is the
@@ -113,10 +123,23 @@ function changeState(to: MetadataState) {
         <StatStrip :record="record" />
         <SectionTitle>Properties</SectionTitle>
         <PropList :record="record" />
-        <SectionTitle>Distributions</SectionTitle>
-        <DistributionList :distributions="record.distributions" />
+        <template v-if="childRecords.length">
+          <SectionTitle>Contents</SectionTitle>
+          <ul class="contents">
+            <li v-for="c in childRecords" :key="c.id">
+              <RouterLink :to="`/records/${c.id}`" class="content-link">
+                <span class="content-label">{{ c.label }}</span>
+                <span class="content-type mono">{{ c.typeLabel }}</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </template>
+        <template v-if="record.distributions.length">
+          <SectionTitle>Distributions</SectionTitle>
+          <DistributionList :distributions="record.distributions" />
+        </template>
       </div>
-      <AboutSidecar :record="record" :container="container" />
+      <AboutSidecar :record="record" :container="container" :record-id="id" />
     </main>
   </template>
 </template>
@@ -133,6 +156,39 @@ function changeState(to: MetadataState) {
 }
 .column {
   min-width: 0;
+}
+.contents {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.content-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ink);
+}
+.content-link:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.content-label {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 14px;
+}
+.content-type {
+  font-size: 11px;
+  color: var(--muted);
 }
 .state-row {
   display: flex;

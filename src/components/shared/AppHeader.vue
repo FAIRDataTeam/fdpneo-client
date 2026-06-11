@@ -60,20 +60,18 @@ defineProps<{ variant?: "default" | "minimal" }>();
       <div class="deployment__host mono">{{ deploymentHost }}</div>
     </div>
     <div class="spacer" />
-    <form
-      v-if="variant !== 'minimal' && config.isEnabled('search')"
-      class="search"
-      role="search"
-      @submit.prevent="submit"
-    >
-      <AppIcon name="search" :size="15" color="var(--muted)" />
-      <input
-        v-model="query"
-        aria-label="Search records, keywords, themes"
-        placeholder="Search records, keywords, themes…"
-      />
-      <span class="kbd mono">⌘K</span>
-    </form>
+    <div v-if="variant !== 'minimal' && config.isEnabled('search')" class="search-wrap">
+      <form class="search" role="search" @submit.prevent="submit">
+        <AppIcon name="search" :size="15" color="var(--muted)" />
+        <input
+          v-model="query"
+          aria-label="Search records, keywords, themes"
+          placeholder="Search records, keywords, themes…"
+        />
+        <span class="kbd mono">⌘K</span>
+      </form>
+      <RouterLink class="advanced-link" :to="{ name: 'advanced-search' }">Advanced search</RouterLink>
+    </div>
     <ThemeToggle />
     <button v-if="!auth.isAuthenticated" class="btn ghost" @click="startSignIn">
       Sign in
@@ -123,6 +121,24 @@ header {
 }
 .spacer {
   flex: 1;
+}
+.search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+.advanced-link {
+  padding-left: 14px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--muted);
+  text-decoration: none;
+}
+.advanced-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 .search {
   display: flex;
