@@ -1806,6 +1806,43 @@ User report: the metrics dashboard shows nothing and never changes on refresh.
 - **Fix:** wrap each tab panel in a single-root `<div role="tabpanel" v-show=…>`.
   Now Text and SPARQL are mutually exclusive.
 
+### 12.16 Metrics "Resource Detail" panel was empty — ✅ done (2026-06-11; note #16)
+- **Cause:** [`MetricsDashboardView`](src/views/MetricsDashboardView.vue) pinned the
+  panel to a hardcoded, non-existent `…/dataset/ad-cohort-2024`.
+- **Fix:** the panel now offers a dropdown of the most-requested resources
+  (rebuilding the full IRI from each top-resource's path id) and defaults to the
+  top one; hidden when there are no resources.
+
+### 12.17 Per-resource "API" button removed from the RDF box — ✅ done (2026-06-11; note #17)
+- The ask was to deep-link the box's API button to the resource's GET operation
+  in the OpenAPI UI. The spec documents **no** per-resource GET operation (records
+  are served by an undocumented catch-all), so there's nothing to deep-link to.
+- Per the stated fallback, removed the "API" button from
+  [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue) (both the record
+  sidecar and the repo hero); the footer's OpenAPI link remains. RDF-syntax
+  buttons unchanged.
+
+### 12.18 SHACL Visual Editor blank-node artefacts (`n3-482`) — ✅ done (2026-06-11; note #18)
+- **Root cause:** [`parse.ts`](src/components/shacl-editor/parse.ts) collected
+  *every* `sh:NodeShape` subject as an editor shape — including the **anonymous
+  blank-node NodeShapes** nested in the Distribution shape's `sh:or`. Each got its
+  n3 blank-node label (`n3-482`) as `shapeIri` → junk canvas boxes, and on
+  serialize [`serialize.ts`](src/components/shacl-editor/serialize.ts) wrote it as
+  a subject (`n3-482 a sh:NodeShape …`) → invalid Turtle that breaks validation.
+- **Fix:** skip non-`NamedNode` shapes in the collection loop. Anonymous shapes
+  round-trip intact through the parent shape's residual (termToTtl inlines them).
+  Regression tests added (parse → only the named shape; serialize → valid, no
+  `n3-` labels, `sh:or` preserved).
+
+### 12.19 Distribution schema edits "saved" but didn't persist — ✅ done (2026-06-11; note #19)
+- **Same root cause as 12.18:** editing the Distribution in the Visual Editor
+  serialized the junk blank-node shapes into invalid Turtle, corrupting the
+  round-trip so the saved shape didn't reflect the edit (and the `/spec`-driven
+  entry form didn't match). Fixed by the parser change — the round-trip is now
+  valid + lossless.
+- **Recommend** a live edit→save→reopen re-test of the Distribution shape to
+  confirm end-to-end (the unit tests cover the parse/serialize mechanism).
+
 ---
 
 ## Open items

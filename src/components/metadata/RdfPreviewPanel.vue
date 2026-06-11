@@ -1,18 +1,19 @@
 <script setup lang="ts">
 /**
- * "View as RDF" — serialization + API links for the record on display.
+ * "View as RDF" — serialization links for the record on display.
  *
  * One component used by both the record sidecar and the repository hero, so the
- * box is consistent everywhere. Each RDF button fetches the record through
- * content negotiation (`Accept:` header) and opens the result in a new tab; a
- * plain link can't set Accept and the server doesn't honour `?format=`. "API"
- * opens the server's OpenAPI UI.
+ * box is consistent everywhere. Each button fetches the record through content
+ * negotiation (`Accept:` header) and opens the result in a new tab; a plain link
+ * can't set Accept and the server doesn't honour `?format=`.
+ *
+ * (No per-record "API" link: the OpenAPI spec documents no per-resource GET
+ * operation to deep-link to, and the footer already links the OpenAPI UI.)
  *
  * `recordId` is the record's path id ("" for the repository root).
  */
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { http } from "@/api/http";
-import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const props = withDefaults(defineProps<{ recordId?: string }>(), { recordId: "" });
@@ -26,8 +27,6 @@ const FORMATS = [
 
 const open = ref(true);
 const busy = ref<string | null>(null);
-
-const apiDocsUrl = computed(() => `${apiBase()}/fdp-api/docs`);
 
 async function view(fmt: (typeof FORMATS)[number]) {
   if (busy.value) return;
@@ -75,9 +74,6 @@ async function view(fmt: (typeof FORMATS)[number]) {
       >
         {{ busy === f.label ? "Opening…" : f.label }}
       </button>
-      <a class="btn sm api" :href="apiDocsUrl" target="_blank" rel="noopener">
-        <AppIcon name="link" :size="12" /> API
-      </a>
     </div>
   </section>
 </template>

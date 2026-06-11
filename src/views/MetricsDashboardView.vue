@@ -12,7 +12,7 @@
  * prompt rather than empty panels. The "Privacy disclaimer" disclosure makes the
  * collection boundary explicit.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMetricsOverview, useResourceMetrics } from "@/composables/useMetrics";
 import { apiBase } from "@/api/rdf";
@@ -38,9 +38,27 @@ const isEmpty = computed(
     overview.value.series.length === 0,
 );
 
-// Stewards land on a representative resource by default. When a "my records"
-// endpoint exists, drive this from ownership.
-const focusResource = ref(`${apiBase()}/dataset/ad-cohort-2024`);
+// The resource-detail panel focuses one resource. Options come from the
+// most-requested resources (the API carries their path id; rebuild the full
+// IRI the resource-metrics endpoint expects). Default to the top one once the
+// overview loads, keeping the user's pick if they choose another.
+const resourceOptions = computed(() =>
+  (overview.value?.topResources ?? []).map((r) => ({
+    iri: `${apiBase()}/${r.id}`,
+    label: r.label,
+  })),
+);
+const focusResource = ref("");
+watch(
+  resourceOptions,
+  (opts) => {
+    if (!opts.length) return;
+    if (!focusResource.value || !opts.some((o) => o.iri === focusResource.value)) {
+      focusResource.value = opts[0]?.iri ?? "";
+    }
+  },
+  { immediate: true },
+);
 const focusResourceRef = computed(() => focusResource.value);
 const { data: resource } = useResourceMetrics(focusResourceRef, range);
 
@@ -129,10 +147,19 @@ function latency(ms: number | null): string {
         <TopRecordsList :rows="overview.topResources" />
       </section>
 
-      <section v-if="resource" class="panel">
+      <section v-if="focusResource && resource" class="panel">
         <header class="panel__head">
           <h2>Resource detail</h2>
-          <span class="muted small mono">{{ resource.resourceIri }}</span>
+          <select
+            v-if="resourceOptions.length"
+            v-model="focusResource"
+            class="resource-select"
+            aria-label="Choose a resource"
+          >
+            <option v-for="o in resourceOptions" :key="o.iri" :value="o.iri">
+              {{ o.label }}
+            </option>
+          </select>
         </header>
         <div class="resource__summary">
           <KpiCard label="Requests" :value="fmt(resource.requests)" />
@@ -244,6 +271,16 @@ h1 {
   color: var(--muted);
 }
 
+.resource-select {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  max-width: 50%;
+  padding: 4px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  color: var(--ink-2);
+}
 .resource__summary {
   display: grid;
   grid-template-columns: 1fr 1fr;

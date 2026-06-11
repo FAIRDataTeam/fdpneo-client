@@ -198,6 +198,13 @@ export function parseSchema(turtle: string): SchemaDocument {
 
   const shapes: ShapeModel[] = [];
   for (const s of store.getSubjects(namedNode(`${RDF}type`), namedNode(`${SH}NodeShape`), null)) {
+    // Only *named* node shapes are editor shapes. Anonymous ones are constraint
+    // components — e.g. the `[ a sh:NodeShape ; … ]` members of an `sh:or` list —
+    // and must NOT become standalone shapes: they'd surface as junk "n3-482"
+    // boxes and serialize to an invalid blank-node-id subject. They round-trip
+    // intact through the parent shape's residual (termToTtl inlines them).
+    if (s.termType !== "NamedNode") continue;
+
     const props = store.getObjects(s, namedNode(`${SH}property`), null).map(readField);
 
     // Bucket fields by their referenced group (full IRI; null → an empty-label group).

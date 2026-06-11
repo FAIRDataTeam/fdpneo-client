@@ -225,3 +225,32 @@ ex:SomeOntology a owl:Ontology ; rdfs:label "Vocab" .`;
     expect(twice).toBe(once);
   });
 });
+
+describe("anonymous node shapes (sh:or members) aren't treated as standalone shapes", () => {
+  // Mirrors the bundled DCAT Distribution shape: an `sh:or` of `[ a sh:NodeShape ; … ]`
+  // members. These must not become editor shapes (they'd show as "n3-482" boxes and
+  // serialize to an invalid blank-node-id subject), but must round-trip via residual.
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:or ( [ a sh:NodeShape ; sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ] ]
+          [ a sh:NodeShape ; sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) ;
+  sh:property [ sh:path dcat:title ; sh:datatype xsd:string ] .`;
+
+  it("parses only the named shape", () => {
+    const doc = parseSchema(ttl);
+    expect(doc.shapes).toHaveLength(1);
+    expect(doc.shapes[0]?.shapeIri).toBe("dcat:Distribution");
+  });
+
+  it("round-trips without blank-node-id artefacts, stays valid, and keeps sh:or", () => {
+    const out = serializeSchema(parseSchema(ttl));
+    expect(out).toContain("sh:or (");
+    expect(out).not.toMatch(/\bn3-\d+\b/); // no leaked n3 blank-node labels
+    expect(() => new Parser().parse(out)).not.toThrow();
+  });
+});
