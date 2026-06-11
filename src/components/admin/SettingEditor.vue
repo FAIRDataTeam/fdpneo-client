@@ -13,6 +13,8 @@ import { useMutation } from "@tanstack/vue-query";
 import { putSetting, resetSetting, type SettingValue } from "@/api/settings";
 import { useInvalidateSettings } from "@/composables/useSettings";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import SearchFiltersEditor from "./SearchFiltersEditor.vue";
+import AutocompleteSourcesEditor from "./AutocompleteSourcesEditor.vue";
 
 const props = defineProps<{ settingKey: string; value: SettingValue; canEdit: boolean }>();
 
@@ -31,22 +33,41 @@ const SETTING_META: Record<string, { title: string; help: string }> = {
 };
 const meta = computed(() => SETTING_META[props.settingKey] ?? null);
 
+// Keys with a structured form editor; everything else edits as raw JSON.
+const structuredKind = computed<"filters" | "autocomplete" | null>(() => {
+  if (props.settingKey === "search.filters") return "filters";
+  if (props.settingKey === "forms.autocomplete-sources") return "autocomplete";
+  return null;
+});
+// Raw-JSON escape hatch, available even for structured keys.
+const useRaw = ref(false);
+
 const pretty = (v: SettingValue) => JSON.stringify(v, null, 2);
+// Settings values are JSON by definition, so a JSON round-trip is a safe deep
+// clone — and avoids structuredClone choking on the reactive prop proxy.
+const clone = (v: SettingValue): SettingValue => JSON.parse(JSON.stringify(v));
 
 const draft = ref(pretty(props.value));
+// Structured editing works on a deep copy; saved as-is.
+const model = ref<SettingValue>(clone(props.value));
 const error = ref<ParsedError | null>(null);
 
 // After a successful save/reset the parent refetches and the value prop
-// changes; re-sync the draft to the canonical server value and clear errors.
+// changes; re-sync both editors to the canonical server value and clear errors.
 watch(
   () => props.value,
   (v) => {
     draft.value = pretty(v);
+    model.value = clone(v);
     error.value = null;
   },
 );
 
-const dirty = computed(() => draft.value !== pretty(props.value));
+const dirty = computed(() =>
+  structuredKind.value && !useRaw.value
+    ? JSON.stringify(model.value) !== JSON.stringify(props.value)
+    : draft.value !== pretty(props.value),
+);
 
 const invalidate = useInvalidateSettings();
 
@@ -78,20 +99,46 @@ const reset = useMutation({
 
 const busy = computed(() => save.isPending.value || reset.isPending.value);
 
-function onSave() {
+/** Parse + object-check the raw-JSON draft. */
+function parseDraft(): SettingValue | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(draft.value);
   } catch {
     error.value = clientError("Invalid JSON", "This value isn't valid JSON — fix the syntax and try again.");
-    return;
+    return null;
   }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     error.value = clientError("Must be a JSON object", "A setting value must be a JSON object, e.g. { … }.");
+    return null;
+  }
+  return parsed as SettingValue;
+}
+
+function onSave() {
+  if (structuredKind.value && !useRaw.value) {
+    error.value = null;
+    save.mutate(model.value);
     return;
   }
+  const parsed = parseDraft();
+  if (parsed === null) return;
   error.value = null;
-  save.mutate(parsed as SettingValue);
+  save.mutate(parsed);
+}
+
+/** Flip between the structured form and the raw-JSON textarea, syncing content. */
+function toggleRaw() {
+  if (!useRaw.value) {
+    draft.value = pretty(model.value); // form → raw
+    useRaw.value = true;
+    return;
+  }
+  const parsed = parseDraft(); // raw → form (only if it parses)
+  if (parsed === null) return;
+  model.value = parsed;
+  error.value = null;
+  useRaw.value = false;
 }
 </script>
 
@@ -103,13 +150,32 @@ function onSave() {
         <code v-if="meta" class="key">{{ settingKey }}</code>
       </div>
       <div v-if="canEdit" class="actions">
+        <button
+          v-if="structuredKind"
+          type="button"
+          class="btn ghost sm"
+          @click="toggleRaw"
+        >
+          {{ useRaw ? "Use form" : "Edit as JSON" }}
+        </button>
         <button class="btn ghost sm" :disabled="busy" @click="reset.mutate()">Reset to default</button>
         <button class="btn primary sm" :disabled="!dirty || busy" @click="onSave">Save</button>
       </div>
     </header>
     <p v-if="meta" class="help">{{ meta.help }}</p>
 
+    <SearchFiltersEditor
+      v-if="structuredKind === 'filters' && !useRaw"
+      v-model="model"
+      :can-edit="canEdit"
+    />
+    <AutocompleteSourcesEditor
+      v-else-if="structuredKind === 'autocomplete' && !useRaw"
+      v-model="model"
+      :can-edit="canEdit"
+    />
     <textarea
+      v-else
       v-model="draft"
       class="json"
       spellcheck="false"

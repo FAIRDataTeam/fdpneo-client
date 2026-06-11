@@ -1629,17 +1629,20 @@ Gate green (lint + typecheck + 266 unit tests, incl. a `deletable: false` mappin
 Diagnosed live on 2026-06-11; **not yet implemented**. All client-only unless
 noted.
 
-### 12.7 Settings UI — friendlier titles + structured editors — 🟡 partial (titles done 2026-06-11; structured editors deferred)
-- **Done (a):** [`SettingEditor`](src/components/admin/SettingEditor.vue) now shows
-  a human title + help line for known keys (`search.filters` → "Search facets",
-  `forms.autocomplete-sources` → "Form autocomplete sources"), with the raw key
-  kept as a secondary label; unknown keys fall back to the raw key. Value is
-  still edited as JSON.
-- **Deferred (b):** replacing the JSON textarea with per-key structured form
-  editors (sources list with inline items/aliases + sparql kind; facet rows).
-  Held back deliberately — it's a sizable, careful build on live instance config,
-  and the `search.filters` JSON shape still needs confirming from `GET /settings`
-  before designing its editor.
+### 12.7 Settings UI — friendlier titles + structured editors — ✅ done (titles 2026-06-11; structured editors 2026-06-11)
+- **(a) Titles + help:** [`SettingEditor`](src/components/admin/SettingEditor.vue)
+  shows a human title + help line for known keys (`search.filters` → "Search
+  facets", `forms.autocomplete-sources` → "Form autocomplete sources"), raw key
+  kept as a secondary label; unknown keys fall back to the raw key.
+- **(b) Structured editors:** [`SearchFiltersEditor`](src/components/admin/SearchFiltersEditor.vue)
+  (facet rows: name/label/predicate/type_filter, add+remove) and
+  [`AutocompleteSourcesEditor`](src/components/admin/AutocompleteSourcesEditor.vue)
+  (sources with a kind selector; inline items table with IRI/label/aliases, or a
+  SPARQL query field) replace the JSON textarea for those two keys, matching the
+  server `SearchFilters` / `AutocompleteSources` shapes. An **"Edit as JSON"**
+  toggle keeps the raw textarea as an escape hatch; unknown keys still use JSON.
+  Save assembles the same JSON the server validates (422s surface inline). Two
+  new unit tests cover the form-assembly + JSON-fallback paths.
 - [`SettingsView.vue`](src/views/SettingsView.vue) renders every server settings
   key via [`SettingEditor.vue`](src/components/admin/SettingEditor.vue) as a **raw
   JSON textarea**. The two notable keys are `forms.autocomplete-sources` and
@@ -1791,6 +1794,17 @@ User report: the metrics dashboard shows nothing and never changes on refresh.
   the period freshness.
 - **Done:** with rollups running, the dashboard shows data for the covered period;
   for an empty/lagging period it explains *why* rather than showing silent zeros.
+
+### 12.14 Rename "Privacy posture" → "Privacy disclaimer" — ✅ done (2026-06-11; note #14)
+- Renamed the disclosure trigger in [`PrivacyDisclosure`](src/components/metrics/PrivacyDisclosure.vue)
+  and the lede reference in [`MetricsDashboardView`](src/views/MetricsDashboardView.vue).
+
+### 12.15 Advanced-search tabs didn't switch — ✅ done (2026-06-11; note #15)
+- **Cause:** [`AdvancedSearchView`](src/views/AdvancedSearchView.vue) put `v-show`
+  directly on `SearchView`/`SparqlPlaygroundView`, which are multi-root
+  components — `v-show` can't toggle them, so the text search showed on both tabs.
+- **Fix:** wrap each tab panel in a single-root `<div role="tabpanel" v-show=…>`.
+  Now Text and SPARQL are mutually exclusive.
 
 ---
 

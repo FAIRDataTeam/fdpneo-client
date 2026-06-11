@@ -19,7 +19,7 @@ const open = ref(false);
       aria-controls="privacy-body"
       @click="open = !open"
     >
-      <AppIcon name="shield" :size="13" /> Privacy posture
+      <AppIcon name="shield" :size="13" /> Privacy disclaimer
       <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="11" />
     </button>
     <div v-if="open" id="privacy-body" class="body">

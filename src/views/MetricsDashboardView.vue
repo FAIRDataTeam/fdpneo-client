@@ -9,7 +9,7 @@
  * titles — the server doesn't provide them.
  *
  * The endpoints require authentication, so anonymous visitors see a sign-in
- * prompt rather than empty panels. The "Privacy posture" disclosure makes the
+ * prompt rather than empty panels. The "Privacy disclaimer" disclosure makes the
  * collection boundary explicit.
  */
 import { computed, ref } from "vue";
@@ -61,7 +61,7 @@ function latency(ms: number | null): string {
         <h1>Usage at a glance</h1>
         <p class="lede">
           Aggregate, anonymous traffic across this deployment. Click
-          <em>Privacy posture</em> for the data we deliberately don't collect.
+          <em>Privacy disclaimer</em> for the data we deliberately don't collect.
         </p>
       </div>
       <div class="page__controls">

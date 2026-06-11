@@ -45,8 +45,14 @@ const tab = ref<"text" | "sparql">("text");
       </div>
     </header>
 
-    <SearchView v-show="tab === 'text'" route-name="advanced-search" />
-    <SparqlPlaygroundView v-if="sparqlEnabled" v-show="tab === 'sparql'" />
+    <!-- Wrap each panel in a single-root element: SearchView/SparqlPlaygroundView
+         are multi-root, so v-show can't toggle them directly. -->
+    <div v-show="tab === 'text'" role="tabpanel">
+      <SearchView route-name="advanced-search" />
+    </div>
+    <div v-if="sparqlEnabled" v-show="tab === 'sparql'" role="tabpanel">
+      <SparqlPlaygroundView />
+    </div>
   </section>
 </template>
 
