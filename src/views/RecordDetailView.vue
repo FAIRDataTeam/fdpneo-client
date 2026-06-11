@@ -52,6 +52,13 @@ const childCreateLinks = computed(() => {
 // Real breadcrumb trail from /expanded (record + dct:isPartOf ancestors).
 const { crumbs: breadcrumbs } = useAncestors(toRef(id));
 
+// The record's container is its immediate parent — the crumb just above the
+// record itself in the trail (root → … → parent → record).
+const container = computed(() => {
+  const c = breadcrumbs.value;
+  return c.length >= 2 ? (c[c.length - 2] ?? null) : null;
+});
+
 // Publication state + transition controls (owner-or-admin; server is the
 // authority and rejects illegal moves with 409, surfaced inline).
 const { state, transition } = useRecordState(toRef(id));
@@ -109,7 +116,7 @@ function changeState(to: MetadataState) {
         <SectionTitle>Distributions</SectionTitle>
         <DistributionList :distributions="record.distributions" />
       </div>
-      <AboutSidecar :record="record" />
+      <AboutSidecar :record="record" :container="container" />
     </main>
   </template>
 </template>

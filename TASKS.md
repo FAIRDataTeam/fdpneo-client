@@ -1678,7 +1678,7 @@ noted.
 - **Done:** both boxes are the same component, scoped to the current record, and
   every button opens the correct serialization / the API UI in a new tab.
 
-### 12.9 "Container" shows the real parent, not a hardcoded value — ⬜
+### 12.9 "Container" shows the real parent, not a hardcoded value — ✅ done (2026-06-11)
 - [`AboutSidecar.vue:17`](src/components/metadata/AboutSidecar.vue#L17) hardcodes
   `Container: Cohort studies → AD`.
 - Render the record's **actual container** — the immediate parent via

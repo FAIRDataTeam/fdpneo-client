@@ -14,7 +14,7 @@ defineProps<{ record: FdpRecord; container?: string | null }>();
       <dl class="meta">
         <MetaItem label="Issued">{{ record.issued }}</MetaItem>
         <MetaItem label="Last modified">{{ record.modified }}</MetaItem>
-        <MetaItem label="Container">Cohort studies → AD</MetaItem>
+        <MetaItem label="Container">{{ container || "—" }}</MetaItem>
       </dl>
 
       <hr class="hr divider" />
