@@ -1900,6 +1900,67 @@ an "+ Either/or" add button.
 - Until built, the text tab remains the way to author `sh:or`.
 </details>
 
+### 12.24 SHACL constraint coverage — editor + record form (from the §4 audit, 2026-06-12) — ✅ done (2026-06-12)
+
+Audit of the client against **W3C SHACL Core §4** constraint components. Nothing is *lost*
+(the editor round-trips every constraint via residual; the server validates on save) — these
+close UX gaps so authors aren't surprised by server rejections.
+
+- **(a) `sh:in` in the record form — ✅ done** [`fieldsFromShape`](src/api/entityForms.ts) reads
+  `sh:in` into `FieldSpec.options`; `FieldKind` gained `enum`; [`EntityForm`](src/components/metadata/EntityForm.vue)
+  renders a `<select>` (so the value is always a valid option). Tests added.
+- **(b) Typed inputs from `sh:datatype` in the record form — ✅ done** `fieldsFromShape` maps
+  `xsd:date|dateTime|integer/decimal/…|boolean` → `date`/`datetime`/`number`/`boolean` kinds,
+  carries the datatype on `FieldSpec`, and `setLiteral` now writes **datatype-tagged** literals
+  (`setLiteral(…, datatype)`), so typed values pass server validation (verified live:
+  `xsd:dateTime` distribution → `conforms: true`). `EntityForm` renders date/datetime/number/
+  boolean controls (datetime padded to seconds for valid `xsd:dateTime`). Tests added.
+- **(c) Value-range constraints in the editor — ✅ done** `sh:minInclusive`/`sh:minExclusive`/
+  `sh:maxInclusive`/`sh:maxExclusive` added to the editor model (optional), parser `FIELD_KNOWN`
+  + `readField` (carried only when present), serializer, and `FieldInspector` (numeric inputs).
+  Round-trip test added (no residual duplication; idempotent).
+- **(d) Client hints + pre-validation — ✅ done** `fieldsFromShape` reads `sh:pattern` /
+  `sh:minLength` / `sh:maxLength` / value range onto `FieldSpec`; [`constraintHint`](src/api/entityForms.ts)
+  renders a help line (e.g. "3–50 chars · pattern ^…$ · ≤ 100") in [`EntityForm`](src/components/metadata/EntityForm.vue);
+  [`validateConstraints`](src/api/entityForms.ts) pre-checks length/pattern/range on create &
+  edit (the form uses `@submit.prevent`, so native HTML validation wouldn't fire). Server stays
+  the authority. Tests added.
+- **Out of scope (leave to the SHACL text tab + server):** `sh:not`/`sh:and`/`sh:xone`,
+  property-pair (`sh:equals`/`disjoint`/`lessThan`/`lessThanOrEquals`), `sh:qualifiedValueShape`,
+  `sh:closed`/`sh:ignoredProperties`, `sh:hasValue`, `sh:languageIn`/`sh:uniqueLang` — rare for
+  FDP metadata; all still round-trip losslessly.
+
+### 12.25 DASH widget rendering coverage (datashapes.org/forms.html, 2026-06-12) — 🟡 partial (record form honors dash:editor; preview + reference/nested/lang deferred)
+
+**Done (2026-06-12):** the record form now honors an explicit `dash:editor` for the widgets it
+can render — [`fieldsFromShape`](src/api/entityForms.ts) maps `dash:TextAreaEditor` /
+`RichTextEditor` / `*WithLangEditor` → textarea, `dash:BooleanSelectEditor` → boolean,
+`dash:DatePickerEditor`/`DateTimePickerEditor` → date/datetime, `dash:TextFieldEditor` → text
+(via `DASH_EDITOR_KIND`), so a steward's widget choice drives the control. Test added.
+
+**Deferred (need infrastructure the client lacks):**
+
+**Finding:** all **15** DASH `dash:…Editor` widgets are already in the editor *palette/model*
+([`widgets.ts`](src/components/shacl-editor/widgets.ts)) and round-trip losslessly via the
+`dash:editor` predicate — so no widget *identifier* is missing. The gap is **rendering**:
+several render as a generic text/IRI control instead of their intended widget, in both the
+editor's Form Preview and (more so) the record authoring form.
+
+- **(a) Editor Form Preview — distinct rendering — ⬜ deferred**
+  [`previewKind`](src/components/shacl-editor/preview.ts) covers text/textarea/number/date/
+  datetime/boolean/enum/iri (`RichTextEditor` already → textarea). Still degrade to text/iri:
+  `*WithLangEditor` (value + language-tag selector — needs `rdf:langString` modelling),
+  `AutoCompleteEditor`/`InstancesSelectEditor`/`SubClassEditor` (need a class-instance lookup),
+  `DetailsEditor` (nested sub-form), `BlankNodeEditor`. Low value (the preview is throwaway).
+- **(b) Record authoring form — honor `dash:editor` — 🟡 partial**
+  **Done:** literal widgets — textarea / rich-text→textarea / *WithLang→text·textarea, boolean,
+  date, datetime, text (`DASH_EDITOR_KIND` in `fieldsFromShape`). Combined with 12.24a/b the
+  record form now renders text/textarea/iri/iris/keywords/ref/enum/boolean/date/datetime/number.
+  **Deferred:** reference widgets (`AutoComplete`/`InstancesSelect`/`SubClass`) — no client
+  endpoint to enumerate instances of an arbitrary class (pair with autocomplete sources 10.6 or
+  a server class-instance lookup, else degrade to a plain IRI input); `DetailsEditor` (nested
+  sub-form); lang-tagged value+language editing (needs `rdf:langString` in the model + writer).
+
 ### 12.23 "At least one of" (sh:or) — canonical form + editor & form-validator support — ✅ done (2026-06-11)
 - **Verified vs W3C SHACL** (spec §4.6.2, `sh:or`): "at least one of two properties"
   is `sh:or ( [ sh:path A ; sh:minCount 1 ] [ sh:path B ; sh:minCount 1 ] )` — each

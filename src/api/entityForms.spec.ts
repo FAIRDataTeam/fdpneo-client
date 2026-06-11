@@ -10,6 +10,7 @@ import {
   fieldsFromShape,
   orGroupsFromShape,
   missingOrGroups,
+  validateConstraints,
   type EntitySpec,
 } from "./entityForms";
 import { NS, parseTurtle, one, many } from "./rdf";
@@ -182,6 +183,82 @@ dcat:Distribution a sh:NodeShape ; sh:targetClass dcat:Distribution ;
           [ sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) .`;
     const groups = orGroupsFromShape(ttl, `${NS.dcat}Distribution`);
     expect(groups).toEqual([{ keys: ["downloadURL", "accessURL"] }]);
+  });
+});
+
+describe("fieldsFromShape — enum (sh:in) + typed inputs (sh:datatype)", () => {
+  const XSD = "http://www.w3.org/2001/XMLSchema#";
+  const TYPED = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://ex.org/> .
+
+ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
+  sh:property [ sh:path ex:status ; sh:in ( "draft" "final" ) ; sh:maxCount 1 ] ;
+  sh:property [ sh:path ex:issued ; sh:datatype xsd:date ; sh:maxCount 1 ] ;
+  sh:property [ sh:path ex:moment ; sh:datatype xsd:dateTime ; sh:maxCount 1 ] ;
+  sh:property [ sh:path ex:size ; sh:datatype xsd:integer ; sh:maxCount 1 ] ;
+  sh:property [ sh:path ex:active ; sh:datatype xsd:boolean ; sh:maxCount 1 ] .`;
+
+  it("maps sh:in → enum with options, and datatypes → typed kinds", () => {
+    const fields = fieldsFromShape(TYPED, "http://ex.org/Thing");
+    const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
+    expect(byKey.status?.kind).toBe("enum");
+    expect(byKey.status?.options).toEqual(["draft", "final"]);
+    expect(byKey.issued?.kind).toBe("date");
+    expect(byKey.issued?.datatype).toBe(`${XSD}date`);
+    expect(byKey.moment?.kind).toBe("datetime");
+    expect(byKey.size?.kind).toBe("number");
+    expect(byKey.active?.kind).toBe("boolean");
+  });
+
+  it("honors an explicit dash:editor for single-literal widgets", () => {
+    const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://ex.org/> .
+
+ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
+  sh:property [ sh:path ex:note ; sh:datatype xsd:string ; sh:maxCount 1 ; dash:editor dash:TextAreaEditor ] ;
+  sh:property [ sh:path ex:flag ; sh:datatype xsd:boolean ; sh:maxCount 1 ; dash:editor dash:BooleanSelectEditor ] .`;
+    const byKey = Object.fromEntries(
+      fieldsFromShape(ttl, "http://ex.org/Thing").map((f) => [f.key, f]),
+    );
+    expect(byKey.note?.kind).toBe("textarea"); // would otherwise be plain text
+    expect(byKey.flag?.kind).toBe("boolean");
+  });
+
+  it("serializes a typed literal with its datatype", async () => {
+    const spec = {
+      type: "distribution",
+      classIri: "http://ex.org/Thing",
+      label: "Thing",
+      prefix: "distribution",
+      childTypes: [],
+      fields: [{ key: "issued", predicate: "http://ex.org/issued", label: "Issued", kind: "date", datatype: `${XSD}date` }],
+    } as unknown as EntitySpec;
+    const ttl = await buildCreateTurtle("http://x/t1", spec, { issued: "2024-01-01" }, null);
+    expect(ttl).toContain("2024-01-01");
+    expect(ttl.includes("xsd:date") || ttl.includes("XMLSchema#date")).toBe(true);
+  });
+});
+
+describe("validateConstraints (client pre-validation of pattern/length/range)", () => {
+  const spec = {
+    fields: [
+      { key: "code", predicate: "x", label: "Code", kind: "text", pattern: "^[A-Z]{3}$", minLength: 3, maxLength: 3 },
+      { key: "size", predicate: "y", label: "Size", kind: "number", minInclusive: 0, maxInclusive: 100 },
+    ],
+  } as unknown as EntitySpec;
+
+  it("flags length/pattern and numeric-range violations", () => {
+    expect(validateConstraints(spec, { code: "ABCD" })?.key).toBe("code");
+    expect(validateConstraints(spec, { code: "abc" })?.message).toContain("pattern");
+    expect(validateConstraints(spec, { size: "200" })?.message).toContain("≤ 100");
+  });
+
+  it("passes valid values and ignores empty (required's job)", () => {
+    expect(validateConstraints(spec, { code: "ABC", size: "50" })).toBeNull();
+    expect(validateConstraints(spec, { code: "", size: "" })).toBeNull();
   });
 });
 

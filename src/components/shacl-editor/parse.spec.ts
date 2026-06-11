@@ -255,6 +255,26 @@ dcat:Distribution a sh:NodeShape ;
   });
 });
 
+describe("value-range constraints (12.24c)", () => {
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat:Distribution a sh:NodeShape ; sh:targetClass dcat:Distribution ;
+  sh:property [ sh:path dcat:byteSize ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:maxInclusive 100 ] .`;
+
+  it("captures and re-emits sh:minInclusive/maxInclusive (not duplicated via residual)", () => {
+    const doc = parseSchema(ttl);
+    const f = doc.shapes[0]?.groups.flatMap((g) => g.fields)[0];
+    expect(f?.minInclusive).toBe(0);
+    expect(f?.maxInclusive).toBe(100);
+    const out = serializeSchema(doc);
+    expect((out.match(/sh:minInclusive/g) ?? []).length).toBe(1);
+    expect(out).toContain("sh:maxInclusive 100");
+    expect(serializeSchema(parseSchema(out))).toBe(out);
+  });
+});
+
 describe("ungrouped properties stay ungrouped", () => {
   // A property with no sh:group must NOT have one invented on serialize
   // (otherwise removing a group never sticks — it reappears after save).

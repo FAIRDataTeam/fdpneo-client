@@ -135,6 +135,42 @@ function removeChip(i: number) {
           />
         </label>
       </div>
+      <div v-if="isLiteral" class="row2">
+        <label class="f">
+          <span>Min value <em>sh:minInclusive</em></span>
+          <input
+            type="number"
+            :value="field.minInclusive ?? ''"
+            @input="emit('update', { minInclusive: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+        <label class="f">
+          <span>Max value <em>sh:maxInclusive</em></span>
+          <input
+            type="number"
+            :value="field.maxInclusive ?? ''"
+            @input="emit('update', { maxInclusive: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+      </div>
+      <div v-if="isLiteral" class="row2">
+        <label class="f">
+          <span>Min (excl.) <em>sh:minExclusive</em></span>
+          <input
+            type="number"
+            :value="field.minExclusive ?? ''"
+            @input="emit('update', { minExclusive: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+        <label class="f">
+          <span>Max (excl.) <em>sh:maxExclusive</em></span>
+          <input
+            type="number"
+            :value="field.maxExclusive ?? ''"
+            @input="emit('update', { maxExclusive: toNum(($event.target as HTMLInputElement).value) })"
+          />
+        </label>
+      </div>
       <label v-if="isLiteral" class="f">
         <span>Pattern <em>sh:pattern</em></span>
         <input

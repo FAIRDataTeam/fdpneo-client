@@ -94,6 +94,7 @@ export function parseSchema(turtle: string): SchemaDocument {
     sh("class"), sh("node"), sh("minCount"), sh("maxCount"), sh("minLength"),
     sh("maxLength"), sh("pattern"), sh("defaultValue"), sh("in"), sh("order"),
     sh("group"), `${DASH}editor`,
+    sh("minInclusive"), sh("minExclusive"), sh("maxInclusive"), sh("maxExclusive"),
   ]);
   const GROUP_KNOWN = new Set([`${RDFS}label`, sh("order")]);
   const GROUP_TYPES = new Set([sh("PropertyGroup")]);
@@ -249,6 +250,13 @@ export function parseSchema(turtle: string): SchemaDocument {
 
     handled.add(p.value);
     const residual = residualFrags(p, FIELD_KNOWN, NO_TYPES);
+    // Numeric value range — only carried when present (the four are optional on
+    // the model), so a field without a range stays key-for-key equal on round-trip.
+    const range: Partial<Field> = {};
+    for (const k of ["minInclusive", "minExclusive", "maxInclusive", "maxExclusive"] as const) {
+      const v = numOf(p, k);
+      if (v !== null) range[k] = v;
+    }
     const field: Field = {
       id: nextId("f"),
       widgetId: widgetForEditor(editorCompact, datatype),
@@ -268,6 +276,7 @@ export function parseSchema(turtle: string): SchemaDocument {
       defaultValue: lit(p, "defaultValue"),
       inValues: inValues && inValues.length ? inValues : null,
       order: numOf(p, "order"),
+      ...range,
       ...(residual.length ? { residual } : {}),
     };
     return { field, groupRef: groupObj ? groupObj.value : null };

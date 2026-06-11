@@ -6,7 +6,7 @@
  */
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
-import { parseKeywords } from "@/api/entityForms";
+import { constraintHint, parseKeywords } from "@/api/entityForms";
 import { usePublishedPolicies } from "@/composables/usePolicies";
 import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
@@ -31,6 +31,12 @@ function asText(key: string): string {
 function asList(key: string): string {
   const v = model.value[key];
   return Array.isArray(v) ? v.join(", ") : "";
+}
+
+// <input type="datetime-local"> yields minute precision ("…T10:30"); pad to
+// seconds so the value is a valid xsd:dateTime.
+function setDateTime(key: string, v: string) {
+  model.value[key] = v && v.length === 16 ? `${v}:00` : v;
 }
 
 const fields = computed(() => props.spec.fields);
@@ -91,6 +97,56 @@ function orLabels(keys: string[]): string {
         </datalist>
       </template>
 
+      <select
+        v-else-if="f.kind === 'enum'"
+        :value="asText(f.key)"
+        :required="!!f.required"
+        :aria-label="f.label"
+        @change="model[f.key] = ($event.target as HTMLSelectElement).value"
+      >
+        <option value="">—</option>
+        <option v-for="o in f.options ?? []" :key="o" :value="o">{{ o }}</option>
+      </select>
+
+      <select
+        v-else-if="f.kind === 'boolean'"
+        :value="asText(f.key)"
+        :aria-label="f.label"
+        @change="model[f.key] = ($event.target as HTMLSelectElement).value"
+      >
+        <option value="">—</option>
+        <option value="true">true</option>
+        <option value="false">false</option>
+      </select>
+
+      <input
+        v-else-if="f.kind === 'date'"
+        type="date"
+        :value="asText(f.key)"
+        :required="!!f.required"
+        :aria-label="f.label"
+        @input="model[f.key] = ($event.target as HTMLInputElement).value"
+      />
+
+      <input
+        v-else-if="f.kind === 'datetime'"
+        type="datetime-local"
+        :value="asText(f.key).slice(0, 16)"
+        :required="!!f.required"
+        :aria-label="f.label"
+        @input="setDateTime(f.key, ($event.target as HTMLInputElement).value)"
+      />
+
+      <input
+        v-else-if="f.kind === 'number'"
+        type="number"
+        :value="asText(f.key)"
+        :required="!!f.required"
+        :placeholder="f.placeholder"
+        :aria-label="f.label"
+        @input="model[f.key] = ($event.target as HTMLInputElement).value"
+      />
+
       <input
         v-else
         :type="f.kind === 'iri' ? 'url' : 'text'"
@@ -102,6 +158,7 @@ function orLabels(keys: string[]): string {
       />
 
       <span v-if="f.help" class="help">{{ f.help }}</span>
+      <span v-if="constraintHint(f)" class="help mono">{{ constraintHint(f) }}</span>
     </label>
 
     <p v-for="(g, i) in orGroups" :key="`or-${i}`" class="or-req">
@@ -133,7 +190,8 @@ function orLabels(keys: string[]): string {
   color: var(--signal);
 }
 input,
-textarea {
+textarea,
+select {
   font-family: var(--font-sans);
   font-size: 14px;
   padding: 10px 12px;

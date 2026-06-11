@@ -67,6 +67,15 @@ function fieldTerms(field: Field, group: Group | null, inOr = false): string[] {
   const maxLength = num(field.maxLength);
   if (maxLength !== null) lines.push(`sh:maxLength ${maxLength}`);
 
+  const minIncl = num(field.minInclusive ?? null);
+  if (minIncl !== null) lines.push(`sh:minInclusive ${minIncl}`);
+  const minExcl = num(field.minExclusive ?? null);
+  if (minExcl !== null) lines.push(`sh:minExclusive ${minExcl}`);
+  const maxIncl = num(field.maxInclusive ?? null);
+  if (maxIncl !== null) lines.push(`sh:maxInclusive ${maxIncl}`);
+  const maxExcl = num(field.maxExclusive ?? null);
+  if (maxExcl !== null) lines.push(`sh:maxExclusive ${maxExcl}`);
+
   if (field.pattern) lines.push(`sh:pattern ${quote(field.pattern)}`);
   if (field.defaultValue) lines.push(`sh:defaultValue ${quote(field.defaultValue)}`);
   if (field.inValues && field.inValues.length > 0) {

@@ -74,10 +74,20 @@ export function typedSubjects(store: Store): string[] {
 }
 
 /** Replace all `subject predicate` triples with a single string literal (or remove if empty). */
-export function setLiteral(store: Store, subject: string, predicate: string, value: string): void {
+export function setLiteral(
+  store: Store,
+  subject: string,
+  predicate: string,
+  value: string,
+  datatype?: string,
+): void {
   store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
   const v = value.trim();
-  if (v) store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), DataFactory.literal(v)));
+  if (!v) return;
+  // Tag the literal with its datatype (e.g. xsd:date) so it satisfies the
+  // shape's sh:datatype; a plain literal (no datatype) is xsd:string by RDF 1.1.
+  const lit = datatype ? DataFactory.literal(v, namedNode(datatype)) : DataFactory.literal(v);
+  store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), lit));
 }
 
 /** Replace all `subject predicate` triples with a single IRI object (or remove if empty). */

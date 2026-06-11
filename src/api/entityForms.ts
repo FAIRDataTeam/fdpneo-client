@@ -34,7 +34,18 @@ import {
  */
 export type EntityType = string;
 
-export type FieldKind = "text" | "textarea" | "iri" | "keywords" | "iris" | "ref";
+export type FieldKind =
+  | "text"
+  | "textarea"
+  | "iri"
+  | "keywords"
+  | "iris"
+  | "ref"
+  | "enum"
+  | "boolean"
+  | "date"
+  | "datetime"
+  | "number";
 
 export interface FieldSpec {
   key: string;
@@ -44,6 +55,19 @@ export interface FieldSpec {
   required?: boolean;
   placeholder?: string;
   help?: string;
+  /** Allowed values for `kind: "enum"` (from the shape's `sh:in`). */
+  options?: string[];
+  /** Datatype IRI for typed literals (date/number/boolean/enum); xsd:string left bare. */
+  datatype?: string;
+  /** String constraints (for hints + client pre-validation): sh:pattern / sh:minLength / sh:maxLength. */
+  pattern?: string;
+  minLength?: number;
+  maxLength?: number;
+  /** Numeric range (for hints + client pre-validation): sh:min/maxInclusive / sh:min/maxExclusive. */
+  minInclusive?: number;
+  maxInclusive?: number;
+  minExclusive?: number;
+  maxExclusive?: number;
   /**
    * Name of a server autocomplete source (`GET /forms/autocomplete`) to suggest
    * values for this field (TASKS 10.6). The source names are admin-configured
@@ -183,7 +207,9 @@ function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityMo
     if (f.kind === "keywords") setLiterals(store, iri, f.predicate, list);
     else if (f.kind === "iris") setIris(store, iri, f.predicate, list);
     else if (f.kind === "iri" || f.kind === "ref") setIri(store, iri, f.predicate, scalar);
-    else setLiteral(store, iri, f.predicate, scalar);
+    // Typed literals (date/number/boolean/enum) carry their datatype; bare text
+    // serializes as a plain literal (xsd:string).
+    else setLiteral(store, iri, f.predicate, scalar, f.datatype);
   }
 }
 
@@ -229,6 +255,35 @@ export function parseKeywords(input: string): string[] {
 const SH = "http://www.w3.org/ns/shacl#";
 const sh = (local: string) => DataFactory.namedNode(`${SH}${local}`);
 
+const DASH = "http://datashapes.org/dash#";
+/**
+ * Explicit DASH editor (single-literal widgets only) → record-form kind, so a
+ * steward's `dash:editor` choice drives the control. Reference/nested widgets
+ * (AutoComplete/InstancesSelect/SubClass/Details/BlankNode) need a class-instance
+ * lookup the client doesn't have, and the *WithLang editors need rdf:langString
+ * support — both degrade to the datatype/nodeKind default (TASKS 12.25).
+ */
+const DASH_EDITOR_KIND: Record<string, FieldKind> = {
+  TextFieldEditor: "text",
+  TextAreaEditor: "textarea",
+  RichTextEditor: "textarea",
+  TextFieldWithLangEditor: "text",
+  TextAreaWithLangEditor: "textarea",
+  BooleanSelectEditor: "boolean",
+  DatePickerEditor: "date",
+  DateTimePickerEditor: "datetime",
+};
+
+const XSD = "http://www.w3.org/2001/XMLSchema#";
+/** xsd numeric datatypes → the Number input. */
+const NUMERIC_XSD = new Set<string>(
+  [
+    "integer", "decimal", "float", "double", "long", "int", "short", "byte",
+    "nonNegativeInteger", "positiveInteger", "nonPositiveInteger", "negativeInteger",
+    "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
+  ].map((t) => `${XSD}${t}`),
+);
+
 // Predicates the dynamic form omits: structural (set on create), server-managed
 // timestamps, and access policy (its own editor).
 const SHACL_EXCLUDED = new Set<string>([
@@ -269,21 +324,51 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
   const first = (p: Quad_Object, local: string): string | undefined =>
     store.getObjects(p, sh(local), null)[0]?.value;
 
+  const RDF_FIRST = `${NS.rdf}first`;
+  const RDF_REST = `${NS.rdf}rest`;
+  const RDF_NIL = `${NS.rdf}nil`;
+  // sh:in ( … ) → the list of allowed values (for enum dropdowns).
+  const readIn = (p: Quad_Object): string[] | null => {
+    const headHead = store.getObjects(p, sh("in"), null)[0];
+    if (!headHead) return null;
+    const out: string[] = [];
+    const seen = new Set<string>();
+    let node: Term | undefined = headHead;
+    while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
+      seen.add(node.value);
+      const v = store.getObjects(node, DataFactory.namedNode(RDF_FIRST), null)[0];
+      if (v) out.push(v.value);
+      node = store.getObjects(node, DataFactory.namedNode(RDF_REST), null)[0];
+    }
+    return out.length ? out : null;
+  };
+
   const fields: FieldSpec[] = [];
   for (const p of store.getObjects(shape, sh("property"), null)) {
     const path = store.getObjects(p, sh("path"), null)[0]?.value;
     if (!path || SHACL_EXCLUDED.has(path)) continue;
     const datatype = first(p, "datatype");
     const nodeKind = first(p, "nodeKind");
-    if (!datatype && nodeKind !== `${SH}IRI`) continue; // not a simple field
+    const options = readIn(p);
+    const editorIri = store.getObjects(p, DataFactory.namedNode(`${DASH}editor`), null)[0]?.value;
+    const editorKind = editorIri ? DASH_EDITOR_KIND[editorIri.replace(DASH, "")] : undefined;
+    if (!datatype && !options && nodeKind !== `${SH}IRI` && !editorKind) continue; // not a simple field
 
     const single = first(p, "maxCount") === "1" || SHACL_SINGLE_LITERALS.has(path);
     const minCount = first(p, "minCount");
     const required = minCount !== undefined && Number(minCount) >= 1;
 
+    // Pick the input control: enum (sh:in) → IRI → repeatable literals → explicit
+    // dash:editor → typed literal by datatype → textarea/text.
     let kind: FieldKind;
-    if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
+    if (options) kind = "enum";
+    else if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
     else if (!single) kind = "keywords";
+    else if (editorKind) kind = editorKind;
+    else if (datatype === `${XSD}boolean`) kind = "boolean";
+    else if (datatype === `${XSD}date`) kind = "date";
+    else if (datatype === `${XSD}dateTime` || datatype === `${XSD}time`) kind = "datetime";
+    else if (datatype && NUMERIC_XSD.has(datatype)) kind = "number";
     else kind = path === `${NS.dct}description` ? "textarea" : "text";
 
     const field: FieldSpec = {
@@ -292,6 +377,11 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
       label: first(p, "name") || shortLabel(path),
       kind,
     };
+    if (options) field.options = options;
+    // Carry the datatype for typed literals so values serialize correctly.
+    if (datatype && (kind === "enum" || kind === "boolean" || kind === "date" || kind === "datetime" || kind === "number")) {
+      field.datatype = datatype;
+    }
     if (path === `${NS.dct}license`) {
       field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI
       field.source = "licenses";
@@ -300,6 +390,19 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
     if (required) field.required = true;
     const description = first(p, "description");
     if (description) field.help = description;
+
+    // String + numeric constraints (for hints + client pre-validation).
+    const numOf = (local: string): number | undefined => {
+      const v = first(p, local);
+      return v !== undefined && Number.isFinite(Number(v)) ? Number(v) : undefined;
+    };
+    const pattern = first(p, "pattern");
+    if (pattern) field.pattern = pattern;
+    for (const c of ["minLength", "maxLength", "minInclusive", "maxInclusive", "minExclusive", "maxExclusive"] as const) {
+      const v = numOf(c);
+      if (v !== undefined) field[c] = v;
+    }
+
     fields.push(field);
   }
 
@@ -369,4 +472,64 @@ export function missingOrGroups(spec: EntitySpec, model: EntityModel): OrConstra
     return typeof v === "string" && v.trim() !== "";
   };
   return (spec.orGroups ?? []).filter((g) => !g.keys.some(filled));
+}
+
+export interface ConstraintViolation {
+  key: string;
+  label: string;
+  message: string;
+}
+
+/**
+ * Client-side pre-validation of string/numeric constraints (sh:pattern,
+ * sh:minLength/maxLength, value range) — a courtesy so the user doesn't round-
+ * trip to the server to learn of a simple violation. Returns the first failure,
+ * or null. The server remains the validation authority.
+ */
+export function validateConstraints(spec: EntitySpec, model: EntityModel): ConstraintViolation | null {
+  for (const f of spec.fields) {
+    const v = model[f.key];
+    if (typeof v !== "string") continue; // multi-value / unset handled elsewhere
+    const s = v.trim();
+    if (!s) continue; // emptiness is the required check's job
+    const fail = (message: string): ConstraintViolation => ({ key: f.key, label: f.label, message });
+
+    if (f.minLength != null && s.length < f.minLength) return fail(`must be at least ${f.minLength} characters`);
+    if (f.maxLength != null && s.length > f.maxLength) return fail(`must be at most ${f.maxLength} characters`);
+    if (f.pattern) {
+      let re: RegExp | null = null;
+      try {
+        re = new RegExp(f.pattern);
+      } catch {
+        re = null; // an un-compilable pattern is left to the server
+      }
+      if (re && !re.test(s)) return fail(`must match the pattern ${f.pattern}`);
+    }
+    if (f.kind === "number") {
+      const n = Number(s);
+      if (Number.isFinite(n)) {
+        if (f.minInclusive != null && n < f.minInclusive) return fail(`must be ≥ ${f.minInclusive}`);
+        if (f.maxInclusive != null && n > f.maxInclusive) return fail(`must be ≤ ${f.maxInclusive}`);
+        if (f.minExclusive != null && n <= f.minExclusive) return fail(`must be > ${f.minExclusive}`);
+        if (f.maxExclusive != null && n >= f.maxExclusive) return fail(`must be < ${f.maxExclusive}`);
+      }
+    }
+  }
+  return null;
+}
+
+/** A short human hint summarising a field's constraints (for the form help line). */
+export function constraintHint(f: FieldSpec): string {
+  const parts: string[] = [];
+  if (f.minLength != null || f.maxLength != null) {
+    if (f.minLength != null && f.maxLength != null) parts.push(`${f.minLength}–${f.maxLength} chars`);
+    else if (f.minLength != null) parts.push(`min ${f.minLength} chars`);
+    else parts.push(`max ${f.maxLength} chars`);
+  }
+  if (f.minInclusive != null) parts.push(`≥ ${f.minInclusive}`);
+  if (f.maxInclusive != null) parts.push(`≤ ${f.maxInclusive}`);
+  if (f.minExclusive != null) parts.push(`> ${f.minExclusive}`);
+  if (f.maxExclusive != null) parts.push(`< ${f.maxExclusive}`);
+  if (f.pattern) parts.push(`pattern ${f.pattern}`);
+  return parts.join(" · ");
 }

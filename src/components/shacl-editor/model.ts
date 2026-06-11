@@ -91,6 +91,11 @@ export interface Field {
   minLength: number | null;
   /** sh:maxLength */
   maxLength: number | null;
+  /** Numeric value range: sh:minInclusive / sh:minExclusive / sh:maxInclusive / sh:maxExclusive */
+  minInclusive?: number | null;
+  minExclusive?: number | null;
+  maxInclusive?: number | null;
+  maxExclusive?: number | null;
   /** sh:pattern (regex; omitted when empty) */
   pattern: string;
   /** sh:defaultValue (omitted when empty) */
