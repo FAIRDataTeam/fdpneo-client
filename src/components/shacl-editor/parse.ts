@@ -87,7 +87,7 @@ export function parseSchema(turtle: string): SchemaDocument {
   const handled = new Set<string>(); // subjects fully represented by the model
   const inlined = new Set<string>(); // bnodes already emitted inside a residual fragment
 
-  const SHAPE_KNOWN = new Set([sh("targetClass"), sh("property"), `${RDFS}label`, `${RDFS}comment`]);
+  const SHAPE_KNOWN = new Set([sh("targetClass"), sh("property"), sh("or"), `${RDFS}label`, `${RDFS}comment`]);
   const SHAPE_TYPES = new Set([sh("NodeShape")]);
   const FIELD_KNOWN = new Set([
     sh("path"), sh("name"), sh("description"), sh("nodeKind"), sh("datatype"),
@@ -161,6 +161,83 @@ export function parseSchema(turtle: string): SchemaDocument {
     return out;
   };
 
+  /** RDF list head → its member terms (for sh:or branch shapes), marking the
+   * list spine consumed so it isn't re-emitted as residual. */
+  const readListTerms = (head: Term): Term[] => {
+    const out: Term[] = [];
+    let node: Term | undefined = head;
+    while (node && node.value !== `${RDF}nil`) {
+      inlined.add(node.value);
+      const first = store.getObjects(node, namedNode(`${RDF}first`), null)[0];
+      if (first) out.push(first);
+      node = store.getObjects(node, namedNode(`${RDF}rest`), null)[0];
+    }
+    return out;
+  };
+
+  /**
+   * Model a node-level `sh:or` as an OrGroup when every branch is a single
+   * required property — `[ (a sh:NodeShape)? ; sh:property [ sh:path P ; … ] ]`.
+   * Returns the captured paths, or null if the `sh:or` doesn't fit (caller keeps
+   * it as residual). The branch's other constraints are enforced by the matching
+   * top-level property, so capturing the path is sufficient.
+   */
+  const matchOrPaths = (orHead: Term): string[] | null => {
+    const members = readListTerms(orHead);
+    if (members.length === 0) return null;
+    const paths: string[] = [];
+    for (const m of members) {
+      // Canonical W3C form — the member is itself a property shape (sh:path
+      // directly); else the node-shape form `[ sh:property [ sh:path P … ] ]`.
+      let path = iri(m, "path");
+      if (!path) {
+        const props = store.getObjects(m, namedNode(sh("property")), null);
+        if (props.length !== 1) return null;
+        path = iri(props[0]!, "path");
+      }
+      if (!path) return null;
+      paths.push(path);
+    }
+    return paths;
+  };
+
+  const sameSet = (a: string[], b: string[]): boolean => {
+    const sa = new Set(a);
+    const sb = new Set(b);
+    return sa.size === sb.size && [...sa].every((x) => sb.has(x));
+  };
+
+  /** Remove and return the first field with `path` across `groups` (or null). */
+  const takeFieldByPath = (groups: Group[], path: string): Field | null => {
+    for (const g of groups) {
+      const i = g.fields.findIndex((f) => f.path === path);
+      if (i !== -1) return g.fields.splice(i, 1)[0] ?? null;
+    }
+    return null;
+  };
+
+  /** A minimal required field for an sh:or path that had no top-level property. */
+  const minimalField = (path: string): Field => ({
+    id: nextId("f"),
+    widgetId: widgetForEditor(null, null),
+    editor: null,
+    name: "",
+    description: "",
+    path,
+    nodeKind: null,
+    datatype: null,
+    class: null,
+    node: null,
+    minCount: 1,
+    maxCount: null,
+    minLength: null,
+    maxLength: null,
+    pattern: "",
+    defaultValue: "",
+    inValues: null,
+    order: null,
+  });
+
   const readField = (p: Term): { field: Field; groupRef: string | null } => {
     const datatype = iri(p, "datatype");
     const editorObj = store.getObjects(p, namedNode(`${DASH}editor`), null)[0];
@@ -232,10 +309,36 @@ export function parseSchema(turtle: string): SchemaDocument {
         ...(groupResidual.length ? { residual: groupResidual } : {}),
       });
     }
+    // Model each node-level sh:or we can; the rest fall through to residual.
+    // An "Either/or" is a group whose field paths are exactly the branch paths:
+    // reuse an existing matching group, else pull those properties into a new
+    // "or" group (synthesising a minimal field for any path with no property).
+    const orResidual: string[] = [];
+    for (const orHead of store.getObjects(s, namedNode(sh("or")), null)) {
+      const paths = matchOrPaths(orHead);
+      if (!paths) {
+        orResidual.push(`sh:or ${termToTtl(orHead)}`);
+        continue;
+      }
+      const existing = groups.find((g) => sameSet(g.fields.map((f) => f.path), paths));
+      if (existing) {
+        existing.kind = "or";
+        continue;
+      }
+      const orFields = paths.map((p) => takeFieldByPath(groups, p) ?? minimalField(p));
+      const orders = orFields.map((f) => f.order).filter((o): o is number => o != null);
+      groups.push({
+        id: nextId("g"),
+        label: "",
+        order: orders.length ? Math.min(...orders) : groups.length,
+        fields: orFields,
+        kind: "or",
+      });
+    }
     groups.sort((a, b) => a.order - b.order);
 
     handled.add(s.value);
-    const shapeResidual = residualFrags(s, SHAPE_KNOWN, SHAPE_TYPES);
+    const shapeResidual = [...residualFrags(s, SHAPE_KNOWN, SHAPE_TYPES), ...orResidual];
     shapes.push({
       id: nextId("s"),
       shapeIri: compact(s.value),

@@ -17,10 +17,12 @@ import SchemaInspector from "./SchemaInspector.vue";
 import {
   addField,
   addGroup,
+  addOrGroup,
   deleteField,
   deleteGroup,
   duplicateField,
   moveField,
+  setGroupKind,
   setPrefixes,
   updateField,
   updateGroup,
@@ -203,21 +205,40 @@ function overEmpty(groupId: string): boolean {
       <section class="panel" role="region" aria-label="Form canvas">
         <header>
           FORM CANVAS
-          <button class="btn sm" @click="apply((d) => addGroup(d, shapeId))">+ Add group</button>
+          <span class="head-actions">
+            <button class="btn sm" @click="apply((d) => addGroup(d, shapeId))">+ Group</button>
+            <button
+              class="btn sm"
+              title="A group where at least one property is required (sh:or)"
+              @click="apply((d) => addOrGroup(d, shapeId))"
+            >
+              + Either/or
+            </button>
+          </span>
         </header>
         <div class="panel__body">
           <p v-if="!shape.groups.length" class="hint">Add a group, then add widgets to it.</p>
           <div v-for="g in shape.groups" :key="g.id" class="group">
-            <div class="group__head" :class="{ selected: selectedGroup?.id === g.id }">
+            <div class="group__head" :class="{ selected: selectedGroup?.id === g.id, or: g.kind === 'or' }">
               <button class="ghead-sel" title="Group settings" @click="sel = { kind: 'group', id: g.id }">
                 <AppIcon name="tree" :size="13" />
               </button>
+              <span v-if="g.kind === 'or'" class="or-badge" title="At least one property in this group is required (sh:or)">
+                EITHER/OR
+              </span>
               <input
                 :value="g.label"
-                placeholder="Group label"
+                :placeholder="g.kind === 'or' ? 'Either/or label (optional)' : 'Group label'"
                 aria-label="Group label"
                 @input="apply((d) => updateGroup(d, shapeId, g.id, { label: ($event.target as HTMLInputElement).value }))"
               />
+              <button
+                class="icon"
+                :title="g.kind === 'or' ? 'Make a normal group' : 'Make an either/or group (sh:or)'"
+                @click="apply((d) => setGroupKind(d, shapeId, g.id, g.kind === 'or' ? undefined : 'or'))"
+              >
+                <AppIcon name="filter" :size="13" />
+              </button>
               <button class="icon" title="Delete group" @click="apply((d) => deleteGroup(d, shapeId, g.id))">
                 <AppIcon name="x" :size="13" />
               </button>
@@ -414,6 +435,24 @@ function overEmpty(groupId: string): boolean {
 .hint {
   font-size: 12px;
   color: var(--muted);
+}
+.head-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+.group__head.or {
+  background: var(--warn-soft, var(--accent-soft));
+}
+.or-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--warn, var(--accent));
+  background: var(--surface);
+  border: 1px solid var(--warn, var(--accent-line));
+  border-radius: var(--r-3);
+  padding: 1px 5px;
+  flex: none;
 }
 .icon {
   display: grid;

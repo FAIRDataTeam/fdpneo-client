@@ -84,6 +84,32 @@ export function deleteGroup(doc: SchemaDocument, shapeId: string, groupId: strin
   });
 }
 
+// --- "Either/or" groups (node-level sh:or; task 12.20) --------------------
+// An or-group is a normal group with `kind: "or"`, so all the group/field
+// mutations above apply to it; only creation + the kind toggle are special.
+
+export function addOrGroup(doc: SchemaDocument, shapeId: string): SchemaDocument {
+  return onShape(doc, shapeId, (s) => {
+    const g = newGroup("", s.groups.length);
+    g.kind = "or";
+    s.groups.push(g);
+  });
+}
+
+export function setGroupKind(
+  doc: SchemaDocument,
+  shapeId: string,
+  groupId: string,
+  kind: "or" | undefined,
+): SchemaDocument {
+  return onShape(doc, shapeId, (s) => {
+    const g = s.groups.find((x) => x.id === groupId);
+    if (!g) return;
+    if (kind) g.kind = kind;
+    else delete g.kind;
+  });
+}
+
 export function addField(
   doc: SchemaDocument,
   shapeId: string,

@@ -59,6 +59,15 @@ export interface FieldSpec {
   source?: "policies" | "licenses";
 }
 
+/**
+ * An "at least one of these" requirement, from a node-level `sh:or` over
+ * single-property branches (SHACL spec §4.6.2). The record must give a value to
+ * at least one of `keys` (each a `FieldSpec.key`). Both is fine; neither is not.
+ */
+export interface OrConstraint {
+  keys: string[];
+}
+
 export interface EntitySpec {
   type: EntityType;
   classIri: string;
@@ -68,6 +77,8 @@ export interface EntitySpec {
   /** Types that can be created as children of this one. */
   childTypes: EntityType[];
   fields: FieldSpec[];
+  /** "At least one of" groups from the shape's `sh:or` (empty/absent = none). */
+  orGroups?: OrConstraint[];
 }
 
 /** Model is a flat record: scalar fields are strings, `keywords` is a string[]. */
@@ -299,4 +310,63 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
   // never comes from the shape, but any record can opt into a policy (5.5).
   fields.push({ ...F.rights });
   return fields;
+}
+
+/**
+ * "At least one of" groups derived from the shape's node-level `sh:or`
+ * (SHACL spec §4.6.2). Each `sh:or` over single-property branches becomes one
+ * `OrConstraint` whose `keys` are the form keys of the branch paths. Supports
+ * both the canonical property-shape branch (`[ sh:path P ; … ]`) and the
+ * node-shape branch (`[ sh:property [ sh:path P … ] ]`).
+ */
+export function orGroupsFromShape(turtle: string, classIri: string): OrConstraint[] {
+  const store = parseTurtle(turtle);
+  let shape: Term | null =
+    store.getSubjects(sh("targetClass"), DataFactory.namedNode(classIri), null)[0] ?? null;
+  if (!shape && store.getQuads(DataFactory.namedNode(classIri), sh("or"), null, null).length) {
+    shape = DataFactory.namedNode(classIri);
+  }
+  if (!shape) return [];
+
+  const rdf = (local: string) =>
+    DataFactory.namedNode(`http://www.w3.org/1999/02/22-rdf-syntax-ns#${local}`);
+  const RDF_NIL = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+  const branchPath = (member: Term): string | undefined => {
+    const direct = store.getObjects(member, sh("path"), null)[0]?.value;
+    if (direct) return direct;
+    const prop = store.getObjects(member, sh("property"), null)[0];
+    return prop ? store.getObjects(prop, sh("path"), null)[0]?.value : undefined;
+  };
+
+  const groups: OrConstraint[] = [];
+  for (const head of store.getObjects(shape, sh("or"), null)) {
+    const keys: string[] = [];
+    let node: Term | undefined = head;
+    let ok = true;
+    const seen = new Set<string>();
+    while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
+      seen.add(node.value);
+      const member = store.getObjects(node, rdf("first"), null)[0];
+      const path = member ? branchPath(member) : undefined;
+      if (!path || SHACL_EXCLUDED.has(path)) {
+        ok = false;
+        break;
+      }
+      keys.push(shortLabel(path));
+      node = store.getObjects(node, rdf("rest"), null)[0];
+    }
+    if (ok && keys.length >= 2) groups.push({ keys });
+  }
+  return groups;
+}
+
+/** The "at least one of" groups in `spec` where the model fills none of them. */
+export function missingOrGroups(spec: EntitySpec, model: EntityModel): OrConstraint[] {
+  const filled = (key: string): boolean => {
+    const v = model[key];
+    if (Array.isArray(v)) return v.length > 0;
+    return typeof v === "string" && v.trim() !== "";
+  };
+  return (spec.orGroups ?? []).filter((g) => !g.keys.some(filled));
 }

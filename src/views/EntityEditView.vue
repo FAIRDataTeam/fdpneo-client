@@ -14,6 +14,7 @@ import { apiBase } from "@/api/rdf";
 import { readGraph } from "@/api/records";
 import {
   applyEditTurtle,
+  missingOrGroups,
   modelFromTurtle,
   type EntityModel,
   type EntitySpec,
@@ -43,11 +44,12 @@ const iri = computed(() => `${apiBase()}/${id.value}`);
 const baseSpec = computed<EntitySpec | null>(() =>
   type.value ? specFor(type.value) : null,
 );
-const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(baseSpec);
+const { data: shapeForm, isLoading: shapeLoading } = useEntityShape(baseSpec);
 const spec = computed<EntitySpec | null>(() => {
   if (!baseSpec.value) return null;
-  const fields = shapeFields.value?.length ? shapeFields.value : baseSpec.value.fields;
-  return { ...baseSpec.value, fields };
+  const fields = shapeForm.value?.fields.length ? shapeForm.value.fields : baseSpec.value.fields;
+  const orGroups = shapeForm.value?.orGroups ?? baseSpec.value.orGroups ?? [];
+  return { ...baseSpec.value, fields, orGroups };
 });
 
 const model = ref<EntityModel>({});
@@ -93,6 +95,14 @@ async function save() {
   if (!spec.value || saving.value) return;
   if (!String(model.value.title ?? "").trim()) {
     error.value = clientError("Title is required", "The record must keep a title.");
+    return;
+  }
+  const missing = missingOrGroups(spec.value, model.value);
+  if (missing.length) {
+    const labels = missing[0]!.keys.map(
+      (k) => spec.value!.fields.find((f) => f.key === k)?.label ?? k,
+    );
+    error.value = clientError("At least one required", `Provide at least one of: ${labels.join(", ")}.`);
     return;
   }
   saving.value = true;

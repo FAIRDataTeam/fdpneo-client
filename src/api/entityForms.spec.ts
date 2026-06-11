@@ -8,6 +8,9 @@ import {
   emptyModel,
   parseKeywords,
   fieldsFromShape,
+  orGroupsFromShape,
+  missingOrGroups,
+  type EntitySpec,
 } from "./entityForms";
 import { NS, parseTurtle, one, many } from "./rdf";
 
@@ -155,5 +158,43 @@ describe("ref fields (dct:rights / dct:license) write + read as IRIs (5.5)", () 
     const back = modelFromTurtle(ttl, iri, spec);
     expect(back.rights).toBe("http://x/policies/p1");
     expect(back.license).toBe("http://x/licenses/cc0");
+  });
+});
+
+describe("orGroupsFromShape (sh:or → at-least-one groups)", () => {
+  const head = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .`;
+
+  it("reads the canonical property-shape branch form", () => {
+    const ttl = `${head}
+dcat:Distribution a sh:NodeShape ; sh:targetClass dcat:Distribution ;
+  sh:or ( [ sh:path dcat:downloadURL ; sh:minCount 1 ] [ sh:path dcat:accessURL ; sh:minCount 1 ] ) ;
+  sh:property [ sh:path dcterms:title ] .`;
+    const groups = orGroupsFromShape(ttl, `${NS.dcat}Distribution`);
+    expect(groups).toEqual([{ keys: ["downloadURL", "accessURL"] }]);
+  });
+
+  it("also reads the node-shape branch form", () => {
+    const ttl = `${head}
+dcat:Distribution a sh:NodeShape ; sh:targetClass dcat:Distribution ;
+  sh:or ( [ sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ] ]
+          [ sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) .`;
+    const groups = orGroupsFromShape(ttl, `${NS.dcat}Distribution`);
+    expect(groups).toEqual([{ keys: ["downloadURL", "accessURL"] }]);
+  });
+});
+
+describe("missingOrGroups (at-least-one validation)", () => {
+  const spec = { orGroups: [{ keys: ["downloadURL", "accessURL"] }] } as unknown as EntitySpec;
+
+  it("flags a group when none of its members has a value", () => {
+    expect(missingOrGroups(spec, {})).toHaveLength(1);
+    expect(missingOrGroups(spec, { downloadURL: "" })).toHaveLength(1);
+  });
+
+  it("passes when at least one member has a value", () => {
+    expect(missingOrGroups(spec, { downloadURL: "http://x/f.csv" })).toEqual([]);
+    expect(missingOrGroups(spec, { accessURL: "http://x/api" })).toEqual([]);
   });
 });

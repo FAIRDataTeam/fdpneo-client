@@ -14,6 +14,7 @@ import { apiBase } from "@/api/rdf";
 import {
   buildCreateTurtle,
   emptyModel,
+  missingOrGroups,
   type EntityModel,
   type EntitySpec,
 } from "@/api/entityForms";
@@ -40,11 +41,12 @@ const parentIri = computed(() => {
 const baseSpec = computed<EntitySpec | null>(() =>
   type.value ? specFor(type.value) : null,
 );
-const { data: shapeFields, isLoading: shapeLoading } = useEntityShape(baseSpec);
+const { data: shapeForm, isLoading: shapeLoading } = useEntityShape(baseSpec);
 const spec = computed<EntitySpec | null>(() => {
   if (!baseSpec.value) return null;
-  const fields = shapeFields.value?.length ? shapeFields.value : baseSpec.value.fields;
-  return { ...baseSpec.value, fields };
+  const fields = shapeForm.value?.fields.length ? shapeForm.value.fields : baseSpec.value.fields;
+  const orGroups = shapeForm.value?.orGroups ?? baseSpec.value.orGroups ?? [];
+  return { ...baseSpec.value, fields, orGroups };
 });
 
 const model = ref<EntityModel>({});
@@ -78,6 +80,15 @@ async function submit() {
   const titleVal = String(model.value.title ?? "").trim();
   if (!titleVal) {
     error.value = clientError("Title is required", "Give the new record a title.");
+    return;
+  }
+  // "At least one of" (sh:or) groups — provide a value for at least one member.
+  const missing = missingOrGroups(spec.value, model.value);
+  if (missing.length) {
+    const labels = missing[0]!.keys.map(
+      (k) => spec.value!.fields.find((f) => f.key === k)?.label ?? k,
+    );
+    error.value = clientError("At least one required", `Provide at least one of: ${labels.join(", ")}.`);
     return;
   }
   const s = effectiveSlug.value;

@@ -273,3 +273,82 @@ dcat:Distribution a sh:NodeShape ;
     expect(() => new Parser().parse(out)).not.toThrow();
   });
 });
+
+describe("node-level sh:or modelled as a kind:'or' group (12.20)", () => {
+  it("marks the group whose fields match the sh:or branch paths as kind:'or'", () => {
+    const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:or ( [ sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ] ]
+          [ sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) ;
+  sh:property [ sh:path dcat:downloadURL ; sh:group <http://x/g> ; sh:order 0 ] ;
+  sh:property [ sh:path dcat:accessURL ; sh:group <http://x/g> ; sh:order 1 ] .
+<http://x/g> a sh:PropertyGroup ; rdfs:label "Access" ; sh:order 0 .`;
+    const doc = parseSchema(ttl);
+    const or = doc.shapes[0]?.groups.find((g) => g.kind === "or");
+    expect(or?.label).toBe("Access");
+    expect(or?.fields.map((f) => f.path)).toEqual(["dcat:downloadURL", "dcat:accessURL"]);
+
+    const out = serializeSchema(doc);
+    expect(out).toContain("sh:or (");
+    // Canonical W3C form: members are property shapes (sh:path directly).
+    expect(out).toContain("[ sh:path dcat:downloadURL ; sh:minCount 1 ]");
+    expect(() => new Parser().parse(out)).not.toThrow();
+    expect(serializeSchema(parseSchema(out))).toBe(out); // stable round-trip
+  });
+
+  it("makes or-group members individually optional (no top-level sh:minCount)", () => {
+    // Even though the members carry minCount 1 at the top level, the requirement
+    // belongs to the sh:or — emitting per-member minCount would require *both*.
+    const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:or ( [ sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ] ]
+          [ sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) ;
+  sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ; sh:group <http://x/g> ; sh:order 0 ] ;
+  sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ; sh:group <http://x/g> ; sh:order 1 ] .
+<http://x/g> a sh:PropertyGroup ; rdfs:label "Access" ; sh:order 0 .`;
+    const out = serializeSchema(parseSchema(ttl));
+    const or = parseSchema(out).shapes[0]?.groups.find((g) => g.kind === "or");
+    expect(or?.fields.every((f) => f.minCount === null)).toBe(true);
+    expect(out).toContain("sh:or ("); // the requirement still lives here
+    expect(() => new Parser().parse(out)).not.toThrow();
+  });
+
+  it("synthesises an or-group when the sh:or paths have no top-level property", () => {
+    const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:or ( [ a sh:NodeShape ; sh:property [ sh:path dcat:downloadURL ; sh:minCount 1 ] ]
+          [ a sh:NodeShape ; sh:property [ sh:path dcat:accessURL ; sh:minCount 1 ] ] ) ;
+  sh:property [ sh:path dcat:title ; sh:datatype xsd:string ] .`;
+    const doc = parseSchema(ttl);
+    const or = doc.shapes[0]?.groups.find((g) => g.kind === "or");
+    expect(or?.fields.map((f) => f.path)).toEqual(["dcat:downloadURL", "dcat:accessURL"]);
+    const out = serializeSchema(doc);
+    expect(out).toContain("sh:path dcat:downloadURL");
+    expect(() => new Parser().parse(out)).not.toThrow();
+  });
+
+  it("leaves a non-matching sh:or (no single property per branch) in residual", () => {
+    const complex = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:anyURI ] ) .`;
+    const doc = parseSchema(complex);
+    expect(doc.shapes[0]?.groups.some((g) => g.kind === "or")).toBe(false);
+    expect(serializeSchema(doc)).toContain("sh:or (");
+  });
+});

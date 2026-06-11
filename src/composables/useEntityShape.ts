@@ -15,21 +15,35 @@
 import { useQuery } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 import { http } from "@/api/http";
-import { fieldsFromShape, type EntitySpec, type FieldSpec } from "@/api/entityForms";
+import {
+  fieldsFromShape,
+  orGroupsFromShape,
+  type EntitySpec,
+  type FieldSpec,
+  type OrConstraint,
+} from "@/api/entityForms";
 
-async function fetchShapeFields(spec: EntitySpec): Promise<FieldSpec[]> {
+export interface ShapeForm {
+  fields: FieldSpec[];
+  orGroups: OrConstraint[];
+}
+
+async function fetchShapeForm(spec: EntitySpec): Promise<ShapeForm> {
   const res = await http.get<string>(`/fdp-api/${spec.prefix}/spec`, {
     headers: { Accept: "text/turtle" },
     responseType: "text",
     transformResponse: (d: unknown) => d,
   });
-  return fieldsFromShape(res.data, spec.classIri);
+  return {
+    fields: fieldsFromShape(res.data, spec.classIri),
+    orGroups: orGroupsFromShape(res.data, spec.classIri),
+  };
 }
 
 export function useEntityShape(spec: Ref<EntitySpec | null>) {
   return useQuery({
     queryKey: computed(() => ["shape", spec.value?.prefix ?? null]),
-    queryFn: () => fetchShapeFields(spec.value as EntitySpec),
+    queryFn: () => fetchShapeForm(spec.value as EntitySpec),
     enabled: computed(() => spec.value !== null),
     staleTime: 10 * 60_000,
   });

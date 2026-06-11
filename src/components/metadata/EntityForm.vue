@@ -35,6 +35,11 @@ function asList(key: string): string {
 
 const fields = computed(() => props.spec.fields);
 
+// "At least one of" requirements from the shape's sh:or (rendered as a hint).
+const orGroups = computed(() => props.spec.orGroups ?? []);
+function orLabels(keys: string[]): string {
+  return keys.map((k) => fields.value.find((f) => f.key === k)?.label ?? k).join(" or ");
+}
 </script>
 
 <template>
@@ -98,6 +103,10 @@ const fields = computed(() => props.spec.fields);
 
       <span v-if="f.help" class="help">{{ f.help }}</span>
     </label>
+
+    <p v-for="(g, i) in orGroups" :key="`or-${i}`" class="or-req">
+      At least one required: <strong>{{ orLabels(g.keys) }}</strong>
+    </p>
   </div>
 </template>
 
@@ -141,5 +150,18 @@ textarea {
 .help {
   font-size: 11px;
   color: var(--muted);
+}
+.or-req {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-2);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-1);
+  background: var(--surface-2);
+}
+.or-req strong {
+  color: var(--ink);
 }
 </style>

@@ -19,6 +19,9 @@ const fields = computed(() => props.shape.groups.flatMap((g) => g.fields));
 const missing = computed(() => (validated.value ? missingRequired(fields.value, values.value) : []));
 const missingIds = computed(() => new Set(missing.value.map((f) => f.id)));
 
+// "Either/or" groups → an "at least one required" hint listing their fields.
+const orGroups = computed(() => props.shape.groups.filter((g) => g.kind === "or"));
+
 // Reset throwaway state when a different shape is previewed.
 watch(
   () => props.shape.id,
@@ -53,6 +56,13 @@ function clear() {
         need{{ missing.length === 1 ? "s" : "" }} a value.
       </template>
       <template v-else>✓ All required fields are filled — this record would validate against the schema.</template>
+    </div>
+
+    <div v-if="orGroups.length" class="or-hints">
+      <div v-for="g in orGroups" :key="g.id" class="or-hint">
+        <strong>At least one required{{ g.label ? ` · ${g.label}` : "" }}:</strong>
+        <span class="mono">{{ g.fields.map((f) => f.name || f.path).join("  ·  ") || "(no fields)" }}</span>
+      </div>
     </div>
 
     <div v-for="g in shape.groups" :key="g.id" class="group">
@@ -125,6 +135,23 @@ function clear() {
 .banner.bad {
   color: var(--signal);
   background: var(--signal-soft);
+}
+.or-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.or-hint {
+  font-size: 12px;
+  color: var(--ink-2);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-1);
+  background: var(--surface-2);
+}
+.or-hint .mono {
+  color: var(--muted);
 }
 .group {
   display: flex;

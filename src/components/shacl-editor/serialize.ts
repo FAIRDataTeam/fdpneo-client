@@ -41,8 +41,14 @@ export function groupIri(label: string): string {
   return `:${(label || "group").replace(/\s+/g, "")}Group`;
 }
 
-/** The body lines of one `sh:property [ … ]` blank node, sans the wrapping brackets. */
-function fieldTerms(field: Field, group: Group | null): string[] {
+/**
+ * The body lines of one `sh:property [ … ]` blank node, sans the wrapping
+ * brackets. `inOr` = the field belongs to an "Either/or" group, so its
+ * individual `sh:minCount` is suppressed — the requirement ("at least one")
+ * lives in the shape's `sh:or`, not on each member, otherwise every member
+ * would be required and the `sh:or` would be redundant.
+ */
+function fieldTerms(field: Field, group: Group | null, inOr = false): string[] {
   const lines: string[] = [];
   lines.push(`sh:path ${field.path || ":unknownPath"}`);
   if (field.name) lines.push(`sh:name ${quote(field.name)}`);
@@ -53,7 +59,7 @@ function fieldTerms(field: Field, group: Group | null): string[] {
   if (field.node) lines.push(`sh:node ${field.node}`);
 
   const minCount = num(field.minCount);
-  if (minCount !== null) lines.push(`sh:minCount ${minCount}`);
+  if (minCount !== null && !inOr) lines.push(`sh:minCount ${minCount}`);
   const maxCount = num(field.maxCount);
   if (maxCount !== null) lines.push(`sh:maxCount ${maxCount}`);
   const minLength = num(field.minLength);
@@ -82,31 +88,47 @@ function sortedGroups(groups: Group[]): Group[] {
 
 function serializeShape(shape: ShapeModel, out: string[]): void {
   out.push(`${shape.shapeIri || ":Shape"}`);
-  out.push(`  a sh:NodeShape ;`);
-  if (shape.label) out.push(`  rdfs:label ${quote(shape.label)} ;`);
-  if (shape.comment) out.push(`  rdfs:comment ${quote(shape.comment)} ;`);
-  if (shape.targetClass) out.push(`  sh:targetClass ${shape.targetClass} ;`);
-  // Unmodeled shape-level predicates (sh:closed, extra rdf:type, …).
-  for (const frag of shape.residual ?? []) out.push(`  ${frag} ;`);
+
+  // Single-line head terms, emitted in order with `;` separators. The very last
+  // term overall — a head term or a property block — gets the closing `.`.
+  const head: string[] = ["a sh:NodeShape"];
+  if (shape.label) head.push(`rdfs:label ${quote(shape.label)}`);
+  if (shape.comment) head.push(`rdfs:comment ${quote(shape.comment)}`);
+  if (shape.targetClass) head.push(`sh:targetClass ${shape.targetClass}`);
+  // Unmodeled shape-level predicates (sh:closed, complex sh:or, extra rdf:type…).
+  for (const frag of shape.residual ?? []) head.push(frag);
 
   const groups = sortedGroups(shape.groups);
-  const fields: { field: Field; group: Group | null }[] = [];
+  // "Either/or" groups → a node-level sh:or of single-required-property branches
+  // over the group's field paths (the fields themselves emit normally below).
+  for (const g of groups) {
+    if (g.kind !== "or") continue;
+    const paths = g.fields.map((f) => f.path).filter((p) => p && p.trim());
+    if (paths.length === 0) continue;
+    // Canonical W3C form: each branch is a property shape (sh:path directly),
+    // per the SHACL spec's sh:or example. "At least one of these paths present."
+    const branches = paths.map((p) => `[ sh:path ${p} ; sh:minCount 1 ]`).join(" ");
+    head.push(`sh:or ( ${branches} )`);
+  }
+
+  const fields: { field: Field; group: Group | null; inOr: boolean }[] = [];
   for (const g of groups) {
     // Ungrouped bucket (empty label) → no sh:group on its fields.
     const groupOrNull = g.label ? g : null;
-    for (const f of g.fields) fields.push({ field: f, group: groupOrNull });
+    const inOr = g.kind === "or";
+    for (const f of g.fields) fields.push({ field: f, group: groupOrNull, inOr });
   }
+  const hasFields = fields.length > 0;
 
-  if (fields.length === 0) {
-    // No properties: turn the last emitted term's `;` into the closing `.`.
-    const last = out.length - 1;
-    out[last] = (out[last] ?? "").replace(/;$/, ".");
-    return;
-  }
+  head.forEach((term, i) => {
+    const lastOverall = !hasFields && i === head.length - 1;
+    out.push(`  ${term}${lastOverall ? " ." : " ;"}`);
+  });
+  if (!hasFields) return;
 
-  fields.forEach(({ field, group }, idx) => {
+  fields.forEach(({ field, group, inOr }, idx) => {
     const isLast = idx === fields.length - 1;
-    const terms = fieldTerms(field, group);
+    const terms = fieldTerms(field, group, inOr);
     out.push(`  sh:property [`);
     terms.forEach((line, i) => {
       out.push(`    ${line}${i === terms.length - 1 ? "" : " ;"}`);

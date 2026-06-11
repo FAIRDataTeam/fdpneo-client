@@ -50,6 +50,14 @@ export interface Group {
   /** sh:order */
   order: number;
   fields: Field[];
+  /**
+   * `"or"` makes this an "Either/or" group: its fields serialize as normal
+   * properties (so they render and order inline), **plus** the shape emits a
+   * node-level `sh:or ( [ sh:property [ sh:path P ; sh:minCount 1 ] ] … )` over
+   * the group's field paths — the record must satisfy at least one of them.
+   * Undefined = a normal (AND) group.
+   */
+  kind?: "or";
   /** Unmodeled predicates on this group, as Turtle fragments. */
   residual?: string[];
 }

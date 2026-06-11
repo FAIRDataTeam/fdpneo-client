@@ -1843,24 +1843,101 @@ User report: the metrics dashboard shows nothing and never changes on refresh.
 - **Recommend** a live edit→save→reopen re-test of the Distribution shape to
   confirm end-to-end (the unit tests cover the parse/serialize mechanism).
 
-### 12.20 SHACL Visual Editor — first-class `sh:or` support — ⬜ planned (feature; UX TBD)
+### 12.20 SHACL Visual Editor — first-class `sh:or` support — ✅ done (2026-06-11)
+
+**Implemented** the agreed "Either/or" element end-to-end:
+- [`model.ts`](src/components/shacl-editor/model.ts) — `ShapeModel.orGroups: { id; label; paths[] }[]`.
+- [`parse.ts`](src/components/shacl-editor/parse.ts) — models a node-level `sh:or`
+  whose branches are each a single required property (`[ (a sh:NodeShape)? ; sh:property [ sh:path P ; … ] ]`)
+  into an `orGroup`; `sh:or` shapes that don't fit stay in residual. Branches are
+  normalised to `sh:minCount 1` on the captured path.
+- [`serialize.ts`](src/components/shacl-editor/serialize.ts) — emits each orGroup as
+  `sh:or ( [ sh:property [ sh:path P ; sh:minCount 1 ] ] … )` (serializeShape refactored
+  to a head-terms list for correct `;`/`.` punctuation).
+- [`mutations.ts`](src/components/shacl-editor/mutations.ts) — add/delete OR element, add/update/remove path.
+- [`FormDesigner.vue`](src/components/shacl-editor/FormDesigner.vue) — an "Either/or requirements"
+  section (label + path rows with a datalist of the shape's existing paths; add/remove).
+- [`ShaclFormPreview.vue`](src/components/shacl-editor/ShaclFormPreview.vue) — an "at least one required" hint.
+- Tests: parse captures branch paths; serialize → valid `sh:or`, idempotent; non-matching `sh:or` stays residual.
+
+Gate green (typecheck + lint + 276 unit tests). The bundled DCAT Distribution's
+`downloadURL`/`accessURL` rule now appears as an editable Either/or element.
+
+**Adjustment (2026-06-11, follow-up):** reworked from a separate paths-only box to
+a **`Group` with `kind: "or"`** so the Either/or is *inline* with the other groups,
+its properties are real fields (so they order with `sh:order` and render in Form
+Preview), and it reuses all the group/field drag-drop + inspector machinery.
+`parse.ts` marks the group whose field paths equal an `sh:or`'s branch paths as
+`kind:"or"` (or pulls those properties into a new one, synthesising a minimal
+field for any path with no property); `serialize.ts` emits `sh:or` from `kind:"or"`
+groups; the FormDesigner shows an "Either/or" badge + a per-group kind toggle and
+an "+ Either/or" add button.
+
+<details><summary>Original plan</summary>
 - Today node-level `sh:or` is **preserved losslessly** (residual pass-through, so
   it's not lost and is editable via the SHACL text tab) but **not visually
   editable**. The DCAT Distribution needs "either `dcat:downloadURL` or
   `dcat:accessURL`" — `sh:or` is required because SHACL ANDs properties by default.
-- Scope (sizable, spans the editor stack):
-  - **model.ts** — add an OR construct to `ShapeModel`, e.g.
-    `orBranches: { paths: string[] }[]` (or richer per-branch property sets).
-  - **parse.ts** — recognise node-level `sh:or ( [ … ] … )` and model it instead
-    of dropping it into residual; keep residual for shapes it can't model.
-  - **serialize.ts** — emit the modelled `sh:or` list (currently only via residual).
-  - **FormDesigner.vue** — a "Require one of these alternatives" section: pick
-    properties into branches, add/remove branches; reflect in Form Preview.
-  - **validation** — Form Preview / sample validation should respect the OR.
-- **Decision needed (UX):** how to present OR in a form-first designer — e.g. a
-  dedicated "alternatives" panel listing branches of required paths, vs. tagging
-  properties with an "or-group" id. Recommend the dedicated panel.
+- **Agreed UX (2026-06-11):** a group-like **"Either / or" element** in the
+  FormDesigner. The user adds property paths into it; semantics = **at least one
+  of these paths is required**. Serializes to
+  `sh:or ( [ sh:property [ sh:path A ; sh:minCount 1 ] ] [ sh:property [ sh:path B ; sh:minCount 1 ] ] )`.
+  The properties still live in their normal groups for the form; the OR element
+  is the *constraint* over their paths.
+- Build scope:
+  - **model.ts** — `ShapeModel.orGroups?: { id; label; paths: string[] }[]`.
+  - **parse.ts** — detect the node-level `sh:or` of single-property branches
+    `[ (a sh:NodeShape)? ; sh:property [ sh:path P ; … ] ]` → `orGroups` (capture
+    the path; the branch's other constraints are enforced by the main property).
+    `sh:or` shapes that don't fit the pattern stay in residual (current behaviour).
+    Note: round-trip **normalises** matched branches to `sh:minCount 1` (drops
+    e.g. a branch-local `sh:nodeKind`), which is semantically equivalent.
+  - **serialize.ts** — emit `orGroups` as the `sh:or` list.
+  - **mutations.ts** — add/delete an OR element, add/remove a path.
+  - **FormDesigner.vue** — an "Either/or requirements" section (label + path rows,
+    add/remove; paths suggested from the shape's existing properties).
+  - **Form Preview** — surface the "one of these required" hint.
 - Until built, the text tab remains the way to author `sh:or`.
+</details>
+
+### 12.23 "At least one of" (sh:or) — canonical form + editor & form-validator support — ✅ done (2026-06-11)
+- **Verified vs W3C SHACL** (spec §4.6.2, `sh:or`): "at least one of two properties"
+  is `sh:or ( [ sh:path A ; sh:minCount 1 ] [ sh:path B ; sh:minCount 1 ] )` — each
+  branch a **property shape**. `sh:or` = "conforms to at least one" (both fine,
+  neither not). (Exactly-one-not-both would be `sh:xone` — not wanted here.)
+- **Editor:** [`serialize.ts`](src/components/shacl-editor/serialize.ts) now emits
+  the canonical property-shape branch; [`parse.ts`](src/components/shacl-editor/parse.ts)
+  accepts both the canonical and the node-shape (`[ sh:property [ … ] ]`) forms.
+- **Form validator:** [`orGroupsFromShape`](src/api/entityForms.ts) reads the
+  shape's node-level `sh:or` into `EntitySpec.orGroups`; [`missingOrGroups`](src/api/entityForms.ts)
+  enforces "at least one" on create ([`EntityCreateView`](src/views/EntityCreateView.vue))
+  and edit ([`EntityEditView`](src/views/EntityEditView.vue)); [`EntityForm`](src/components/metadata/EntityForm.vue)
+  shows an "At least one required: A or B" hint.
+- **Server-verified:** neither URL → rejected (`sh:or`), one or both → conforms.
+- Gate green (typecheck + lint + 281 unit tests).
+
+### 12.22 Either/or members were each required (record couldn't save) — ✅ done (2026-06-11)
+- **Verified vs SHACL (server validator):** a Distribution with only `dcat:downloadURL`
+  reported `conforms: false` — "Less than 1 values on `dcat:accessURL`". The saved
+  shape had a redundant top-level `sh:minCount 1` on **both** `downloadURL` and
+  `accessURL`; top-level property shapes are ANDed, so both were required and the
+  `sh:or` was moot. The entry form ([`fieldsFromShape`](src/api/entityForms.ts))
+  reads required from top-level `sh:minCount`, so it (correctly, given the shape)
+  required both.
+- **Editor fix:** [`serialize.ts`](src/components/shacl-editor/serialize.ts) now
+  omits per-member `sh:minCount` for fields in a `kind:"or"` group (`inOr`) — the
+  requirement lives in the `sh:or` branches, not on each member. Regression test
+  asserts or-group members serialize with no top-level `sh:minCount`.
+- **Data fix (this deployment):** corrected the saved Distribution shape — dropped
+  the redundant top-level minCounts and an **unsatisfiable** `sh:datatype xsd:anyURI`
+  that contradicted `sh:nodeKind sh:IRI` on the same IRI properties. A download-only
+  distribution now validates (`conforms: true`).
+- **Server follow-up:** these defects originate in the bundled default-profile
+  Distribution shape (`profiles/default/schemas/`); fix them at source so fresh
+  deployments aren't malformed.
+- *Lesser, not done:* the entry form doesn't yet enforce "at least one" client-side
+  (the server does), so it would currently allow submitting neither URL and let the
+  server reject it.
 
 ### 12.21 Removing a property's `sh:group` didn't stick — ✅ done (2026-06-11; this message)
 - **Cause:** [`serialize.ts`](src/components/shacl-editor/serialize.ts) assigned
