@@ -37,6 +37,27 @@ describe("specFromDefinition", () => {
     expect(spec.fields).toEqual([]);
   });
 
+  it("uses the resolved target class as the instance rdf:type, over the schema IRI", () => {
+    // Schemas now live under the managed namespace, so the schema IRI is NOT the
+    // class IRI — the explicit target class (from the schema list) must win.
+    const spec = specFromDefinition(
+      def({
+        urlPrefix: "catalog",
+        name: "Catalog",
+        schemaIri: "http://localhost:8000/fdp-api/schemas/catalog",
+      }),
+      `${NS.dcat}Catalog`,
+    );
+    expect(spec.classIri).toBe(`${NS.dcat}Catalog`);
+  });
+
+  it("falls back to the static DCAT class when no target class is supplied", () => {
+    const spec = specFromDefinition(
+      def({ urlPrefix: "catalog", name: "Catalog", schemaIri: "http://localhost:8000/fdp-api/schemas/catalog" }),
+    );
+    expect(spec.classIri).toBe(`${NS.dcat}Catalog`);
+  });
+
   it("reuses the static DCAT fallback fields for a known prefix", () => {
     const spec = specFromDefinition(
       def({ urlPrefix: "dataset", name: "Dataset", schemaIri: `${NS.dcat}Dataset` }),

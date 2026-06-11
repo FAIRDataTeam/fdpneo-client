@@ -54,6 +54,11 @@ async function gotoDashboard() {
   await router.push("/dashboard");
 }
 
+async function gotoMetrics() {
+  open.value = false;
+  await router.push("/metrics");
+}
+
 async function gotoResourceTypes() {
   open.value = false;
   await router.push("/admin/resource-definitions");
@@ -149,6 +154,14 @@ onUnmounted(() => {
       <hr class="hr" />
       <button v-if="auth.isSteward" class="item" role="menuitem" @click="gotoDashboard">
         <AppIcon name="book" :size="14" /> My metadata
+      </button>
+      <button
+        v-if="config.isEnabled('metrics')"
+        class="item"
+        role="menuitem"
+        @click="gotoMetrics"
+      >
+        <AppIcon name="monitor" :size="14" /> Metrics
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSchemas">
         <AppIcon name="code" :size="14" /> Schemas

@@ -118,19 +118,25 @@ export async function deleteResourceType(slug: string): Promise<void> {
 /**
  * Build an `EntitySpec` from a server resource definition.
  *
- * `classIri` is the schema IRI (the FDP convention is that the SHACL shape is
- * stored at — and targets — the class IRI). `childTypes` are the target URL
- * prefixes of the definition's child links, so a type that gains a child at
- * runtime (e.g. Catalog → a new Ontology type) immediately offers it in the
- * "new child" actions. Static `fields` for a known DCAT type are reused as the
- * offline fallback; runtime types rely on the SHACL `/spec` endpoint
- * (`useEntityShape`) for their fields.
+ * `classIri` is the **rdf:type stamped on instances** — the SHACL shape's
+ * `sh:targetClass` (e.g. `dcat:Catalog`). Pass it via `targetClass`, resolved
+ * from the schema list (`SchemaSummary.targetClass`). It is NOT the schema IRI:
+ * since shapes are stored under the managed namespace
+ * (`{base}/fdp-api/schemas/{slug}`), the schema IRI and the class IRI are
+ * distinct. We fall back to the static DCAT class for a known prefix, and only
+ * as a last resort to the schema IRI (legacy deployments where the two coincide).
+ *
+ * `childTypes` are the target URL prefixes of the definition's child links, so a
+ * type that gains a child at runtime (e.g. Catalog → a new Ontology type)
+ * immediately offers it in the "new child" actions. Static `fields` for a known
+ * DCAT type are reused as the offline fallback; runtime types rely on the SHACL
+ * `/spec` endpoint (`useEntityShape`) for their fields.
  */
-export function specFromDefinition(def: ResourceTypeDef): EntitySpec {
+export function specFromDefinition(def: ResourceTypeDef, targetClass?: string | null): EntitySpec {
   const fallback = ENTITY_SPECS[def.urlPrefix];
   return {
     type: def.urlPrefix,
-    classIri: def.schemaIri || fallback?.classIri || def.urlPrefix,
+    classIri: targetClass || fallback?.classIri || def.schemaIri || def.urlPrefix,
     label: def.name || fallback?.label || def.urlPrefix,
     prefix: def.urlPrefix,
     childTypes: def.children.map((c) => c.target).filter(Boolean),

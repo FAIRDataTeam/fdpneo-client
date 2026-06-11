@@ -32,6 +32,7 @@ import {
   specFromDefinition,
   type ResourceTypeDef,
 } from "@/api/resourceDefinitions";
+import { useSchemas } from "./useSchemas";
 
 export const RESOURCE_TYPES_KEY = ["resource-types"] as const;
 
@@ -55,13 +56,26 @@ export function useResourceTypes(): UseResourceTypes {
 
   const defs = computed<ResourceTypeDef[]>(() => query.data.value ?? []);
 
+  // The rdf:type for a type's instances is the schema's `sh:targetClass`, which
+  // the schema list exposes (and which is distinct from the schema IRI now that
+  // shapes live under the managed namespace). Build schemaIri → targetClass so
+  // `specFor` stamps the right class on new records (e.g. dcat:Catalog, not the
+  // schema IRI). Schemas load independently; until they do we fall back to the
+  // static DCAT class inside `specFromDefinition`.
+  const { schemas } = useSchemas();
+  const targetClassBySchema = computed(() => {
+    const map = new Map<string, string>();
+    for (const s of schemas.value) if (s.iri && s.targetClass) map.set(s.iri, s.targetClass);
+    return map;
+  });
+
   function defFor(type: EntityType): ResourceTypeDef | undefined {
     return defs.value.find((d) => d.urlPrefix === type);
   }
 
   function specFor(type: EntityType): EntitySpec | null {
     const def = defFor(type);
-    if (def) return specFromDefinition(def);
+    if (def) return specFromDefinition(def, targetClassBySchema.value.get(def.schemaIri) ?? null);
     return staticSpec(type) ?? null;
   }
 
