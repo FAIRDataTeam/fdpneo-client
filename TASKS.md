@@ -1843,6 +1843,34 @@ User report: the metrics dashboard shows nothing and never changes on refresh.
 - **Recommend** a live edit→save→reopen re-test of the Distribution shape to
   confirm end-to-end (the unit tests cover the parse/serialize mechanism).
 
+### 12.20 SHACL Visual Editor — first-class `sh:or` support — ⬜ planned (feature; UX TBD)
+- Today node-level `sh:or` is **preserved losslessly** (residual pass-through, so
+  it's not lost and is editable via the SHACL text tab) but **not visually
+  editable**. The DCAT Distribution needs "either `dcat:downloadURL` or
+  `dcat:accessURL`" — `sh:or` is required because SHACL ANDs properties by default.
+- Scope (sizable, spans the editor stack):
+  - **model.ts** — add an OR construct to `ShapeModel`, e.g.
+    `orBranches: { paths: string[] }[]` (or richer per-branch property sets).
+  - **parse.ts** — recognise node-level `sh:or ( [ … ] … )` and model it instead
+    of dropping it into residual; keep residual for shapes it can't model.
+  - **serialize.ts** — emit the modelled `sh:or` list (currently only via residual).
+  - **FormDesigner.vue** — a "Require one of these alternatives" section: pick
+    properties into branches, add/remove branches; reflect in Form Preview.
+  - **validation** — Form Preview / sample validation should respect the OR.
+- **Decision needed (UX):** how to present OR in a form-first designer — e.g. a
+  dedicated "alternatives" panel listing branches of required paths, vs. tagging
+  properties with an "or-group" id. Recommend the dedicated panel.
+- Until built, the text tab remains the way to author `sh:or`.
+
+### 12.21 Removing a property's `sh:group` didn't stick — ✅ done (2026-06-11; this message)
+- **Cause:** [`serialize.ts`](src/components/shacl-editor/serialize.ts) assigned
+  *every* field to a group and always emitted `sh:group` — so a property whose
+  group was removed (it lands in the synthetic empty-label bucket) got `sh:group`
+  re-added on the next serialize (e.g. after any visual-editor edit + save).
+- **Fix:** treat an empty-label group as "ungrouped" — emit neither its
+  `PropertyGroup` block nor `sh:group` on its fields. Regression test added
+  (a property with no `sh:group` round-trips without one).
+
 ---
 
 ## Open items

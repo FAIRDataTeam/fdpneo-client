@@ -90,9 +90,11 @@ function serializeShape(shape: ShapeModel, out: string[]): void {
   for (const frag of shape.residual ?? []) out.push(`  ${frag} ;`);
 
   const groups = sortedGroups(shape.groups);
-  const fields: { field: Field; group: Group }[] = [];
+  const fields: { field: Field; group: Group | null }[] = [];
   for (const g of groups) {
-    for (const f of g.fields) fields.push({ field: f, group: g });
+    // Ungrouped bucket (empty label) → no sh:group on its fields.
+    const groupOrNull = g.label ? g : null;
+    for (const f of g.fields) fields.push({ field: f, group: groupOrNull });
   }
 
   if (fields.length === 0) {
@@ -129,6 +131,9 @@ export function serializeSchema(doc: SchemaDocument): string {
   const seen = new Set<string>();
   for (const shape of doc.shapes) {
     for (const g of sortedGroups(shape.groups)) {
+      // An empty-label group is the "ungrouped" bucket — emit no PropertyGroup
+      // block (and no sh:group below), so removing a property's group sticks.
+      if (!g.label) continue;
       const iri = groupIri(g.label);
       if (seen.has(iri)) continue;
       seen.add(iri);

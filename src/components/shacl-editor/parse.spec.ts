@@ -254,3 +254,22 @@ dcat:Distribution a sh:NodeShape ;
     expect(() => new Parser().parse(out)).not.toThrow();
   });
 });
+
+describe("ungrouped properties stay ungrouped", () => {
+  // A property with no sh:group must NOT have one invented on serialize
+  // (otherwise removing a group never sticks — it reappears after save).
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat:Distribution a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:property [ sh:path dcat:byteSize ; sh:datatype xsd:integer ] .`;
+
+  it("does not invent an sh:group for a property that had none", () => {
+    const out = serializeSchema(parseSchema(ttl));
+    expect(out).not.toContain("sh:group");
+    expect(out).not.toContain("PropertyGroup");
+    expect(() => new Parser().parse(out)).not.toThrow();
+  });
+});
