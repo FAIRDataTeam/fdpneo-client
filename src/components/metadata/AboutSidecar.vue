@@ -4,7 +4,7 @@ import MetaItem from "./MetaItem.vue";
 import RdfPreviewPanel from "./RdfPreviewPanel.vue";
 import RelatedList from "./RelatedList.vue";
 
-defineProps<{ record: FdpRecord }>();
+defineProps<{ record: FdpRecord; container?: string | null }>();
 </script>
 
 <template>

@@ -1512,10 +1512,11 @@ is complete. Status reflects the live v0.1.0 contract (see 10.0).
 
 ## Phase 12 — Interface refinements (from `docs/interfacenotes.md`, 2026-06-10)
 
-Six GUI refinements raised after the first live run against the dev stack. Each
-was reproduced/diagnosed live on 2026-06-10 and **all six are now done** (gate
-green: lint + typecheck + 266 unit tests). 12.5 needed a coordinated `fdp-server`
-change, which shipped the same day; the client was wired against it (see 12.5).
+GUI refinements raised after live runs against the dev stack, from
+`docs/interfacenotes.md`. **12.1–12.6 are done** (first batch, 2026-06-10; gate
+green; 12.5 needed a coordinated `fdp-server` change that shipped the same day).
+**12.7–12.10 are a second batch (notes 7–10, added 2026-06-11) — planned below,
+not yet implemented.**
 
 ### 12.1 Header title from FDP metadata, not sample data — ✅ done (2026-06-10)
 - [`AppHeader.vue:48-50`](src/components/shared/AppHeader.vue#L48-L50) renders
@@ -1620,6 +1621,124 @@ Gate green (lint + typecheck + 266 unit tests, incl. a `deletable: false` mappin
   responsive single-column collapse. Verify Monaco and the Vue Flow canvas reflow.
 - **Done:** the Schemas editor fills the available width; no horizontal cramping
   at common widths.
+
+---
+
+## Phase 12 (second batch) — interface notes 7–10 (added 2026-06-11) — ⬜ planned
+
+Diagnosed live on 2026-06-11; **not yet implemented**. All client-only unless
+noted.
+
+### 12.7 Settings UI — friendlier titles + structured editors — ⬜
+- [`SettingsView.vue`](src/views/SettingsView.vue) renders every server settings
+  key via [`SettingEditor.vue`](src/components/admin/SettingEditor.vue) as a **raw
+  JSON textarea**. The two notable keys are `forms.autocomplete-sources` and
+  `search.filters` (the view deliberately doesn't hardcode the key list — new
+  server keys still appear).
+- **(a) Readable titles + help.** Add a small key→metadata map (title + one-line
+  description), e.g. `forms.autocomplete-sources` → "Form autocomplete sources",
+  `search.filters` → "Search facets". Render the friendly title instead of the
+  dotted key; fall back to the raw key for unknown settings.
+- **(b) Structured editors** instead of JSON textareas for the two known keys.
+  Live shapes (from `GET /fdp-api/settings`):
+  - `forms.autocomplete-sources`: `{ sources: [{ name, kind: "inline"|"sparql",
+    description, items: [{ iri, label, aliases: [] }], sparql }] }` → a
+    list-of-sources editor: add/remove sources; per source a name + kind selector
+    + description, an items table (IRI / label / aliases) for `inline`, a query
+    field for `sparql`.
+  - `search.filters`: a list of facet dimensions (label + predicate/operands) —
+    add/remove rows. Confirm exact shape from the live payload before building.
+- Keep the raw-JSON editor as the fallback for unknown keys. PUT contract is
+  unchanged (`PUT /fdp-api/settings/{key}` with the same JSON object); the
+  structured editor just assembles that JSON, and 422 validation still surfaces
+  inline.
+- **Done:** the two keys edit through friendly forms that round-trip to identical
+  JSON; unknown keys still render as JSON.
+
+### 12.8 RDF/API box — make it consistent, record-scoped, and wired — ⬜
+- Two inconsistent, **non-functional** boxes:
+  - Repository hero ([`MetadataBrowseView.vue:48-59`](src/views/MetadataBrowseView.vue#L48-L59)):
+    a "Catalogs" card with dead `Turtle` / `JSON-LD` / `API` `<button>`s.
+  - Record sidecar ([`RdfPreviewPanel.vue`](src/components/metadata/RdfPreviewPanel.vue)):
+    "View as RDF" with dead `Turtle` / `JSON-LD` / `RDF/XML` / `N-Triples` buttons.
+- **Unify into one shared component** ("View as RDF") used by both, always about
+  **the current record on display** (the repository hero passes the root record;
+  record pages pass their own). Keep the four RDF syntaxes and **add an "API"
+  entry**. Drop the divergent 3-button "Catalogs" variant.
+- **Wire the syntax buttons** via content negotiation — verified working on the
+  server: `Accept: text/turtle | application/ld+json | application/rdf+xml |
+  application/n-triples` all return the right media type. A plain `href` can't set
+  Accept, and `?format=`/`.ext` are **not** honored, so fetch the record with the
+  chosen Accept header and open the result in a new tab (blob URL).
+  - *Optional server enhancement:* honor a `?format=` query param so the buttons
+    can become plain links instead of fetch+blob. Not required.
+- **"API"** opens the OpenAPI UI (`/fdp-api/docs`), ideally deep-linked to the LDP
+  record-read operation. **Confirm intended target** with the maintainer (the
+  OpenAPI UI documents endpoints, not instances).
+- **Done:** both boxes are the same component, scoped to the current record, and
+  every button opens the correct serialization / the API UI in a new tab.
+
+### 12.9 "Container" shows the real parent, not a hardcoded value — ⬜
+- [`AboutSidecar.vue:17`](src/components/metadata/AboutSidecar.vue#L17) hardcodes
+  `Container: Cohort studies → AD`.
+- Render the record's **actual container** — the immediate parent via
+  `dct:isPartOf`, already available from [`useAncestors`](src/composables/useAncestors.ts)
+  in [`RecordDetailView.vue`](src/views/RecordDetailView.vue) (the crumb directly
+  above the current record). Pass it into `AboutSidecar` and render it as a link
+  to the parent record; show "FDP root" / "—" when the parent is the repository
+  root or absent.
+- While here, confirm `Issued` / `Last modified` are live (`record.issued` /
+  `record.modified`) and not sample-derived; fix if needed.
+- **Done:** Container reflects the displayed record's real parent and links to it.
+
+### 12.10 Surface the SPARQL playground via "Advanced search" — ⬜
+- [`SparqlPlaygroundView.vue`](src/views/SparqlPlaygroundView.vue) (`/sparql`,
+  feature-gated `sparql`) exists but is **linked nowhere**.
+- Add an **"Advanced search"** link beneath the header search field
+  ([`AppHeader.vue`](src/components/shared/AppHeader.vue)) → a page with two tabs:
+  **Text** (the existing search experience) and **SPARQL** (the existing
+  playground). Gate the SPARQL tab on the `sparql` feature flag.
+- Implementation: a thin wrapper view (e.g. `/search` gains a tabs UI, or a new
+  `/advanced-search`) that hosts the existing search + playground components
+  unchanged; the wrapper only toggles tabs.
+- **Done:** SPARQL is reachable from the main UI via "Advanced search"; text and
+  SPARQL live behind one tabbed entry.
+
+### 12.11 Metrics dashboard shows no data — aggregation lag + empty state — ⬜ (mostly SERVER/OPS)
+
+User report: the metrics dashboard shows nothing and never changes on refresh.
+
+- **Diagnosis (verified live 2026-06-11).** Events *are* recorded — `metrics_raw`
+  had 464 rows — but the dashboard read endpoints (`/fdp-api/metrics/summary`,
+  `/timeseries/daily`, `/geography`, `/top-resources`, via
+  [`metrics.ts`](src/api/metrics.ts)) return all-zero/empty. Root cause is the
+  rollup pipeline:
+  - In this dev stack **nothing runs `fdp metrics rollup`**, so raw never
+    aggregates. (`metrics_hourly`/`metrics_daily` were both 0.)
+  - Running `fdp metrics rollup` manually moved raw → **hourly** (107 rows) but
+    **daily stayed 0** — hourly→daily only rolls buckets older than the retention
+    cutoff (~2 days; `FDP_METRICS_DISCARD_HOURLY_AFTER_DAYS=2`). Today's activity
+    lives in hourly.
+  - The dashboard endpoints read **only `metrics_daily`** — after the rollup,
+    `summary` still returned `request_count: 0` despite 107 hourly rows. So recent
+    activity (the last ~2 days) is never shown, and a freshly-used deployment
+    looks permanently empty.
+- **Server/ops (the substantive fix — coordinate with `fdp-server`/deploy):**
+  1. Schedule `fdp metrics rollup` in the dev stack (a cron/sidecar) so
+     raw→hourly→daily happens automatically.
+  2. Decide + confirm: should the read endpoints union **hourly (and recent raw)**
+     for the recent window so today's/last-2-days activity is visible, rather than
+     daily-only? As-is the dashboard structurally cannot show recent metrics.
+     Either widen the endpoints, or document the lag as intended.
+- **Client (what we own):** the dashboard currently renders blank zeros for an
+  empty period, which reads as a bug (this is exactly what confused the user).
+  Add an informative **empty state** in [`MetricsDashboardView`](src/views/MetricsDashboardView.vue)
+  / [`useMetrics`](src/composables/useMetrics.ts): distinguish "metrics enabled,
+  no aggregated data for this period yet" from genuine zeros, and note that
+  aggregated metrics may lag recent activity (≈ up to 2 days). Optionally surface
+  the period freshness.
+- **Done:** with rollups running, the dashboard shows data for the covered period;
+  for an empty/lagging period it explains *why* rather than showing silent zeros.
 
 ---
 
