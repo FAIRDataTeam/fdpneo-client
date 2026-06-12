@@ -1900,6 +1900,14 @@ an "+ Either/or" add button.
 - Until built, the text tab remains the way to author `sh:or`.
 </details>
 
+### 12.26 Language dropdown for the lang editor (note #26) — ✅ done (2026-06-12)
+- The lang-tagged literal editor's free-text tag input is now an ISO 639-1
+  `<select>` ([`languages.ts`](src/api/languages.ts) `orderedLanguages()`):
+  the browser's language first, then English (when the browser isn't English),
+  then the rest. Any pre-existing tag on a record stays selectable.
+  [`EntityForm`](src/components/metadata/EntityForm.vue) renders it; test covers
+  the browser-first ordering.
+
 ### 12.24 SHACL constraint coverage — editor + record form (from the §4 audit, 2026-06-12) — ✅ done (2026-06-12)
 
 Audit of the client against **W3C SHACL Core §4** constraint components. Nothing is *lost*
@@ -1930,7 +1938,7 @@ close UX gaps so authors aren't surprised by server rejections.
   `sh:closed`/`sh:ignoredProperties`, `sh:hasValue`, `sh:languageIn`/`sh:uniqueLang` — rare for
   FDP metadata; all still round-trip losslessly.
 
-### 12.25 DASH widget rendering coverage (datashapes.org/forms.html, 2026-06-12) — 🟡 partial (record form honors dash:editor; preview + reference/nested/lang deferred)
+### 12.25 DASH widget rendering coverage (datashapes.org/forms.html, 2026-06-12) — ✅ done for record authoring (editor Form Preview (a) intentionally left — low value)
 
 **Done (2026-06-12):** the record form now honors an explicit `dash:editor` for the widgets it
 can render — [`fieldsFromShape`](src/api/entityForms.ts) maps `dash:TextAreaEditor` /
@@ -1966,8 +1974,13 @@ editor's Form Preview and (more so) the record authoring form.
     the nested shape's scalar fields (depth-guarded against cycles); `applyDetails` writes a
     nested blank node (typed from `sh:class`) and `modelFromTurtle` reads it back. Round-trip
     test. (Limits: one level deep, scalar nested fields.)
-  - **Deferred:** reference widgets (`AutoComplete`/`InstancesSelect`/`SubClass`) — blocked on a
-    server class-instance lookup endpoint (request sent); degrade to a plain IRI input until then.
+  - **Reference widgets** (`AutoComplete`/`InstancesSelect`/`SubClass`) — ✅ done (2026-06-12).
+    Server shipped `GET /fdp-api/instances?class&q&limit&offset` + `GET /fdp-api/subclasses?class`.
+    Client: regenerated types, [`api/instances.ts`](src/api/instances.ts) (`fetchInstances`/`fetchSubclasses`),
+    [`useInstances`](src/composables/useInstances.ts), and [`ReferencePicker`](src/components/metadata/ReferencePicker.vue)
+    (dropdown for instances/subclass; search box + dropdown for autocomplete, server-filtered by `q`).
+    `fieldsFromShape` captures `sh:class` + the widget for IRI fields; `EntityForm` renders the
+    picker. Verified live (q-filter matches/excludes; subclasses returns empty gracefully). Test added.
 
 ### 12.23 "At least one of" (sh:or) — canonical form + editor & form-validator support — ✅ done (2026-06-11)
 - **Verified vs W3C SHACL** (spec §4.6.2, `sh:or`): "at least one of two properties"

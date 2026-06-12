@@ -694,6 +694,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fdp-api/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Instances List
+         * @description Published instances of ``class`` as ``{iri, label, type}`` (auth/state gated).
+         */
+        get: operations["instances_list_fdp_api_instances_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/subclasses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Subclasses List
+         * @description The transitive ``rdfs:subClassOf`` descendants of ``class``.
+         */
+        get: operations["subclasses_list_fdp_api_subclasses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fdp-api/policies": {
         parameters: {
             query?: never;
@@ -1743,6 +1783,20 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InstanceItem */
+        InstanceItem: {
+            /** Iri */
+            iri: string;
+            /** Label */
+            label: string;
+            /** Type */
+            type: string;
+        };
+        /** InstanceListView */
+        InstanceListView: {
+            /** Items */
+            items: components["schemas"]["InstanceItem"][];
+        };
         /**
          * LabelsResponse
          * @description Response shape for ``GET /labels``.
@@ -2125,6 +2179,18 @@ export interface components {
             record: string;
             from_state: components["schemas"]["MetadataState"];
             to_state: components["schemas"]["MetadataState"];
+        };
+        /** SubclassItem */
+        SubclassItem: {
+            /** Iri */
+            iri: string;
+            /** Label */
+            label: string;
+        };
+        /** SubclassListView */
+        SubclassListView: {
+            /** Items */
+            items: components["schemas"]["SubclassItem"][];
         };
         /** SummaryResponse */
         SummaryResponse: {
@@ -3729,6 +3795,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["fdp__metadata__schemas__ValidationResultView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    instances_list_fdp_api_instances_get: {
+        parameters: {
+            query: {
+                /** @description Class IRI to enumerate. */
+                class: string;
+                /** @description Case-insensitive label/IRI filter. */
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstanceListView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subclasses_list_fdp_api_subclasses_get: {
+        parameters: {
+            query: {
+                /** @description Root class IRI. */
+                class: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubclassListView"];
                 };
             };
             /** @description Validation Error */

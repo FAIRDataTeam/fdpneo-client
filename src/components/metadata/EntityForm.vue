@@ -7,9 +7,20 @@
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
 import { constraintHint, detailKey, langKey, parseKeywords } from "@/api/entityForms";
+import { orderedLanguages, type LanguageOption } from "@/api/languages";
+
+// Browser language first, then English, then the rest (note #26).
+const languages = orderedLanguages();
+function langOptions(current: string): LanguageOption[] {
+  if (current && !languages.some((l) => l.code === current)) {
+    return [{ code: current, name: current }, ...languages];
+  }
+  return languages;
+}
 import { usePublishedPolicies } from "@/composables/usePolicies";
 import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
+import ReferencePicker from "./ReferencePicker.vue";
 
 const props = defineProps<{ spec: EntitySpec }>();
 const model = defineModel<EntityModel>({ required: true });
@@ -55,8 +66,19 @@ function orLabels(keys: string[]): string {
         {{ f.label }}<span v-if="f.required" class="req"> *</span>
       </span>
 
+      <!-- DASH reference editor: pick an IRI from a class lookup. -->
+      <ReferencePicker
+        v-if="f.refWidget && f.refClass"
+        :class-iri="f.refClass"
+        :widget="f.refWidget"
+        :model-value="asText(f.key)"
+        :required="!!f.required"
+        :label="f.label"
+        @update:model-value="model[f.key] = $event"
+      />
+
       <!-- Language-tagged literal: value + a BCP47 language tag. -->
-      <div v-if="f.lang" class="lang-row">
+      <div v-else-if="f.lang" class="lang-row">
         <textarea
           v-if="f.kind === 'textarea'"
           :value="asText(f.key)"
@@ -71,14 +93,17 @@ function orLabels(keys: string[]): string {
           :aria-label="f.label"
           @input="model[f.key] = ($event.target as HTMLInputElement).value"
         />
-        <input
+        <select
           class="lang-tag"
-          type="text"
           :value="asText(langKey(f.key))"
-          placeholder="lang"
-          :aria-label="`${f.label} language tag`"
-          @input="model[langKey(f.key)] = ($event.target as HTMLInputElement).value"
-        />
+          :aria-label="`${f.label} language`"
+          @change="model[langKey(f.key)] = ($event.target as HTMLSelectElement).value"
+        >
+          <option value="">—</option>
+          <option v-for="l in langOptions(asText(langKey(f.key)))" :key="l.code" :value="l.code">
+            {{ l.code }} — {{ l.name }}
+          </option>
+        </select>
       </div>
 
       <textarea
@@ -265,7 +290,7 @@ textarea {
   flex: 1;
 }
 .lang-tag {
-  width: 80px;
+  width: 150px;
   flex: none;
 }
 .details {

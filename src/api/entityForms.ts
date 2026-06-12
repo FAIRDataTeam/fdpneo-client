@@ -68,6 +68,10 @@ export interface FieldSpec {
   nested?: FieldSpec[];
   /** rdf:type stamped on the nested blank node (from the property's sh:class). */
   nestedClass?: string;
+  /** DASH reference editor: the value is an IRI picked from a class lookup. */
+  refWidget?: "autocomplete" | "instances" | "subclass";
+  /** The class (sh:class) whose instances/subclasses the reference picker offers. */
+  refClass?: string;
   /** String constraints (for hints + client pre-validation): sh:pattern / sh:minLength / sh:maxLength. */
   pattern?: string;
   minLength?: number;
@@ -339,6 +343,13 @@ const DASH_EDITOR_KIND: Record<string, FieldKind> = {
   DateTimePickerEditor: "datetime",
 };
 
+/** DASH reference editors → the lookup widget (the value stays a single IRI). */
+const DASH_REF_WIDGET: Record<string, "autocomplete" | "instances" | "subclass"> = {
+  AutoCompleteEditor: "autocomplete",
+  InstancesSelectEditor: "instances",
+  SubClassEditor: "subclass",
+};
+
 const XSD = "http://www.w3.org/2001/XMLSchema#";
 /** xsd numeric datatypes → the Number input. */
 const NUMERIC_XSD = new Set<string>(
@@ -459,6 +470,15 @@ export function fieldsFromShape(turtle: string, classIri: string, depth = 0): Fi
     // Language-tagged literal: rdf:langString or a dash:*WithLangEditor.
     if (datatype === `${NS.rdf}langString` || editorIri?.endsWith("WithLangEditor")) {
       field.lang = true;
+    }
+    // Reference editor: a single-IRI value picked from a class lookup (needs sh:class).
+    const refWidget = editorIri ? DASH_REF_WIDGET[editorIri.replace(DASH, "")] : undefined;
+    if (refWidget && kind === "iri") {
+      const cls = first(p, "class");
+      if (cls) {
+        field.refWidget = refWidget;
+        field.refClass = cls;
+      }
     }
     if (path === `${NS.dct}license`) {
       field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI

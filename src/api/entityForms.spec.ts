@@ -227,6 +227,20 @@ ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
     expect(byKey.flag?.kind).toBe("boolean");
   });
 
+  it("captures a reference widget + sh:class for dash:AutoCompleteEditor", () => {
+    const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ex: <http://ex.org/> .
+
+ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
+  sh:property [ sh:path ex:agent ; sh:nodeKind sh:IRI ; sh:class foaf:Agent ; sh:maxCount 1 ; dash:editor dash:AutoCompleteEditor ] .`;
+    const f = fieldsFromShape(ttl, "http://ex.org/Thing").find((x) => x.key === "agent");
+    expect(f?.kind).toBe("iri");
+    expect(f?.refWidget).toBe("autocomplete");
+    expect(f?.refClass).toBe("http://xmlns.com/foaf/0.1/Agent");
+  });
+
   it("serializes a typed literal with its datatype", async () => {
     const spec = {
       type: "distribution",
