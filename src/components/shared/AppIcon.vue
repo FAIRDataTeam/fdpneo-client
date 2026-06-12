@@ -66,6 +66,12 @@ const props = withDefaults(defineProps<{ name: IconName; size?: number; color?: 
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
       <circle cx="12" cy="12" r="3" />
     </template>
+    <template v-else-if="name === 'graph'">
+      <circle cx="6" cy="6" r="2.4" />
+      <circle cx="18" cy="9" r="2.4" />
+      <circle cx="8" cy="18" r="2.4" />
+      <path d="M8.2 6.8 15.8 8.4M7.2 8.1 7 15.4" />
+    </template>
     <template v-else-if="name === 'grip'">
       <circle cx="9" cy="6" r="1.3" fill="currentColor" />
       <circle cx="15" cy="6" r="1.3" fill="currentColor" />

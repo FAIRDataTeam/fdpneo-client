@@ -36,6 +36,7 @@ export type IconName =
   | "cog"
   | "grip"
   | "eye"
+  | "graph"
   | "book"
   | "sun"
   | "moon"

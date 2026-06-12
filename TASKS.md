@@ -1900,6 +1900,29 @@ an "+ Either/or" add button.
 - Until built, the text tab remains the way to author `sh:or`.
 </details>
 
+### 12.28 Graph view in the RDF sidecar (note #28) — ✅ done (2026-06-12)
+- New [`RdfGraphView`](src/components/metadata/RdfGraphView.vue): a one-hop
+  node-link view of the record's RDF — the resource instance is the central
+  node, each predicate an edge, the object at the far end. Parses the cached
+  Turtle payload with `n3` (no extra request), centering on the resource IRI and
+  falling back to the best-connected named subject when the request path differs
+  from the record's IRI (the repository root). Object IRIs under the API base
+  become `RouterLink`s to that record; other IRIs open in a new tab; literals
+  show their language tag / datatype. Exposed as a **Graph** chip in
+  [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue). Added a
+  `graph` icon to [`AppIcon`](src/components/shared/AppIcon.vue) + `IconName`.
+  Unit tests cover centering/fallback, own-triples-only, internal-vs-external
+  links, literal annotations, and parse-error handling.
+
+### 12.27 Inline reveal for the RDF sidecar (note #27) — ✅ done (2026-06-12)
+- [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue) reworked: the
+  four RDF syntaxes are now chips and the chosen one **stretches out inline**
+  beneath them (scrollable code block) instead of opening a new browser tab —
+  with Copy / Save (download) / Open-in-tab actions. Payloads are cached per
+  `Accept` header so re-opening is instant; clicking the active chip collapses
+  the panel. Used by both the record sidecar and the repository hero, so the box
+  stays consistent.
+
 ### 12.26 Language dropdown for the lang editor (note #26) — ✅ done (2026-06-12)
 - The lang-tagged literal editor's free-text tag input is now an ISO 639-1
   `<select>` ([`languages.ts`](src/api/languages.ts) `orderedLanguages()`):
