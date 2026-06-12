@@ -1952,14 +1952,22 @@ editor's Form Preview and (more so) the record authoring form.
   `*WithLangEditor` (value + language-tag selector — needs `rdf:langString` modelling),
   `AutoCompleteEditor`/`InstancesSelectEditor`/`SubClassEditor` (need a class-instance lookup),
   `DetailsEditor` (nested sub-form), `BlankNodeEditor`. Low value (the preview is throwaway).
-- **(b) Record authoring form — honor `dash:editor` — 🟡 partial**
-  **Done:** literal widgets — textarea / rich-text→textarea / *WithLang→text·textarea, boolean,
-  date, datetime, text (`DASH_EDITOR_KIND` in `fieldsFromShape`). Combined with 12.24a/b the
-  record form now renders text/textarea/iri/iris/keywords/ref/enum/boolean/date/datetime/number.
-  **Deferred:** reference widgets (`AutoComplete`/`InstancesSelect`/`SubClass`) — no client
-  endpoint to enumerate instances of an arbitrary class (pair with autocomplete sources 10.6 or
-  a server class-instance lookup, else degrade to a plain IRI input); `DetailsEditor` (nested
-  sub-form); lang-tagged value+language editing (needs `rdf:langString` in the model + writer).
+- **(b) Record authoring form — honor `dash:editor` — 🟡 partial (most done)**
+  **Done:**
+  - Literal widgets — textarea / rich-text→textarea / `*WithLang`, boolean, date, datetime,
+    text (`DASH_EDITOR_KIND` in `fieldsFromShape`). With 12.24a/b the record form renders
+    text/textarea/iri/iris/keywords/ref/enum/boolean/date/datetime/number.
+  - **`rdf:langString` / `*WithLangEditor`** (2026-06-12) — `FieldSpec.lang`; value + a BCP47
+    language tag (sibling model key via `langKey`); [`setLangLiteral`](src/api/rdf.ts) writes
+    `"…"@lang`, `oneLang` reads it back; `EntityForm` renders value + language input. Round-trip
+    test.
+  - **`dash:DetailsEditor` / nested `sh:node`** (2026-06-12) — one-level inline sub-form via
+    flat keys (`detailKey`, so the flat `EntityModel` is untouched); `fieldsFromShape` resolves
+    the nested shape's scalar fields (depth-guarded against cycles); `applyDetails` writes a
+    nested blank node (typed from `sh:class`) and `modelFromTurtle` reads it back. Round-trip
+    test. (Limits: one level deep, scalar nested fields.)
+  - **Deferred:** reference widgets (`AutoComplete`/`InstancesSelect`/`SubClass`) — blocked on a
+    server class-instance lookup endpoint (request sent); degrade to a plain IRI input until then.
 
 ### 12.23 "At least one of" (sh:or) — canonical form + editor & form-validator support — ✅ done (2026-06-11)
 - **Verified vs W3C SHACL** (spec §4.6.2, `sh:or`): "at least one of two properties"

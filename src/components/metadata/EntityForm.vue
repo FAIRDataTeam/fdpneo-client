@@ -6,7 +6,7 @@
  */
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
-import { constraintHint, parseKeywords } from "@/api/entityForms";
+import { constraintHint, detailKey, langKey, parseKeywords } from "@/api/entityForms";
 import { usePublishedPolicies } from "@/composables/usePolicies";
 import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
@@ -51,12 +51,38 @@ function orLabels(keys: string[]): string {
 <template>
   <div class="form">
     <label v-for="f in fields" :key="f.key" class="field">
-      <span class="label">
+      <span v-if="f.kind !== 'details'" class="label">
         {{ f.label }}<span v-if="f.required" class="req"> *</span>
       </span>
 
+      <!-- Language-tagged literal: value + a BCP47 language tag. -->
+      <div v-if="f.lang" class="lang-row">
+        <textarea
+          v-if="f.kind === 'textarea'"
+          :value="asText(f.key)"
+          rows="4"
+          :aria-label="f.label"
+          @input="model[f.key] = ($event.target as HTMLTextAreaElement).value"
+        />
+        <input
+          v-else
+          type="text"
+          :value="asText(f.key)"
+          :aria-label="f.label"
+          @input="model[f.key] = ($event.target as HTMLInputElement).value"
+        />
+        <input
+          class="lang-tag"
+          type="text"
+          :value="asText(langKey(f.key))"
+          placeholder="lang"
+          :aria-label="`${f.label} language tag`"
+          @input="model[langKey(f.key)] = ($event.target as HTMLInputElement).value"
+        />
+      </div>
+
       <textarea
-        v-if="f.kind === 'textarea'"
+        v-else-if="f.kind === 'textarea'"
         :value="asText(f.key)"
         rows="4"
         :aria-label="f.label"
@@ -147,6 +173,27 @@ function orLabels(keys: string[]): string {
         @input="model[f.key] = ($event.target as HTMLInputElement).value"
       />
 
+      <fieldset v-else-if="f.kind === 'details'" class="details">
+        <legend>{{ f.label }}</legend>
+        <label v-for="nf in f.nested ?? []" :key="nf.key" class="field">
+          <span class="label">{{ nf.label }}<span v-if="nf.required" class="req"> *</span></span>
+          <textarea
+            v-if="nf.kind === 'textarea'"
+            :value="asText(detailKey(f.key, nf.key))"
+            rows="3"
+            :aria-label="nf.label"
+            @input="model[detailKey(f.key, nf.key)] = ($event.target as HTMLTextAreaElement).value"
+          />
+          <input
+            v-else
+            :type="nf.kind === 'iri' ? 'url' : nf.kind === 'number' ? 'number' : nf.kind === 'date' ? 'date' : nf.kind === 'datetime' ? 'datetime-local' : 'text'"
+            :value="asText(detailKey(f.key, nf.key))"
+            :aria-label="nf.label"
+            @input="model[detailKey(f.key, nf.key)] = ($event.target as HTMLInputElement).value"
+          />
+        </label>
+      </fieldset>
+
       <input
         v-else
         :type="f.kind === 'iri' ? 'url' : 'text'"
@@ -208,6 +255,34 @@ textarea {
 .help {
   font-size: 11px;
   color: var(--muted);
+}
+.lang-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.lang-row > :first-child {
+  flex: 1;
+}
+.lang-tag {
+  width: 80px;
+  flex: none;
+}
+.details {
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  padding: 12px 14px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.details legend {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 0 6px;
 }
 .or-req {
   margin: 0;

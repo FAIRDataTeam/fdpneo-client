@@ -15,10 +15,12 @@ import {
   addType,
   many,
   one,
+  oneLang,
   parseTurtle,
   serializeTurtle,
   setIri,
   setIris,
+  setLangLiteral,
   setLiteral,
   setLiterals,
   shortLabel,
@@ -45,7 +47,8 @@ export type FieldKind =
   | "boolean"
   | "date"
   | "datetime"
-  | "number";
+  | "number"
+  | "details";
 
 export interface FieldSpec {
   key: string;
@@ -59,6 +62,12 @@ export interface FieldSpec {
   options?: string[];
   /** Datatype IRI for typed literals (date/number/boolean/enum); xsd:string left bare. */
   datatype?: string;
+  /** True for rdf:langString / dash:*WithLangEditor — value carries a language tag. */
+  lang?: boolean;
+  /** For `kind: "details"` — the nested shape's (scalar) fields, edited inline. */
+  nested?: FieldSpec[];
+  /** rdf:type stamped on the nested blank node (from the property's sh:class). */
+  nestedClass?: string;
   /** String constraints (for hints + client pre-validation): sh:pattern / sh:minLength / sh:maxLength. */
   pattern?: string;
   minLength?: number;
@@ -182,10 +191,23 @@ export function typeForId(id: string): EntityType | null {
 
 const isMulti = (kind: FieldKind): boolean => kind === "keywords" || kind === "iris";
 
+/** The model key holding a lang-tagged field's language (sibling to its value). */
+export const langKey = (key: string): string => `${key}__lang`;
+
+/** The flat model key for a nested field of a `kind: "details"` field. */
+export const detailKey = (parentKey: string, nestedKey: string): string => `${parentKey}.${nestedKey}`;
+
 /** An empty model for a create form. */
 export function emptyModel(spec: EntitySpec): EntityModel {
   const model: EntityModel = {};
-  for (const f of spec.fields) model[f.key] = isMulti(f.kind) ? [] : "";
+  for (const f of spec.fields) {
+    if (f.kind === "details" && f.nested) {
+      for (const nf of f.nested) model[detailKey(f.key, nf.key)] = isMulti(nf.kind) ? [] : "";
+      continue;
+    }
+    model[f.key] = isMulti(f.kind) ? [] : "";
+    if (f.lang) model[langKey(f.key)] = "";
+  }
   return model;
 }
 
@@ -194,19 +216,62 @@ export function modelFromTurtle(turtle: string, iri: string, spec: EntitySpec): 
   const store = parseTurtle(turtle);
   const model: EntityModel = {};
   for (const f of spec.fields) {
+    if (f.kind === "details" && f.nested) {
+      const [obj] = store.getObjects(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), null);
+      for (const nf of f.nested) {
+        model[detailKey(f.key, nf.key)] = obj
+          ? (store.getObjects(obj, DataFactory.namedNode(nf.predicate), null)[0]?.value ?? "")
+          : "";
+      }
+      continue;
+    }
     model[f.key] = isMulti(f.kind) ? many(store, iri, f.predicate) : (one(store, iri, f.predicate) ?? "");
+    if (f.lang) model[langKey(f.key)] = oneLang(store, iri, f.predicate);
   }
   return model;
 }
 
+/** Write a `kind: "details"` field as a nested blank node with its scalar props. */
+function applyDetails(store: Store, iri: string, f: FieldSpec, model: EntityModel): void {
+  store.removeQuads(store.getQuads(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), null, null));
+  const nested = f.nested ?? [];
+  const vals = nested.map((nf) => ({ nf, v: model[detailKey(f.key, nf.key)] }));
+  const hasAny = vals.some(({ v }) => (typeof v === "string" ? v.trim() !== "" : Array.isArray(v) && v.length > 0));
+  if (!hasAny) return; // omit the whole nested node when empty
+  const bn = DataFactory.blankNode();
+  store.addQuad(DataFactory.quad(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), bn));
+  if (f.nestedClass) {
+    store.addQuad(DataFactory.quad(bn, DataFactory.namedNode(`${NS.rdf}type`), DataFactory.namedNode(f.nestedClass)));
+  }
+  for (const { nf, v } of vals) {
+    const s = typeof v === "string" ? v.trim() : "";
+    if (!s) continue;
+    const obj =
+      nf.kind === "iri" || nf.kind === "ref"
+        ? DataFactory.namedNode(s)
+        : nf.datatype
+          ? DataFactory.literal(s, DataFactory.namedNode(nf.datatype))
+          : DataFactory.literal(s);
+    store.addQuad(DataFactory.quad(bn, DataFactory.namedNode(nf.predicate), obj));
+  }
+}
+
 function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityModel): void {
   for (const f of spec.fields) {
+    if (f.kind === "details" && f.nested) {
+      applyDetails(store, iri, f, model);
+      continue;
+    }
     const value = model[f.key];
     const list = Array.isArray(value) ? value : [];
     const scalar = typeof value === "string" ? value : "";
     if (f.kind === "keywords") setLiterals(store, iri, f.predicate, list);
     else if (f.kind === "iris") setIris(store, iri, f.predicate, list);
     else if (f.kind === "iri" || f.kind === "ref") setIri(store, iri, f.predicate, scalar);
+    else if (f.lang) {
+      const lang = typeof model[langKey(f.key)] === "string" ? (model[langKey(f.key)] as string) : "";
+      setLangLiteral(store, iri, f.predicate, scalar, lang);
+    }
     // Typed literals (date/number/boolean/enum) carry their datatype; bare text
     // serializes as a plain literal (xsd:string).
     else setLiteral(store, iri, f.predicate, scalar, f.datatype);
@@ -312,7 +377,7 @@ const SHACL_SINGLE_LITERALS = new Set<string>([
  * `dcat:contactPoint`) are skipped, as are excluded predicates. Returns `[]`
  * if the shape can't be found, so callers can fall back to the static spec.
  */
-export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
+export function fieldsFromShape(turtle: string, classIri: string, depth = 0): FieldSpec[] {
   const store = parseTurtle(turtle);
   let shape: Term | null =
     store.getSubjects(sh("targetClass"), DataFactory.namedNode(classIri), null)[0] ?? null;
@@ -352,16 +417,20 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
     const options = readIn(p);
     const editorIri = store.getObjects(p, DataFactory.namedNode(`${DASH}editor`), null)[0]?.value;
     const editorKind = editorIri ? DASH_EDITOR_KIND[editorIri.replace(DASH, "")] : undefined;
-    if (!datatype && !options && nodeKind !== `${SH}IRI` && !editorKind) continue; // not a simple field
+    // A nested-shape reference (sh:node) → an inline "details" sub-form. Only one
+    // level deep (depth 0) to avoid unbounded / cyclic recursion.
+    const nodeShape = depth === 0 ? first(p, "node") : undefined;
+    if (!datatype && !options && nodeKind !== `${SH}IRI` && !editorKind && !nodeShape) continue; // not a simple field
 
     const single = first(p, "maxCount") === "1" || SHACL_SINGLE_LITERALS.has(path);
     const minCount = first(p, "minCount");
     const required = minCount !== undefined && Number(minCount) >= 1;
 
-    // Pick the input control: enum (sh:in) → IRI → repeatable literals → explicit
-    // dash:editor → typed literal by datatype → textarea/text.
+    // Pick the input control: details (sh:node) → enum (sh:in) → IRI → repeatable
+    // literals → explicit dash:editor → typed literal by datatype → textarea/text.
     let kind: FieldKind;
-    if (options) kind = "enum";
+    if (nodeShape) kind = "details";
+    else if (options) kind = "enum";
     else if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
     else if (!single) kind = "keywords";
     else if (editorKind) kind = editorKind;
@@ -378,9 +447,18 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
       kind,
     };
     if (options) field.options = options;
+    if (nodeShape) {
+      field.nested = fieldsFromShape(turtle, nodeShape, depth + 1);
+      const cls = first(p, "class");
+      if (cls) field.nestedClass = cls;
+    }
     // Carry the datatype for typed literals so values serialize correctly.
     if (datatype && (kind === "enum" || kind === "boolean" || kind === "date" || kind === "datetime" || kind === "number")) {
       field.datatype = datatype;
+    }
+    // Language-tagged literal: rdf:langString or a dash:*WithLangEditor.
+    if (datatype === `${NS.rdf}langString` || editorIri?.endsWith("WithLangEditor")) {
+      field.lang = true;
     }
     if (path === `${NS.dct}license`) {
       field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI
@@ -411,7 +489,8 @@ export function fieldsFromShape(turtle: string, classIri: string): FieldSpec[] {
   fields.sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label));
   // Always offer the access-policy picker — dct:rights is SHACL_EXCLUDED, so it
   // never comes from the shape, but any record can opt into a policy (5.5).
-  fields.push({ ...F.rights });
+  // Only at the top level; nested sub-forms don't get their own policy picker.
+  if (depth === 0) fields.push({ ...F.rights });
   return fields;
 }
 

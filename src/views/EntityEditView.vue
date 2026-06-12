@@ -16,6 +16,7 @@ import {
   applyEditTurtle,
   missingOrGroups,
   modelFromTurtle,
+  validateConstraints,
   type EntityModel,
   type EntitySpec,
 } from "@/api/entityForms";
@@ -103,6 +104,11 @@ async function save() {
       (k) => spec.value!.fields.find((f) => f.key === k)?.label ?? k,
     );
     error.value = clientError("At least one required", `Provide at least one of: ${labels.join(", ")}.`);
+    return;
+  }
+  const bad = validateConstraints(spec.value, model.value);
+  if (bad) {
+    error.value = clientError(`${bad.label} is invalid`, `${bad.label} ${bad.message}.`);
     return;
   }
   saving.value = true;

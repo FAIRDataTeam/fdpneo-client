@@ -242,6 +242,82 @@ ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
   });
 });
 
+describe("DetailsEditor (nested sh:node sub-form)", () => {
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix ex: <http://ex.org/> .
+
+ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
+  sh:property [ sh:path ex:contact ; sh:node ex:ContactShape ; sh:class vcard:Kind ; sh:maxCount 1 ] .
+ex:ContactShape a sh:NodeShape ;
+  sh:property [ sh:path vcard:fn ; sh:datatype xsd:string ; sh:maxCount 1 ] ;
+  sh:property [ sh:path vcard:hasEmail ; sh:nodeKind sh:IRI ; sh:maxCount 1 ] .`;
+
+  function thingSpec(): EntitySpec {
+    return {
+      type: "distribution",
+      classIri: "http://ex.org/Thing",
+      label: "Thing",
+      prefix: "distribution",
+      childTypes: [],
+      fields: fieldsFromShape(ttl, "http://ex.org/Thing"),
+    };
+  }
+
+  it("resolves a details field with nested scalar fields", () => {
+    const f = thingSpec().fields.find((x) => x.key === "contact");
+    expect(f?.kind).toBe("details");
+    expect(f?.nested?.map((n) => n.key)).toEqual(["fn", "hasEmail"]);
+    expect(f?.nestedClass).toBe("http://www.w3.org/2006/vcard/ns#Kind");
+  });
+
+  it("round-trips the nested object via a blank node", async () => {
+    const spec = thingSpec();
+    const out = await buildCreateTurtle(
+      "http://x/t",
+      spec,
+      { "contact.fn": "Jane Doe", "contact.hasEmail": "mailto:jane@x.org" },
+      null,
+    );
+    expect(out).toContain("Jane Doe");
+    expect(out).toContain("mailto:jane@x.org");
+    const back = modelFromTurtle(out, "http://x/t", spec);
+    expect(back["contact.fn"]).toBe("Jane Doe");
+    expect(back["contact.hasEmail"]).toBe("mailto:jane@x.org");
+  });
+});
+
+describe("rdf:langString (lang-tagged literals)", () => {
+  const ttl = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <http://ex.org/> .
+
+ex:Thing a sh:NodeShape ; sh:targetClass ex:Thing ;
+  sh:property [ sh:path ex:label ; sh:datatype rdf:langString ; sh:maxCount 1 ] .`;
+
+  it("detects a langString field", () => {
+    const f = fieldsFromShape(ttl, "http://ex.org/Thing").find((x) => x.key === "label");
+    expect(f?.lang).toBe(true);
+  });
+
+  it("round-trips value + language tag", async () => {
+    const spec = {
+      type: "distribution",
+      classIri: "http://ex.org/Thing",
+      label: "Thing",
+      prefix: "distribution",
+      childTypes: [],
+      fields: [{ key: "label", predicate: "http://ex.org/label", label: "Label", kind: "text", lang: true }],
+    } as unknown as EntitySpec;
+    const out = await buildCreateTurtle("http://x/t", spec, { label: "Bonjour", label__lang: "fr" }, null);
+    expect(out).toMatch(/"Bonjour"@fr/);
+    const back = modelFromTurtle(out, "http://x/t", spec);
+    expect(back.label).toBe("Bonjour");
+    expect(back.label__lang).toBe("fr");
+  });
+});
+
 describe("validateConstraints (client pre-validation of pattern/length/range)", () => {
   const spec = {
     fields: [

@@ -53,6 +53,12 @@ export function one(store: Store, subject: string, predicate: string): string | 
   return first?.value;
 }
 
+/** Language tag of the first literal object of `subject predicate` (or ""). */
+export function oneLang(store: Store, subject: string, predicate: string): string {
+  const [first] = store.getObjects(namedNode(subject), namedNode(predicate), null);
+  return first && first.termType === "Literal" ? first.language : "";
+}
+
 /** All objects of `subject predicate` as strings. */
 export function many(store: Store, subject: string, predicate: string): string[] {
   return store.getObjects(namedNode(subject), namedNode(predicate), null).map((o) => o.value);
@@ -87,6 +93,26 @@ export function setLiteral(
   // Tag the literal with its datatype (e.g. xsd:date) so it satisfies the
   // shape's sh:datatype; a plain literal (no datatype) is xsd:string by RDF 1.1.
   const lit = datatype ? DataFactory.literal(v, namedNode(datatype)) : DataFactory.literal(v);
+  store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), lit));
+}
+
+/**
+ * Replace all `subject predicate` triples with a single language-tagged literal
+ * (`"value"@lang`, an rdf:langString). Removed if the value is empty; falls back
+ * to a plain literal if no language is given (a langString needs a tag).
+ */
+export function setLangLiteral(
+  store: Store,
+  subject: string,
+  predicate: string,
+  value: string,
+  lang: string,
+): void {
+  store.removeQuads(store.getQuads(namedNode(subject), namedNode(predicate), null, null));
+  const v = value.trim();
+  if (!v) return;
+  const tag = lang.trim();
+  const lit = tag ? DataFactory.literal(v, tag) : DataFactory.literal(v);
   store.addQuad(DataFactory.quad(namedNode(subject), namedNode(predicate), lit));
 }
 
