@@ -7,8 +7,17 @@
  * (`sh:minCount ≥ 1`) and highlights the empty required inputs.
  */
 import { computed, ref, watch } from "vue";
-import type { ShapeModel } from "./model";
+import type { Field, ShapeModel } from "./model";
 import { isRequired, missingRequired, previewKind, type PreviewValues } from "./preview";
+import { orderedLanguages } from "@/api/languages";
+
+// Language-tagged literals (rdf:langString / dash:*WithLangEditor) get a
+// language selector in the preview (note #26 ordering: browser first, then en).
+const languages = orderedLanguages();
+const langValues = ref<Record<string, string>>({});
+function isLang(f: Field): boolean {
+  return f.datatype === "rdf:langString" || (f.editor?.endsWith("WithLangEditor") ?? false);
+}
 
 const props = defineProps<{ shape: ShapeModel }>();
 
@@ -94,6 +103,11 @@ function clear() {
           :aria-label="f.name || f.path"
         />
 
+        <select v-if="isLang(f)" v-model="langValues[f.id]" class="langsel" :aria-label="`${f.name || f.path} language`">
+          <option value="">language…</option>
+          <option v-for="l in languages" :key="l.code" :value="l.code">{{ l.code }} — {{ l.name }}</option>
+        </select>
+
         <span v-if="f.description" class="help">{{ f.description }}</span>
       </label>
     </div>
@@ -112,6 +126,10 @@ function clear() {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.langsel {
+  align-self: flex-start;
+  max-width: 180px;
 }
 .count {
   font-size: 11px;

@@ -1954,7 +1954,11 @@ can render — [`fieldsFromShape`](src/api/entityForms.ts) maps `dash:TextAreaEd
 several render as a generic text/IRI control instead of their intended widget, in both the
 editor's Form Preview and (more so) the record authoring form.
 
-- **(a) Editor Form Preview — distinct rendering — ⬜ deferred**
+- **(a) Editor Form Preview — distinct rendering — 🟡 lang done (2026-06-12); reference/nested deferred**
+  Lang-tagged fields now show a language selector in the preview ([`ShaclFormPreview`](src/components/shacl-editor/ShaclFormPreview.vue),
+  reuses `orderedLanguages`). Still deferred (next session): reference widgets
+  (need CURIE→IRI expansion + `ReferencePicker` threaded into the preview) and the
+  nested `DetailsEditor` sub-form. Low value — the preview is throwaway.
   [`previewKind`](src/components/shacl-editor/preview.ts) covers text/textarea/number/date/
   datetime/boolean/enum/iri (`RichTextEditor` already → textarea). Still degrade to text/iri:
   `*WithLangEditor` (value + language-tag selector — needs `rdf:langString` modelling),
