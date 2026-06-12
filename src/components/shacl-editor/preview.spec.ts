@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isEmptyValue, missingRequired, previewKind } from "./preview";
+import { isEmptyValue, missingRequired, previewKind, refWidget } from "./preview";
 import { newField } from "./factories";
 import type { Field } from "./model";
 
@@ -21,6 +21,31 @@ describe("previewKind", () => {
   it("falls back to widget hints for textarea", () => {
     expect(previewKind(f({ widgetId: "TextAreaEditor", datatype: null }))).toBe("textarea");
     expect(previewKind(f({ datatype: "rdf:HTML" }))).toBe("textarea");
+  });
+
+  it("honors DASH reference / nested / blank-node editors (not a plain IRI)", () => {
+    expect(previewKind(newField("AutoCompleteEditor"))).toBe("ref");
+    expect(previewKind(newField("InstancesSelectEditor"))).toBe("ref");
+    expect(previewKind(newField("SubClassEditor"))).toBe("ref");
+    expect(previewKind(newField("DetailsEditor"))).toBe("details");
+    expect(previewKind(newField("BlankNodeEditor"))).toBe("blanknode");
+    // URIEditor is a plain IRI input, not a picker.
+    expect(previewKind(newField("URIEditor"))).toBe("iri");
+  });
+
+  it("detects the widget from the dash:editor IRI when widgetId is absent", () => {
+    // Fields parsed from arbitrary SHACL may carry only the editor IRI.
+    expect(previewKind(f({ widgetId: "", editor: "dash:InstancesSelectEditor", datatype: null }))).toBe("ref");
+  });
+});
+
+describe("refWidget", () => {
+  it("maps the three reference editors to their lookup widget", () => {
+    expect(refWidget(newField("AutoCompleteEditor"))).toBe("autocomplete");
+    expect(refWidget(newField("InstancesSelectEditor"))).toBe("instances");
+    expect(refWidget(newField("SubClassEditor"))).toBe("subclass");
+    expect(refWidget(newField("TextFieldEditor"))).toBeNull();
+    expect(refWidget(newField("DetailsEditor"))).toBeNull();
   });
 });
 

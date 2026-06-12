@@ -1961,7 +1961,7 @@ close UX gaps so authors aren't surprised by server rejections.
   `sh:closed`/`sh:ignoredProperties`, `sh:hasValue`, `sh:languageIn`/`sh:uniqueLang` — rare for
   FDP metadata; all still round-trip losslessly.
 
-### 12.25 DASH widget rendering coverage (datashapes.org/forms.html, 2026-06-12) — ✅ done for record authoring (editor Form Preview (a) intentionally left — low value)
+### 12.25 DASH widget rendering coverage (datashapes.org/forms.html, 2026-06-12) — ✅ done (record authoring form + editor Form Preview)
 
 **Done (2026-06-12):** the record form now honors an explicit `dash:editor` for the widgets it
 can render — [`fieldsFromShape`](src/api/entityForms.ts) maps `dash:TextAreaEditor` /
@@ -1977,16 +1977,17 @@ can render — [`fieldsFromShape`](src/api/entityForms.ts) maps `dash:TextAreaEd
 several render as a generic text/IRI control instead of their intended widget, in both the
 editor's Form Preview and (more so) the record authoring form.
 
-- **(a) Editor Form Preview — distinct rendering — 🟡 lang done (2026-06-12); reference/nested deferred**
-  Lang-tagged fields now show a language selector in the preview ([`ShaclFormPreview`](src/components/shacl-editor/ShaclFormPreview.vue),
-  reuses `orderedLanguages`). Still deferred (next session): reference widgets
-  (need CURIE→IRI expansion + `ReferencePicker` threaded into the preview) and the
-  nested `DetailsEditor` sub-form. Low value — the preview is throwaway.
-  [`previewKind`](src/components/shacl-editor/preview.ts) covers text/textarea/number/date/
-  datetime/boolean/enum/iri (`RichTextEditor` already → textarea). Still degrade to text/iri:
-  `*WithLangEditor` (value + language-tag selector — needs `rdf:langString` modelling),
-  `AutoCompleteEditor`/`InstancesSelectEditor`/`SubClassEditor` (need a class-instance lookup),
-  `DetailsEditor` (nested sub-form), `BlankNodeEditor`. Low value (the preview is throwaway).
+- **(a) Editor Form Preview — distinct rendering — ✅ done (2026-06-12)**
+  Lang-tagged fields show a language selector ([`ShaclFormPreview`](src/components/shacl-editor/ShaclFormPreview.vue),
+  reuses `orderedLanguages`). The remaining reference/nested gap is now closed:
+  [`previewKind`](src/components/shacl-editor/preview.ts) gained `ref`/`details`/`blanknode`
+  kinds and a `refWidget` map, so `AutoCompleteEditor`/`InstancesSelectEditor`/`SubClassEditor`
+  render the same [`ReferencePicker`](src/components/metadata/ReferencePicker.vue) curators see
+  (the prefixed `sh:class` is expanded to a full IRI via `expandPath`, with the doc prefixes
+  threaded in as a `prefixes` prop), and `DetailsEditor`/`BlankNodeEditor` render a labelled
+  note rather than a generic text input. `widgetKey` also reads the `dash:editor` IRI when a
+  field carries no `widgetId` (parsed-from-arbitrary-SHACL). Covered by `preview.spec.ts`
+  (dispatch + `refWidget`) and a new `ShaclFormPreview.spec.ts` mount test.
 - **(b) Record authoring form — honor `dash:editor` — 🟡 partial (most done)**
   **Done:**
   - Literal widgets — textarea / rich-text→textarea / `*WithLang`, boolean, date, datetime,

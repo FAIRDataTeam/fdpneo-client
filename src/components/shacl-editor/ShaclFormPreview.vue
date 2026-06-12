@@ -8,8 +8,11 @@
  */
 import { computed, ref, watch } from "vue";
 import type { Field, ShapeModel } from "./model";
-import { isRequired, missingRequired, previewKind, type PreviewValues } from "./preview";
+import { isRequired, missingRequired, previewKind, refWidget, type PreviewValues } from "./preview";
 import { orderedLanguages } from "@/api/languages";
+import { expandPath } from "./violations";
+import { type PrefixDecl } from "@/rdf/namespaces";
+import ReferencePicker from "@/components/metadata/ReferencePicker.vue";
 
 // Language-tagged literals (rdf:langString / dash:*WithLangEditor) get a
 // language selector in the preview (note #26 ordering: browser first, then en).
@@ -19,7 +22,16 @@ function isLang(f: Field): boolean {
   return f.datatype === "rdf:langString" || (f.editor?.endsWith("WithLangEditor") ?? false);
 }
 
-const props = defineProps<{ shape: ShapeModel }>();
+const props = withDefaults(defineProps<{ shape: ShapeModel; prefixes?: PrefixDecl[] }>(), {
+  prefixes: () => [],
+});
+
+// A reference editor offers instances of its sh:class; expand the prefixed
+// class to a full IRI (what the server lookup expects). Empty when no class is
+// set — the preview then falls back to a plain IRI input.
+function refClass(f: Field): string {
+  return f.class ? expandPath(f.class, props.prefixes) : "";
+}
 
 const values = ref<PreviewValues>({});
 const validated = ref(false);
@@ -79,7 +91,28 @@ function clear() {
       <label v-for="f in g.fields" :key="f.id" class="field" :class="{ invalid: missingIds.has(f.id) }">
         <span class="label">{{ f.name || f.path }}<span v-if="isRequired(f)" class="req"> *</span></span>
 
-        <textarea v-if="previewKind(f) === 'textarea'" v-model="values[f.id] as string" rows="3" :aria-label="f.name || f.path" />
+        <!-- DASH reference editor: pick an IRI from a class lookup (as curators see). -->
+        <ReferencePicker
+          v-if="previewKind(f) === 'ref' && refClass(f)"
+          :class-iri="refClass(f)"
+          :widget="refWidget(f)!"
+          :model-value="(values[f.id] as string) ?? ''"
+          :required="isRequired(f)"
+          :label="f.name || f.path"
+          @update:model-value="values[f.id] = $event"
+        />
+        <!-- Nested record (dash:DetailsEditor): curators get an embedded sub-form. -->
+        <div v-else-if="previewKind(f) === 'details'" class="nested" role="note">
+          <span class="nested-tag">Nested record</span>
+          <span class="nested-hint">An embedded sub-form{{ f.class ? ` for ${f.class}` : "" }}.</span>
+        </div>
+        <!-- Blank-node value (dash:BlankNodeEditor): managed, not free-typed. -->
+        <div v-else-if="previewKind(f) === 'blanknode'" class="nested" role="note">
+          <span class="nested-tag">Blank node</span>
+          <span class="nested-hint">A managed blank-node value.</span>
+        </div>
+
+        <textarea v-else-if="previewKind(f) === 'textarea'" v-model="values[f.id] as string" rows="3" :aria-label="f.name || f.path" />
         <select v-else-if="previewKind(f) === 'enum'" v-model="values[f.id] as string" :aria-label="f.name || f.path">
           <option value="">—</option>
           <option v-for="opt in f.inValues ?? []" :key="opt" :value="opt">{{ opt }}</option>
@@ -99,7 +132,7 @@ function clear() {
         <input
           v-else
           v-model="values[f.id] as string"
-          :type="previewKind(f) === 'iri' ? 'url' : 'text'"
+          :type="previewKind(f) === 'iri' || previewKind(f) === 'ref' ? 'url' : 'text'"
           :aria-label="f.name || f.path"
         />
 
@@ -222,6 +255,26 @@ select {
 }
 .bool input {
   width: auto;
+}
+.nested {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
+}
+.nested-tag {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.nested-hint {
+  font-size: 12px;
+  color: var(--muted);
 }
 .help {
   font-size: 11px;

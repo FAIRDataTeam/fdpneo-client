@@ -129,7 +129,7 @@ function orLabels(keys: string[]): string {
         :type="f.kind === 'iri' ? 'url' : 'text'"
         :required="!!f.required"
         :placeholder="f.placeholder ?? ''"
-        :ariaLabel="f.label"
+        :field-label="f.label"
         :model-value="asText(f.key)"
         @update:model-value="model[f.key] = $event"
       />

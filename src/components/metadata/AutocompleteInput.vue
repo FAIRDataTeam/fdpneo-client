@@ -16,7 +16,7 @@ const props = defineProps<{
   type?: "text" | "url";
   required?: boolean;
   placeholder?: string;
-  ariaLabel: string;
+  fieldLabel: string;
 }>();
 const model = defineModel<string>({ required: true });
 
@@ -41,7 +41,7 @@ const { items } = useAutocomplete(sourceRef, prefix);
     :value="model"
     :required="props.required"
     :placeholder="props.placeholder"
-    :aria-label="props.ariaLabel"
+    :aria-label="props.fieldLabel"
     :list="listId"
     autocomplete="off"
     @input="model = ($event.target as HTMLInputElement).value"

@@ -475,7 +475,7 @@ function onDelete() {
                 </option>
               </select>
             </label>
-            <ShaclFormPreview :shape="previewShape" />
+            <ShaclFormPreview :shape="previewShape" :prefixes="model?.prefixes ?? []" />
           </template>
           <p v-else class="srcerror mono">Fix the SHACL to preview the form.</p>
         </div>
