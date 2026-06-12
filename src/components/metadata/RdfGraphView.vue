@@ -45,25 +45,23 @@ const parsed = computed<{ leaves: Leaf[]; subject: string; error: boolean }>(() 
     return { leaves: [], subject: props.subjectIri, error: true };
   }
 
-  // Center on the hinted IRI when it has triples; otherwise the named node with
-  // the most outgoing statements (the root repository describes itself under an
-  // IRI that differs from its request path).
+  // Center on the named subject the graph is really about: the one with the most
+  // outgoing statements. The domain resource dominates, while LDP containment
+  // plumbing (and the trailing-slash DirectContainer the FDP root negotiates
+  // alongside its FAIRDataPoint) is sparse. The request-path hint is the start
+  // point, so it wins ties and is used when the graph has no named subjects.
+  const counts = new Map<string, number>();
+  for (const q of quads) {
+    if (q.subject.termType !== "NamedNode") continue;
+    counts.set(q.subject.value, (counts.get(q.subject.value) ?? 0) + 1);
+  }
   let subject = props.subjectIri;
-  if (!quads.some((q) => q.subject.value === subject)) {
-    const counts = new Map<string, number>();
-    for (const q of quads) {
-      if (q.subject.termType !== "NamedNode") continue;
-      counts.set(q.subject.value, (counts.get(q.subject.value) ?? 0) + 1);
+  let max = counts.get(subject) ?? -1;
+  for (const [iri, n] of counts) {
+    if (n > max) {
+      max = n;
+      subject = iri;
     }
-    let best = "";
-    let max = 0;
-    for (const [iri, n] of counts) {
-      if (n > max) {
-        max = n;
-        best = iri;
-      }
-    }
-    if (best) subject = best;
   }
 
   const base = apiBase();

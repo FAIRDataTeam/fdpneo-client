@@ -66,6 +66,24 @@ describe("RdfGraphView", () => {
     expect(w.findAll(".branch").length).toBe(3);
   });
 
+  it("centers on the richest subject when the hint matches a sparse one", async () => {
+    // The FDP root negotiates a sparse trailing-slash LDP container alongside the
+    // real FAIRDataPoint; the hint matches the container, but we want the resource.
+    const ttl = `${PREFIX}
+      @prefix ldp: <http://www.w3.org/ns/ldp#> .
+      <http://fdp> a dcat:Catalog ;
+        dct:title "Root" ;
+        dct:description "desc" ;
+        dct:publisher <http://pub> .
+      <http://fdp/> a ldp:DirectContainer ;
+        ldp:membershipResource <http://fdp/> .`;
+    const w = await render(ttl, "http://fdp/"); // hint = the sparse container
+
+    // Centered on <http://fdp> (4 triples), not <http://fdp/> (2).
+    expect(w.findAll(".branch").length).toBe(4);
+    expect(w.text()).toContain("Root");
+  });
+
   it("routes internal object IRIs and links external ones", async () => {
     // Internal detection keys off the configured API base.
     window.__FDP_CONFIG__ = { apiUrl: "http://x" };
