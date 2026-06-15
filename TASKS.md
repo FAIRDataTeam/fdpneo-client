@@ -2060,10 +2060,101 @@ editor's Form Preview and (more so) the record authoring form.
 
 ---
 
+## Phase 13 — "Specimen Archive" redesign + white-labeling (2026-06-15)
+
+Sharpen the existing warm-paper design rather than replacing it: characterful
+typography, atmosphere, the linked-data lineage as the signature motif, and —
+first-class — deployer white-labeling (colors, logo, org name) through the
+runtime-config path so one image serves any organisation. Full design rationale
+and a working mockup: `design/proposal-specimen-archive.html`; the approved plan
+covers each phase in detail. Sequence below is dependency-ordered: each task
+leaves the app working and is independently shippable.
+
+### 13.1 Token foundation + font swap — ✅ done (2026-06-15)
+- Extracted the `:root` + `.theme-dark` variable blocks from `src/styles/main.css`
+  into new [`src/styles/tokens.css`](src/styles/tokens.css); `main.css` now
+  `@import`s it and keeps only base/utility rules. `main.ts` import unchanged.
+- Repointed the Google Fonts `<link>` in [`index.html`](index.html) to Fraunces
+  (display, variable opsz/ital) + Hanken Grotesk (UI) + Spline Sans Mono (RDF);
+  `--font-sans`/`--font-serif`/`--font-mono` updated to match. No component edits —
+  all font usage was already tokenized.
+- Added `--paper-deep` (both themes) and a richer `--shadow-2`. Held off on
+  retuning `--surface`/`--line` — that warmer-paper shift belongs with the
+  atmosphere work in 13.3.
+- **Gate green:** lint clean, `npm run typecheck` clean, `npm run test:unit` =
+  315 passed (60 files). NOTE: actual scripts are `typecheck` / `test:unit`, not
+  the `type-check` / `test:run` names in CLAUDE.md — that doc is stale.
+
+### 13.2 Typography fit — ⬜ todo
+- Fraunces reads heavier than Instrument Serif: bump the ~8–10 display-title
+  sites that hard-code `font-weight: 400` to `500` + `font-optical-sizing: auto`
+  (`RecordHero.vue`, `MetadataBrowseView.vue` hero, `RecordDetailView.vue` error
+  h2, `NotFoundView.vue`, serif `SectionTitle`s — enumerate via `var(--font-serif)`).
+- **Done when:** titles look intentional at the chosen sizes; visual check only.
+
+### 13.3 Atmosphere — ⬜ todo
+- Add the grain overlay + soft accent vignette (fixed pseudo-elements on
+  `App.vue`'s `.shell` or global in `main.css`); SVG `feTurbulence` data-URI,
+  `multiply` (light) / `screen` (dark).
+- Guard hover transforms under `@media (prefers-reduced-motion: reduce)`.
+- **Done when:** depth is visible without harming contrast/readability.
+
+### 13.4 Type-color system promoted — ⬜ todo
+- Promote the six record-kind colors from `.type-tag .sq.*` to first-class tokens
+  (`--t-catalog`, `--t-dataset`, …) in `tokens.css` (incl. `.theme-dark`);
+  rewrite `.type-tag` to consume them.
+- Add type-colored left spines to `CatalogCard.vue`, `RecordCard.vue`,
+  `DistributionList.vue`/`DistributionRow.vue`.
+- **Done when:** record kind is legible at a glance across cards; specs green.
+
+### 13.5 Lineage rail (signature motif) — ⬜ todo
+- Extend `Crumb` in `src/composables/useAncestors.ts` with a `type` field, read
+  from each ancestor's `rdf:type` in the `/expanded` store (reuse `one()`/`NS`
+  from `src/api/rdf` and the `useResourceTypes` kind mapping).
+- New `src/components/metadata/LineageRail.vue` — vertical graph thread with
+  type-colored nodes, kind eyebrow + linked title, current hop emphasized.
+- Integrate in `SecondaryNav.vue` for detail views (keep `AppBreadcrumbs` for
+  narrow/secondary contexts); wire enriched crumbs through `RecordDetailView.vue`.
+- **Done when:** detail pages show the lineage with correct kinds/colors/links;
+  new `LineageRail.spec.ts` + `useAncestors.spec.ts` pass.
+
+### 13.6 Deployer white-labeling — ⬜ todo
+- Extend `FdpRuntimeConfig` (`src/runtimeConfig.ts`) with an optional `branding`
+  block: `orgName`, `logoUrl`, `logoUrlDark`, `theme`, `themeDark`.
+- New `src/composables/useBranding.ts` (+ boot step in `src/main.ts`): apply an
+  **allowlisted** subset of token overrides to `document.documentElement` (light)
+  and an injected `.theme-dark { … }` rule (dark) via one `<style id="fdp-branding">`.
+  Allowlist: `--accent*`, `--signal*`, `--paper*`, `--surface`, `--ink`. In-memory
+  only (CLAUDE.md — no storage).
+- `AppLogo.vue`/`AppHeader.vue`: render `branding.logoUrl` (dark variant swapped
+  by theme) when set, else the built-in FDP Neo lockup; `branding.orgName` takes
+  precedence in the deployment lockup.
+- Ship empty `branding: {}` in `public/config.js`; document keys there + in
+  CLAUDE.md. Note the `img-src` CSP implication for remote logos in `index.html`.
+- **Done when:** a `branding` block in `public/config.js` recolors the whole app +
+  shows a custom logo without a rebuild; removing it restores defaults;
+  `useBranding.spec.ts` passes.
+
+### 13.7 RDF panel as first-class artifact — ⬜ todo
+- Restyle `RdfPreviewPanel.vue`: format tabs, syntax tinting (extend the existing
+  `.code .k/.s/.c/.p` classes), copy affordance, paper-deep ground. Presentation
+  only — no change to what RDF is fetched.
+- **Done when:** the turtle/serialization surface reads as an authored artifact.
+
+### 13.8 Roll across surfaces & polish — ⬜ todo
+- Apply spines/atmosphere consistently to `MetadataBrowseView` hero + grid,
+  `RecordHero`, and `AboutSidecar` (surface the dual identifier/serving base +
+  foreign-identifier marker from ADR-0014).
+- Full dark-mode sweep; re-verify focus-visible ring contrast.
+- **Done when:** browse + detail + editors render coherently in both themes;
+  gate green; optional Playwright smoke on `/` and a record route.
+
+---
+
 ## Open items
 
-- Theme tokens and final design system (likely arrives via Claude Design
-  handoff; see UX-DESIGN-BRIEF.md).
+- ~~Theme tokens and final design system~~ — addressed by Phase 13
+  (`design/proposal-specimen-archive.html` + tokens.css extraction).
 - Accessibility audit pass once visual surfaces stabilize.
 - Internationalization — not in scope for v1 but the messaging layer should
   not block it.

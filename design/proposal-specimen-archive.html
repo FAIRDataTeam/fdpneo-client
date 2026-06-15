@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en" class="theme-light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FDP Neo — "Specimen Archive" redesign proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   FDP Neo — "Specimen Archive" direction.
+   Keeps the existing warm-paper bones + FAIR palette; swaps the generic body
+   font for a humanist grotesque, adds atmosphere (grain, layered paper,
+   hairline structure), and promotes the linked-data lineage to the signature
+   motif. Single file, no build — open in a browser. Toggle theme top-right.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* light — warm paper archive */
+  --paper:       #f6f3ea;
+  --paper-deep:  #efeadd;
+  --surface:     #fffdf8;
+  --surface-2:   #f1ede2;
+  --line:        #e3ddcd;
+  --line-strong: #d2c9b3;
+  --ink:         #16191d;
+  --ink-2:       #353a40;
+  --muted:       #6c7178;
+  --muted-2:     #969aa0;
+
+  --accent:      #2d5b89;
+  --accent-deep: #1d3f60;
+  --accent-soft: #e6eef6;
+  --accent-line: #bcd0e3;
+
+  --signal:      #b04a23;
+  --signal-soft: #f6e6da;
+
+  --ok:          #2f7a4a;  --ok-soft:   #e0f0e5;
+  --warn:        #8a6b0a;  --warn-soft: #f5edcf;
+
+  /* type-color system — first-class, drives spines, nodes, dots */
+  --t-fdp:          #16191d;
+  --t-catalog:      #2d5b89;
+  --t-dataset:      #b04a23;
+  --t-distribution: #2f7a4a;
+  --t-biobank:      #6e4a8e;
+  --t-publication:  #1f6f8e;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans:    "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --r-1: 4px; --r-2: 8px; --r-3: 13px; --r-4: 20px;
+
+  --shadow-1: 0 1px 0 rgba(20,24,31,.04), 0 1px 2px rgba(20,24,31,.05);
+  --shadow-2: 0 10px 34px -14px rgba(28,40,60,.30), 0 2px 6px rgba(20,24,31,.05);
+
+  --grain: .035;
+}
+
+.theme-dark {
+  --paper:       #0c0f14;
+  --paper-deep:  #090b0f;
+  --surface:     #14181f;
+  --surface-2:   #1b212b;
+  --line:        #242b37;
+  --line-strong: #323a48;
+  --ink:         #ece9e0;
+  --ink-2:       #c9c6bd;
+  --muted:       #8a93a0;
+  --muted-2:     #636c78;
+
+  --accent:      #84acda;
+  --accent-deep: #abc8e8;
+  --accent-soft: #182636;
+  --accent-line: #2c3e58;
+
+  --signal:      #e08858;
+  --signal-soft: #2b1a11;
+
+  --ok:   #6bb58a; --ok-soft:   #122619;
+  --warn: #d9b257; --warn-soft: #271f0c;
+
+  --t-fdp:          #ece9e0;
+  --t-catalog:      #84acda;
+  --t-dataset:      #e08858;
+  --t-distribution: #6bb58a;
+  --t-biobank:      #b794d6;
+  --t-publication:  #6cb6cf;
+
+  --shadow-2: 0 18px 44px -16px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.4);
+  --grain: .05;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv01";
+}
+
+/* atmosphere — fine grain overlay + a soft top vignette of the accent */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--grain);
+  mix-blend-mode: multiply;
+}
+.theme-dark body::before { mix-blend-mode: screen; }
+body::after {
+  content: "";
+  position: fixed; top: 0; left: 0; right: 0; height: 420px; z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 18% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%);
+}
+.wrap { position: relative; z-index: 1; }
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+.mono { font-family: var(--font-mono); }
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+header.app {
+  display: flex; align-items: center; gap: 20px;
+  height: 66px; padding: 0 30px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 20;
+}
+.lockup { display: inline-flex; align-items: center; gap: 11px; }
+.mark {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--accent); display: grid; place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.mark i { width: 9px; height: 9px; border-radius: 2px; background: var(--paper); display: block; }
+.wordmark { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
+.wordmark b { font-weight: 700; font-size: 16px; letter-spacing: .04em; color: var(--ink); }
+.wordmark s { text-decoration: none; font-size: 8.5px; letter-spacing: .26em; color: var(--muted); font-weight: 600; }
+.neo { font-family: var(--font-display); font-style: italic; font-size: 19px; color: var(--signal); margin-left: 2px; }
+.deployment { padding-left: 18px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.deployment b { font-weight: 600; font-size: 13px; }
+.deployment span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.grow { flex: 1; }
+.search {
+  display: flex; align-items: center; gap: 10px;
+  width: 330px; height: 38px; padding: 0 14px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; color: var(--muted);
+}
+.search input { flex: 1; border: 0; background: none; outline: 0; font: inherit; font-size: 13.5px; color: var(--ink); }
+.search .kbd { font-family: var(--font-mono); font-size: 11px; color: var(--muted-2); border: 1px solid var(--line-strong); border-radius: 5px; padding: 1px 5px; }
+.iconbtn { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: var(--ink-2); }
+.iconbtn:hover { background: var(--surface-2); }
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 16px; border-radius: 10px;
+  font-weight: 600; font-size: 13.5px;
+  background: var(--ink); color: var(--paper);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.btn.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line-strong); }
+.btn.ghost:hover { box-shadow: none; background: var(--surface-2); }
+
+/* ── page shell + lineage rail ──────────────────────────────────────────── */
+.page { max-width: 1180px; margin: 0 auto; padding: 0 30px; display: grid; grid-template-columns: 232px minmax(0,1fr); gap: 0; }
+
+.rail { padding: 40px 26px 40px 4px; position: relative; }
+.rail h6 { margin: 0 0 22px; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; }
+.lineage { position: relative; display: flex; flex-direction: column; gap: 0; }
+.lineage::before {
+  content: ""; position: absolute; left: 6px; top: 8px; bottom: 18px; width: 2px;
+  background: linear-gradient(var(--line-strong), var(--line));
+}
+.hop { position: relative; padding: 0 0 22px 26px; }
+.hop .dot {
+  position: absolute; left: 0; top: 4px; width: 14px; height: 14px; border-radius: 4px;
+  background: var(--surface); box-shadow: 0 0 0 2px var(--paper), inset 0 0 0 2px var(--node, var(--muted));
+}
+.hop.here .dot { background: var(--node); box-shadow: 0 0 0 2px var(--paper), 0 0 0 5px color-mix(in srgb, var(--node) 22%, transparent); }
+.hop .kind { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--node); font-weight: 500; }
+.hop .name { font-size: 13.5px; color: var(--ink-2); margin-top: 1px; }
+.hop.here .name { color: var(--ink); font-weight: 600; }
+.hop a.name:hover { color: var(--accent); }
+
+.rail .facet { margin-top: 30px; }
+.rail .facet .ttl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 10px; }
+.rail .facet label { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 13px; color: var(--ink-2); }
+.rail .facet .cnt { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted-2); }
+.rail .facet input { accent-color: var(--accent); }
+
+/* ── main column ────────────────────────────────────────────────────────── */
+main { padding: 38px 0 80px 44px; border-left: 1px solid var(--line); min-width: 0; }
+
+.eyebrow { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.type-tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--node); font-weight: 500; }
+.type-tag .sq { width: 9px; height: 9px; border-radius: 2.5px; background: var(--node); }
+.eyebrow .sep { width: 4px; height: 4px; border-radius: 50%; background: var(--line-strong); }
+.eyebrow .ver { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+h1.title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-size: 47px; line-height: 1.06; letter-spacing: -.012em;
+  margin: 0 0 18px; color: var(--ink); max-width: 16ch;
+}
+.lede { font-family: var(--font-display); font-weight: 400; font-size: 19px; line-height: 1.55; color: var(--ink-2); max-width: 62ch; margin: 0 0 26px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 34px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px;
+  border-radius: 999px; font-size: 12.5px; font-weight: 500;
+  background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line);
+}
+.chip .d { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.chip.accent { background: var(--accent-soft); color: var(--accent-deep); border-color: var(--accent-line); }
+.chip.signal { background: var(--signal-soft); color: var(--signal); border-color: transparent; }
+
+/* layout split: content + identifiers sidecar */
+.split { display: grid; grid-template-columns: minmax(0,1fr) 308px; gap: 38px; align-items: start; }
+
+.section { margin-bottom: 40px; }
+.section > h2 {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  font-weight: 700; margin: 0 0 16px; display: flex; align-items: center; gap: 12px;
+}
+.section > h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* distribution cards — type-colored spine */
+.dist {
+  position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px;
+  padding: 16px 18px 16px 22px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-3); margin-bottom: 12px; box-shadow: var(--shadow-1);
+  transition: border-color .14s ease, transform .14s ease;
+}
+.dist::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--t-distribution); }
+.dist:hover { transform: translateX(2px); border-color: var(--line-strong); }
+.dist .name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+.dist .fmt { font-family: var(--font-mono); font-size: 11px; color: var(--distribution, var(--t-distribution)); background: var(--ok-soft); padding: 2px 7px; border-radius: 5px; }
+.dist .meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.dist .go { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--accent); }
+
+/* identifiers sidecar */
+.sidecar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-3); padding: 4px 0; box-shadow: var(--shadow-1); overflow: hidden; }
+.sidecar .row { padding: 13px 18px; border-bottom: 1px solid var(--line); }
+.sidecar .row:last-child { border-bottom: 0; }
+.sidecar .k { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
+.sidecar .v { font-size: 13.5px; color: var(--ink-2); }
+.sidecar .v.mono { font-family: var(--font-mono); font-size: 12px; word-break: break-all; color: var(--ink-2); }
+.sidecar .v a { color: var(--accent); border-bottom: 1px solid var(--accent-line); }
+.foreign { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.foreign b { color: var(--signal); font-weight: 500; }
+
+/* RDF artifact panel — the signature "view source of knowledge" */
+.rdf { background: var(--paper-deep); border: 1px solid var(--line); border-radius: var(--r-3); overflow: hidden; box-shadow: var(--shadow-1); }
+.rdf .bar { display: flex; align-items: center; gap: 8px; padding: 11px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.rdf .bar .tabs { display: flex; gap: 4px; }
+.rdf .bar .tab { font-family: var(--font-mono); font-size: 11.5px; padding: 5px 11px; border-radius: 7px; color: var(--muted); }
+.rdf .bar .tab.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+.rdf .bar .copy { margin-left: auto; font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.rdf pre { margin: 0; padding: 16px 18px; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; overflow-x: auto; color: var(--ink-2); }
+.rdf .pfx { color: var(--accent); }
+.rdf .pred { color: var(--signal); }
+.rdf .iri { color: var(--accent-deep); }
+.rdf .lit { color: var(--ok); }
+.rdf .cmt { color: var(--muted-2); }
+
+/* footer note */
+.note { max-width: 1180px; margin: 0 auto; padding: 26px 30px 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+.note b { color: var(--ink-2); }
+
+@media (max-width: 1040px) {
+  .page { grid-template-columns: 1fr; }
+  .rail { display: none; }
+  main { border-left: 0; padding-left: 0; }
+  .split { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <a class="lockup" href="#">
+      <span class="mark"><i></i></span>
+      <span class="wordmark"><b>FAIR</b><s>DATA POINT</s></span>
+      <span class="neo">neo</span>
+    </a>
+    <div class="deployment">
+      <b>Erasmus MC Data Repository</b>
+      <span>fdp.erasmusmc.nl</span>
+    </div>
+    <div class="grow"></div>
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+      <input placeholder="Search records, keywords, themes…" />
+      <span class="kbd">⌘K</span>
+    </div>
+    <button class="iconbtn" id="themeBtn" title="Toggle theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+    <button class="btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Create</button>
+  </header>
+
+  <div class="page">
+    <!-- ── LINEAGE RAIL: the signature motif ── -->
+    <aside class="rail">
+      <h6>Lineage</h6>
+      <nav class="lineage">
+        <div class="hop" style="--node:var(--t-fdp)"><span class="dot"></span><div class="kind">Repository</div><a href="#" class="name">Erasmus MC Data Repository</a></div>
+        <div class="hop" style="--node:var(--t-catalog)"><span class="dot"></span><div class="kind">Catalog</div><a href="#" class="name">Imaging & Cohort Studies</a></div>
+        <div class="hop here" style="--node:var(--t-dataset)"><span class="dot"></span><div class="kind">Dataset</div><span class="name">Rotterdam Study — Brain MRI</span></div>
+      </nav>
+
+      <div class="facet">
+        <div class="ttl">In this catalog</div>
+        <label><input type="checkbox" checked /> Dataset <span class="cnt">28</span></label>
+        <label><input type="checkbox" /> Distribution <span class="cnt">64</span></label>
+        <label><input type="checkbox" /> Biobank <span class="cnt">7</span></label>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main>
+      <div class="eyebrow" style="--node:var(--t-dataset)">
+        <span class="type-tag"><span class="sq"></span> Dataset</span>
+        <span class="sep"></span>
+        <span class="ver">v2.3.0 · updated 2026-04-11</span>
+      </div>
+
+      <h1 class="title">Rotterdam Study — Brain MRI Substudy</h1>
+      <p class="lede">A prospective population cohort of structural and functional brain MRI acquired from community-dwelling adults aged 45 and over, harmonized to the BIDS specification and linked to clinical phenotype registries.</p>
+
+      <div class="chips">
+        <span class="chip ok"><span class="d"></span> Open metadata</span>
+        <span class="chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6Z"/></svg> Files: DUA required</span>
+        <span class="chip accent">DCAT-AP 3.0</span>
+        <span class="chip signal">SHACL valid</span>
+      </div>
+
+      <div class="split">
+        <div>
+          <div class="section">
+            <h2>Distributions</h2>
+            <div class="dist">
+              <div>
+                <div class="name">Tabular phenotypes <span class="fmt">text/csv</span></div>
+                <div class="meta">2.4 GB · 14,032 rows · last verified 3 days ago</div>
+              </div>
+              <a class="go" href="#">Access <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            </div>
+            <div class="dist">
+              <div>
+                <div class="name">Imaging archive <span class="fmt">application/zip</span></div>
+                <div class="meta">812 GB · BIDS 1.9 · DICOM → NIfTI</div>
+              </div>
+              <a class="go" href="#">Access <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            </div>
+            <div class="dist">
+              <div>
+                <div class="name">SPARQL endpoint <span class="fmt">text/turtle</span></div>
+                <div class="meta">Live · 1.2M triples · queryable</div>
+              </div>
+              <a class="go" href="#">Open <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            </div>
+          </div>
+
+          <div class="section">
+            <h2>Metadata source</h2>
+            <div class="rdf">
+              <div class="bar">
+                <div class="tabs">
+                  <span class="tab on">Turtle</span>
+                  <span class="tab">JSON-LD</span>
+                  <span class="tab">RDF/XML</span>
+                </div>
+                <span class="copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg> Copy</span>
+              </div>
+<pre><span class="cmt"># Authoritative metadata — the editors are not the source of truth</span>
+<span class="pfx">@prefix</span> dcat: <span class="iri">&lt;http://www.w3.org/ns/dcat#&gt;</span> .
+<span class="pfx">@prefix</span> dct:  <span class="iri">&lt;http://purl.org/dc/terms/&gt;</span> .
+
+<span class="iri">&lt;.../dataset/rotterdam-brain-mri&gt;</span>
+    <span class="pred">a</span>              dcat:Dataset ;
+    <span class="pred">dct:title</span>      <span class="lit">"Rotterdam Study — Brain MRI Substudy"</span>@en ;
+    <span class="pred">dct:identifier</span> <span class="lit">"10.5281/zenodo.8421197"</span> ;
+    <span class="pred">dcat:theme</span>     <span class="iri">&lt;http://publications.europa.eu/.../HEAL&gt;</span> ;
+    <span class="pred">dct:conformsTo</span> <span class="iri">&lt;https://w3id.org/dcat-ap/3.0&gt;</span> .</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- identifiers sidecar -->
+        <aside>
+          <div class="section" style="margin-bottom:18px">
+            <h2>Identifiers</h2>
+            <div class="sidecar">
+              <div class="row">
+                <div class="k">Persistent ID (DOI)</div>
+                <div class="v"><a href="#">10.5281/zenodo.8421197</a></div>
+              </div>
+              <div class="row">
+                <div class="k">Serving IRI</div>
+                <div class="v mono">fdp.erasmusmc.nl/dataset/rotterdam-brain-mri</div>
+                <div class="foreign"><b>≠</b> differs from identifier base (ADR-0014)</div>
+              </div>
+              <div class="row">
+                <div class="k">Publisher</div>
+                <div class="v">Erasmus MC · Epidemiology</div>
+              </div>
+              <div class="row">
+                <div class="k">License</div>
+                <div class="v">CC BY 4.0 · open metadata</div>
+              </div>
+              <div class="row">
+                <div class="k">State</div>
+                <div class="v"><span class="chip ok" style="height:24px"><span class="d"></span> Published</span></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div class="note">
+    <b>Direction: "Specimen Archive."</b> Same warm-paper bones and FAIR palette as today, but: Fraunces (display) + Hanken Grotesk (UI) + Spline Sans Mono (RDF) replace Inter; grain &amp; layered paper add atmosphere; the linked-data <b>lineage rail</b> is promoted to the signature motif; the type-color system drives spines, nodes &amp; tags; the RDF panel becomes a first-class "view source of knowledge." Toggle light/dark, top-right.
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById('themeBtn');
+  btn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('theme-dark');
+    document.documentElement.classList.toggle('theme-light');
+  });
+</script>
+</body>
+</html>

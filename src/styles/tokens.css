@@ -1,0 +1,89 @@
+/*
+ * FDP Neo — design tokens (the authoritative source of truth).
+ *
+ * Every component consumes these via CSS custom properties, so light/dark swap
+ * is mechanical and a deployer can re-skin the whole app by overriding a curated
+ * subset at runtime (see `useBranding` — Phase 13.6). `main.css` imports this
+ * file and adds the base/utility rules that build on these variables.
+ *
+ * "Specimen Archive" direction (Phase 13.1): warm-paper archive bones + the FAIR
+ * slate-blue accent, retypeset onto Fraunces (display) / Hanken Grotesk (UI) /
+ * Spline Sans Mono (RDF).
+ */
+
+:root {
+  /* light palette */
+  --paper: #fafaf7;
+  --paper-deep: #f1ede2;
+  --surface: #ffffff;
+  --surface-2: #f4f2ec;
+  --line: #e6e2d8;
+  --line-strong: #d5cfc0;
+  --ink: #14181f;
+  --ink-2: #2a2f38;
+  --muted: #6b7280;
+  --muted-2: #8a8f99;
+
+  /* accent: FAIR brand slate-blue, refined */
+  --accent: #2d5b89;
+  --accent-deep: #1f4567;
+  --accent-soft: #e8eef5;
+  --accent-line: #c1d0e0;
+
+  /* signal: warm rust for highlights, badges, charts */
+  --signal: #b5532a;
+  --signal-soft: #f6e8dd;
+
+  /* status */
+  --ok: #2f7a4a;
+  --ok-soft: #e1f0e5;
+  --warn: #8a6b0a;
+  --warn-soft: #f6efd3;
+
+  /* type scales */
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* radii */
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 12px;
+  --r-4: 18px;
+
+  /* shadow */
+  --shadow-1: 0 1px 0 rgba(20, 24, 31, 0.04), 0 1px 2px rgba(20, 24, 31, 0.04);
+  --shadow-2: 0 10px 34px -14px rgba(28, 40, 60, 0.3), 0 2px 6px rgba(20, 24, 31, 0.05);
+
+  font-family: var(--font-sans);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.theme-dark {
+  --paper: #0b0e13;
+  --paper-deep: #090b0f;
+  --surface: #141821;
+  --surface-2: #1a1f2a;
+  --line: #232a37;
+  --line-strong: #2e3645;
+  --ink: #e8e5de;
+  --ink-2: #c8c6bf;
+  --muted: #8a93a0;
+  --muted-2: #6a7280;
+
+  --accent: #7aa5d4;
+  --accent-deep: #5489bc;
+  --accent-soft: #1a2738;
+  --accent-line: #2a3d58;
+
+  --signal: #e08858;
+  --signal-soft: #2b1e16;
+
+  --ok: #6bb58a;
+  --ok-soft: #142a1e;
+  --warn: #d9b257;
+  --warn-soft: #2a220e;
+
+  --shadow-2: 0 18px 44px -16px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
