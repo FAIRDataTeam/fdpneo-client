@@ -19,6 +19,20 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Display serif (Fraunces) is a variable font with an optical-size axis; engage
+ * it so large headings render with their display optical grade rather than a
+ * scaled text grade. Single source so every serif heading benefits — flagship
+ * 44px headlines additionally lift to weight 500 in their own components.
+ */
+h1,
+h2,
+h3,
+h4 {
+  font-optical-sizing: auto;
 }
 
 a {

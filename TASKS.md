@@ -2085,12 +2085,21 @@ leaves the app working and is independently shippable.
   315 passed (60 files). NOTE: actual scripts are `typecheck` / `test:unit`, not
   the `type-check` / `test:run` names in CLAUDE.md — that doc is stale.
 
-### 13.2 Typography fit — ⬜ todo
-- Fraunces reads heavier than Instrument Serif: bump the ~8–10 display-title
-  sites that hard-code `font-weight: 400` to `500` + `font-optical-sizing: auto`
-  (`RecordHero.vue`, `MetadataBrowseView.vue` hero, `RecordDetailView.vue` error
-  h2, `NotFoundView.vue`, serif `SectionTitle`s — enumerate via `var(--font-serif)`).
-- **Done when:** titles look intentional at the chosen sizes; visual check only.
+### 13.2 Typography fit — ✅ done (2026-06-15)
+- Reality check: ~30 serif display titles exist (all `font-weight: 400`, 20–44px),
+  not the ~8–10 first estimated. Rather than 30 risky inline edits, used a single
+  global source + targeted lifts:
+  - Added a global `h1,h2,h3,h4 { font-optical-sizing: auto }` rule in
+    [`main.css`](src/styles/main.css) (+ `-webkit-font-smoothing: antialiased` on
+    body) so Fraunces' optical-size axis engages on every heading from one place.
+  - Lifted the two flagship 44px public headlines — [`RecordHero.vue`](src/components/metadata/RecordHero.vue)
+    h1 and [`MetadataBrowseView.vue`](src/views/MetadataBrowseView.vue) hero h1 — to
+    `font-weight: 500`, tightened tracking/leading, explicit optical sizing.
+- **Deliberately left at 400:** the ~32px admin/view titles (Steward, Entity edit,
+  Schema/Policy editors, etc.) — Fraunces at 32/400 with opsz reads fine, and a
+  blanket bump wasn't worth the churn/regression risk. Revisit after a real visual
+  pass (run `npm run dev`) if any look light.
+- **Gate green:** lint + `typecheck` clean, `test:unit` = 315 passed.
 
 ### 13.3 Atmosphere — ⬜ todo
 - Add the grain overlay + soft accent vignette (fixed pseudo-elements on

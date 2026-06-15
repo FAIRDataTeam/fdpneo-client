@@ -41,10 +41,11 @@ defineProps<{ record: FdpRecord }>();
 h1 {
   margin: 0 0 18px;
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: 500;
+  font-optical-sizing: auto;
   font-size: 44px;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  line-height: 1.08;
+  letter-spacing: -0.012em;
   color: var(--ink);
 }
 .lede {

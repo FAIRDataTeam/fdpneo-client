@@ -53,15 +53,15 @@ npm run build
 
 # Tests
 npm test              # Vitest, watch mode
-npm run test:run      # Vitest, single run
-npm run e2e           # Playwright
+npm run test:unit     # Vitest, single run
+npm run test:e2e      # Playwright
 
 # Lint and format
 npm run lint
 npm run format
 
 # Type check
-npm run type-check
+npm run typecheck
 ```
 
 ## Code conventions
@@ -129,7 +129,7 @@ The ODRL editor is guided rather than canvas-based:
 
 1. If the change affects the API contract, the server repo needs a coordinated change. Don't edit the generated types directly — update the server's OpenAPI and regenerate.
 2. Component changes: write the component, then a Vitest unit test. Visual changes that span pages may need a Playwright check too.
-3. Run the gate before declaring done: `npm run lint && npm run type-check && npm run test:run`.
+3. Run the gate before declaring done: `npm run lint && npm run typecheck && npm run test:unit`.
 4. The SHACL and ODRL editors are the parts most likely to be wrong in subtle ways. When changing them, test the round-trip: import known-good `.ttl`, modify, export, and diff against the expected output.
 
 ## Open questions
