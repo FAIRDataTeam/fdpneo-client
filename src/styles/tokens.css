@@ -12,13 +12,15 @@
  */
 
 :root {
-  /* light palette */
-  --paper: #fafaf7;
-  --paper-deep: #f1ede2;
-  --surface: #ffffff;
-  --surface-2: #f4f2ec;
-  --line: #e6e2d8;
-  --line-strong: #d5cfc0;
+  /* light palette — warm "archive paper" (Phase 13.8): creamier grounds and
+     warmer hairlines than the near-white original, so the editorial direction
+     reads clearly. Accent/signal are unchanged (FAIR brand). */
+  --paper: #f5f1e8;
+  --paper-deep: #ece6d8;
+  --surface: #fffdf7;
+  --surface-2: #f1ece0;
+  --line: #e2dccc;
+  --line-strong: #d0c7b3;
   --ink: #14181f;
   --ink-2: #2a2f38;
   --muted: #6b7280;

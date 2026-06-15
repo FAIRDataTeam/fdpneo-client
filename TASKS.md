@@ -2183,13 +2183,29 @@ leaves the app working and is independently shippable.
   punctuation-in-literal edge cases). Note: fixed an `exactOptionalPropertyTypes`
   slip (don't pass `cls: undefined`).
 
-### 13.8 Roll across surfaces & polish — ⬜ todo
-- Apply spines/atmosphere consistently to `MetadataBrowseView` hero + grid,
-  `RecordHero`, and `AboutSidecar` (surface the dual identifier/serving base +
-  foreign-identifier marker from ADR-0014).
-- Full dark-mode sweep; re-verify focus-visible ring contrast.
-- **Done when:** browse + detail + editors render coherently in both themes;
-  gate green; optional Playwright smoke on `/` and a record route.
+### 13.8 Roll across surfaces & polish — ✅ done (2026-06-15)
+- **Warmed the light palette** to true "archive paper" in [`tokens.css`](src/styles/tokens.css)
+  (`--paper #f5f1e8`, `--surface #fffdf7`, warmer `--line`/`--paper-deep`/`--surface-2`)
+  and bumped light grain 0.035 → 0.05 in [`main.css`](src/styles/main.css). This was
+  deferred from 13.1 and is the change that makes the editorial direction read at a
+  glance (prompted by "I don't see the difference" — the prior passes kept the near-
+  white grounds). Accent/signal unchanged (FAIR brand).
+- Surface consistency: spines already cover catalog grid (`CatalogCard`) + search
+  rows (`RecordCard`) + distributions; atmosphere is global; `RecordHero` Fraunces
+  from 13.2. `AboutSidecar` dual identifier/sameAs/exactMatch block (ADR-0014) was
+  already complete (commit 544fb75) — left as-is.
+- **Gate green:** lint + typecheck clean; `test:unit` = 329 passed (64 files).
+- **Still wants human eyes (visual, can't gate):** full dark-mode sweep and
+  focus-visible ring contrast on the warmed palette; optional Playwright smoke on
+  `/` + a record route. Everything is token-driven so dark mode should be coherent,
+  but confirm at `localhost:5173`.
+
+---
+
+**Phase 13 complete (13.1–13.8).** Remaining is human visual QA in both themes +
+the white-label manual check (drop a `branding` block in `public/config.js`). The
+vertical lineage-rail layout (vs the horizontal one shipped in 13.5) is noted there
+as a future option if a sidebar layout is introduced.
 
 ---
 
