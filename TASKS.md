@@ -2281,6 +2281,37 @@ node-link graph (design prototype: `design/proposal-rdf-graph.html`, approved).
 
 ---
 
+## 16. Repository (FDP root) form bypassed the SHACL form generator — ✅ done (2026-06-16)
+
+**Symptom:** the FAIR Data Point (root) edit form showed none of its composed/inherited
+schema (FAIRDataPoint → MetadataService → DataService → Resource) — "the same issue" as
+the catalog form before task 14.
+
+**Root cause (identified):** [RepositoryEditView.vue](src/views/RepositoryEditView.vue)
+**hand-rolled three fields** (title/description/publisher) and read/wrote them directly —
+it never used the SHACL shape. The task-14 fix (closure-aware `fieldsFromShape`) lives in
+the *entity* form pipeline (`useEntityShape` → `EntityForm`), which RepositoryEditView
+bypassed. Verified empirically that `fieldsFromShape` on the real `/fdp-api/spec` already
+returns all 24 fields across the 4-level FDP chain — so the generator was never the
+problem; the root form was simply on a different, hardcoded path.
+
+**Systematic fix:** routed RepositoryEditView through the *same* pipeline as
+`EntityEditView`/`EntityCreateView` — `specFor(root)` (classIri = FAIRDataPoint) →
+`useEntityShape` → `EntityForm` → `modelFromTurtle`/`applyEditTurtle` RMW (keeps root
+specifics: `apiBase()` subject, `readGraph("")`/`putGraph("")`, `["repository"]`
+invalidation). Now **all** metadata edit/create forms derive fields from one
+closure-aware generator (`grep useEntityShape src/views` = the only three forms), so a
+deeper hierarchy can't silently lose inherited properties again.
+- Also taught [useEntityShape.ts](src/composables/useEntityShape.ts) the root spec URL
+  (`/fdp-api/spec`, not `/fdp-api//spec`).
+- The closure walk (`fieldsFromShape` + server `shape_closure`) is unbounded + cycle-safe,
+  so it handles arbitrary depth; the server `/spec` serves the full closure for every type.
+- **Gate green:** lint + typecheck clean; `test:unit` = 340 (65 files). Steward-gated form
+  not headlessly verifiable (anon redirect), but the field generation is proven via the
+  real `/spec` + shared pipeline.
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13

@@ -29,7 +29,10 @@ export interface ShapeForm {
 }
 
 async function fetchShapeForm(spec: EntitySpec): Promise<ShapeForm> {
-  const res = await http.get<string>(`/fdp-api/${spec.prefix}/spec`, {
+  // The repository root has an empty prefix and is served at `/fdp-api/spec`
+  // (not `/fdp-api//spec`); every other type is `/fdp-api/{prefix}/spec`.
+  const url = spec.prefix ? `/fdp-api/${spec.prefix}/spec` : "/fdp-api/spec";
+  const res = await http.get<string>(url, {
     headers: { Accept: "text/turtle" },
     responseType: "text",
     transformResponse: (d: unknown) => d,
