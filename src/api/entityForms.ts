@@ -133,7 +133,17 @@ const F = {
   downloadURL: { key: "downloadURL", predicate: `${NS.dcat}downloadURL`, label: "Download URL", kind: "iri" } as FieldSpec,
   accessURL: { key: "accessURL", predicate: `${NS.dcat}accessURL`, label: "Access URL", kind: "iri" } as FieldSpec,
   endpointURL: { key: "endpointURL", predicate: `${NS.dcat}endpointURL`, label: "Endpoint URL", kind: "iri" } as FieldSpec,
+  // Dual-identifier properties (ADR-0014). Optional and additive: the record's
+  // canonical IRI is the FDP-minted subject; these point at equivalent
+  // identifiers elsewhere. The server may also add `owl:sameAs` itself when a
+  // record is created under a foreign subject IRI.
+  identifier: { key: "identifier", predicate: `${NS.dct}identifier`, label: "Identifier", kind: "text", placeholder: "e.g. a DOI string", help: "An external identifier string (literal), e.g. a DOI." } as FieldSpec,
+  sameAs: { key: "sameAs", predicate: `${NS.owl}sameAs`, label: "Same as (IRI)", kind: "iris", help: "Equivalent foreign persistent identifier(s). Comma-separated IRIs." } as FieldSpec,
+  exactMatch: { key: "exactMatch", predicate: `${NS.skos}exactMatch`, label: "Exact match (IRI)", kind: "iris", help: "Equivalent IRI(s) in another registry. Comma-separated IRIs." } as FieldSpec,
 };
+
+// The optional dual-identifier block, appended to every resource type's fields.
+const IDENTIFIER_FIELDS: FieldSpec[] = [F.identifier, F.sameAs, F.exactMatch];
 
 export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
   catalog: {
@@ -142,7 +152,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Catalog",
     prefix: "catalog",
     childTypes: ["dataset", "data-service"],
-    fields: [F.title, F.description, F.publisher, F.license, F.rights],
+    fields: [F.title, F.description, F.publisher, F.license, F.rights, ...IDENTIFIER_FIELDS],
   },
   dataset: {
     type: "dataset",
@@ -150,7 +160,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Dataset",
     prefix: "dataset",
     childTypes: ["distribution"],
-    fields: [F.title, F.description, F.publisher, F.license, F.keywords, F.theme, F.rights],
+    fields: [F.title, F.description, F.publisher, F.license, F.keywords, F.theme, F.rights, ...IDENTIFIER_FIELDS],
   },
   distribution: {
     type: "distribution",
@@ -158,7 +168,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Distribution",
     prefix: "distribution",
     childTypes: [],
-    fields: [F.title, F.description, F.format, F.license, F.downloadURL, F.accessURL, F.rights],
+    fields: [F.title, F.description, F.format, F.license, F.downloadURL, F.accessURL, F.rights, ...IDENTIFIER_FIELDS],
   },
   "data-service": {
     type: "data-service",
@@ -166,7 +176,7 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Data service",
     prefix: "data-service",
     childTypes: [],
-    fields: [F.title, F.description, F.publisher, F.endpointURL, F.rights],
+    fields: [F.title, F.description, F.publisher, F.endpointURL, F.rights, ...IDENTIFIER_FIELDS],
   },
 };
 

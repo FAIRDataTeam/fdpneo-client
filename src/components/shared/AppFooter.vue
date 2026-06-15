@@ -16,14 +16,15 @@ import ReadinessStrip from "@/components/shared/ReadinessStrip.vue";
 import AboutDialog from "@/components/shared/AboutDialog.vue";
 import { useAppInfo } from "@/composables/useAppInfo";
 import { buildLabel } from "@/api/info";
-import { apiBase } from "@/api/rdf";
+import { servingBase } from "@/api/rdf";
 
 const { data: info } = useAppInfo();
 
 // "API" opens the server's interactive OpenAPI UI (served at /fdp-api/docs);
-// base derived from the configured API origin. "Specification" links to the FDP
-// spec site. Both open in a new tab.
-const apiDocsUrl = computed(() => `${apiBase()}/fdp-api/docs`);
+// it lives at the serving origin (where the API answers), which differs from
+// the persistent-identifier base in production (ADR-0014). "Specification"
+// links to the FDP spec site. Both open in a new tab.
+const apiDocsUrl = computed(() => `${servingBase()}/fdp-api/docs`);
 const SPEC_URL = "https://specs.fairdatapoint.org";
 
 const aboutOpen = ref(false);

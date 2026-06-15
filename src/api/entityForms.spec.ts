@@ -69,6 +69,46 @@ describe("buildCreateTurtle", () => {
   });
 });
 
+describe("dual-identifier fields (ADR-0014)", () => {
+  it("writes dct:identifier (literal) + owl:sameAs / skos:exactMatch (IRIs)", async () => {
+    const spec = specFor("dataset");
+    const model = {
+      ...emptyModel(spec),
+      title: "X",
+      identifier: "https://doi.org/10.5072/x",
+      sameAs: ["https://w3id.org/example/x"],
+      exactMatch: ["https://registry.example.org/x", "https://other.example/x"],
+    };
+    const ttl = await buildCreateTurtle(DATASET, spec, model, null);
+    const store = parseTurtle(ttl);
+
+    expect(one(store, DATASET, `${NS.dct}identifier`)).toBe("https://doi.org/10.5072/x");
+    expect(many(store, DATASET, `${NS.owl}sameAs`)).toEqual(["https://w3id.org/example/x"]);
+    expect(many(store, DATASET, `${NS.skos}exactMatch`).sort()).toEqual([
+      "https://other.example/x",
+      "https://registry.example.org/x",
+    ]);
+  });
+
+  it("reads identifier set back out of a graph for editing", () => {
+    const seed = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+<${DATASET}> a dcat:Dataset ;
+  dcterms:title "T" ;
+  dcterms:identifier "DOI:1" ;
+  owl:sameAs <https://w3id.org/example/x> ;
+  skos:exactMatch <https://registry.example.org/x> .
+`;
+    const model = modelFromTurtle(seed, DATASET, specFor("dataset"));
+    expect(model.identifier).toBe("DOI:1");
+    expect(model.sameAs).toEqual(["https://w3id.org/example/x"]);
+    expect(model.exactMatch).toEqual(["https://registry.example.org/x"]);
+  });
+});
+
 describe("modelFromTurtle / applyEditTurtle (read-modify-write)", () => {
   const SEED = `
 @prefix dcat: <http://www.w3.org/ns/dcat#> .

@@ -60,6 +60,10 @@ export interface FdpRecord {
   licenseUri: string;
   conformsTo: string;
   identifier: string;
+  /** Equivalent foreign persistent identifiers (`owl:sameAs`) — ADR-0014. */
+  sameAs: string[];
+  /** Equivalent IRIs in another registry (`skos:exactMatch`). */
+  exactMatch: string[];
   issued: string;
   modified: string;
   keywords: string[];
@@ -154,6 +158,8 @@ export const sampleRecord: FdpRecord = {
   licenseUri: "https://creativecommons.org/licenses/by/4.0/",
   conformsTo: "DCAT-AP 3.0 · FDP DatasetShape 1.2",
   identifier: "https://doi.org/10.5072/fdp/ad-cohort-2024",
+  sameAs: ["https://w3id.org/example/ad-cohort-2024"],
+  exactMatch: ["https://registry.example.org/datasets/ad-cohort-2024"],
   issued: "2024-09-08",
   modified: "2026-04-12",
   keywords: ["alzheimer", "longitudinal", "mri", "cognitive-assessment", "neurology"],

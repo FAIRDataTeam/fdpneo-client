@@ -1,10 +1,23 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import type { FdpRecord } from "@/data/sampleRecord";
 import MetaItem from "./MetaItem.vue";
 import RdfPreviewPanel from "./RdfPreviewPanel.vue";
 import RelatedList from "./RelatedList.vue";
 
-defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>();
+const props = defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>();
+
+// Dual-identifier block (ADR-0014): shown only when the record carries any of
+// dct:identifier / owl:sameAs / skos:exactMatch. owl:sameAs may be present even
+// though the user didn't enter it (the server records a foreign subject IRI
+// there), so this is a display surface, never an error.
+const hasIdentifiers = computed(
+  () =>
+    !!props.record.identifier ||
+    props.record.sameAs.length > 0 ||
+    props.record.exactMatch.length > 0,
+);
+const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
 </script>
 
 <template>
@@ -16,6 +29,31 @@ defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>
         <MetaItem label="Last modified">{{ record.modified }}</MetaItem>
         <MetaItem label="Container">{{ container || "—" }}</MetaItem>
       </dl>
+
+      <template v-if="hasIdentifiers">
+        <hr class="hr divider" />
+        <div class="eyebrow">Identifiers</div>
+        <dl class="meta">
+          <MetaItem v-if="record.identifier" label="Identifier" mono>
+            <a v-if="isUrl(record.identifier)" :href="record.identifier" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
+            <template v-else>{{ record.identifier }}</template>
+          </MetaItem>
+          <MetaItem v-if="record.sameAs.length" label="Same as" mono>
+            <ul class="idlist">
+              <li v-for="iri in record.sameAs" :key="iri">
+                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+              </li>
+            </ul>
+          </MetaItem>
+          <MetaItem v-if="record.exactMatch.length" label="Exact match" mono>
+            <ul class="idlist">
+              <li v-for="iri in record.exactMatch" :key="iri">
+                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+              </li>
+            </ul>
+          </MetaItem>
+        </dl>
+      </template>
 
       <hr class="hr divider" />
       <RdfPreviewPanel :record-id="recordId ?? ''" />
@@ -56,5 +94,22 @@ defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>
 }
 .divider {
   margin: 18px -18px;
+}
+.idlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.idlist a,
+.meta a {
+  color: var(--accent, var(--ink-2));
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.idlist a:hover,
+.meta a:hover {
+  text-decoration: underline;
 }
 </style>

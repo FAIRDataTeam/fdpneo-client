@@ -421,10 +421,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get SHACL shape for Repository
-         * @description Return the SHACL shape graph that validates Repository instances (http://localhost:8000/fdp-api/schemas/repository).
+         * Get SHACL shape for FAIRDataPoint
+         * @description Return the SHACL shape graph that validates FAIRDataPoint instances (http://localhost:8000/fdp-api/schemas/fairdata-point).
          */
-        get: operations["getRepositorySpec"];
+        get: operations["getFAIRDataPointSpec"];
         put?: never;
         post?: never;
         delete?: never;
@@ -475,10 +475,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Repository with parents
-         * @description Return the Repository record together with every ancestor reachable via dct:isPartOf.
+         * Get FAIRDataPoint with parents
+         * @description Return the FAIRDataPoint record together with every ancestor reachable via dct:isPartOf.
          */
-        get: operations["getRepositoryExpanded"];
+        get: operations["getFAIRDataPointExpanded"];
         put?: never;
         post?: never;
         delete?: never;
@@ -928,54 +928,6 @@ export interface paths {
         head: operations["ldp_head__path__head"];
         /** Ldp Patch */
         patch: operations["ldp_patch__path__patch"];
-        trace?: never;
-    };
-    "/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a Repository
-         * @description Fetch the RDF graph for one Repository record.
-         */
-        get: operations["getRepository"];
-        /**
-         * Replace a Repository
-         * @description Replace the RDF graph for one Repository record.
-         */
-        put: operations["replaceRepository"];
-        post?: never;
-        /**
-         * Delete a Repository
-         * @description Remove a Repository and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteRepository"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/fdp-api/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of Repository children
-         * @description Paginated listing of Repository members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getRepositoryChildPage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/catalog": {
@@ -1450,6 +1402,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a FAIRDataPoint
+         * @description Fetch the RDF graph for one FAIRDataPoint record.
+         */
+        get: operations["getFAIRDataPoint"];
+        /**
+         * Replace a FAIRDataPoint
+         * @description Replace the RDF graph for one FAIRDataPoint record.
+         */
+        put: operations["replaceFAIRDataPoint"];
+        post?: never;
+        /**
+         * Delete a FAIRDataPoint
+         * @description Remove a FAIRDataPoint and its sibling /meta and /audit graphs.
+         */
+        delete: operations["deleteFAIRDataPoint"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/page/{childPrefix}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List a page of FAIRDataPoint children
+         * @description Paginated listing of FAIRDataPoint members of a given child type. ``childPrefix`` is the URL prefix of the target type.
+         */
+        get: operations["getFAIRDataPointChildPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1570,6 +1570,8 @@ export interface components {
         BootstrapConfig: {
             /** Fdp Url */
             fdp_url: string;
+            /** Serving Url */
+            serving_url: string;
             /** Fdp Namespace */
             fdp_namespace: string;
             /** Fdp Version */
@@ -3183,7 +3185,7 @@ export interface operations {
             };
         };
     };
-    getRepositorySpec: {
+    getFAIRDataPointSpec: {
         parameters: {
             query?: never;
             header?: never;
@@ -3297,7 +3299,7 @@ export interface operations {
             };
         };
     };
-    getRepositoryExpanded: {
+    getFAIRDataPointExpanded: {
         parameters: {
             query?: never;
             header?: never;
@@ -3688,7 +3690,10 @@ export interface operations {
     };
     schema_get_fdp_api_schemas__schema_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Return the merged shape closure (composed type) instead of the single modular shape. */
+                composed?: boolean;
+            };
             header?: never;
             path: {
                 schema_id: string;
@@ -4577,209 +4582,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
-            };
-        };
-    };
-    getRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Replacement Repository graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteRepository: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getRepositoryChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -6352,6 +6154,209 @@ export interface operations {
             path: {
                 /** @description Resource identifier (path segment). */
                 id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replaceFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Replacement FAIRDataPoint graph */
+        requestBody: {
+            content: {
+                "text/turtle": string;
+                "application/ld+json": string;
+                "application/rdf+xml": string;
+                "application/n-triples": string;
+            };
+        };
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFAIRDataPointChildPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description URL prefix of the child resource type to list. */
+                childPrefix: string;
             };
             cookie?: never;
         };

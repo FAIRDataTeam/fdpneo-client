@@ -24,6 +24,8 @@ import {
   type FeatureFlags,
   type OIDCBootstrap,
 } from "@/api/config";
+import { setServerBases } from "@/runtimeConfig";
+import { http } from "@/api/http";
 
 // Everything on: a server that doesn't answer never hides working UI.
 const PERMISSIVE: FeatureFlags = {
@@ -39,6 +41,10 @@ export const useConfigStore = defineStore("config", () => {
   const features = ref<FeatureFlags>({ ...PERMISSIVE });
   const oidc = ref<OIDCBootstrap | null>(null);
   const profile = ref<BootstrapConfig["profile"]>(null);
+  /** The persistent-identifier base (`fdp_url`): record IRIs are rooted here (ADR-0014). */
+  const fdpUrl = ref<string | null>(null);
+  /** The serving/API origin (`serving_url`): where the API is reached. */
+  const servingUrl = ref<string | null>(null);
   /** True once `load()` has run (success or fallback). */
   const loaded = ref(false);
   /** True only when `/config` was fetched successfully. */
@@ -50,6 +56,15 @@ export const useConfigStore = defineStore("config", () => {
       features.value = cfg.features;
       oidc.value = cfg.oidc;
       profile.value = cfg.profile;
+      fdpUrl.value = cfg.fdp_url;
+      servingUrl.value = cfg.serving_url;
+      // Teach the RDF/identifier layer the PID base vs the serving origin, so
+      // subject IRIs root at fdp_url while API calls go to serving_url.
+      setServerBases({ fdpUrl: cfg.fdp_url, servingUrl: cfg.serving_url });
+      // Point the HTTP client at the server-declared serving origin (it may
+      // differ from the bootstrap origin in production — ADR-0014). This runs
+      // before the app mounts (see main.ts), so all subsequent calls use it.
+      if (cfg.serving_url) http.defaults.baseURL = cfg.serving_url;
       available.value = true;
     } catch {
       // Keep permissive defaults + env OIDC fallback (see module docstring).
@@ -64,5 +79,5 @@ export const useConfigStore = defineStore("config", () => {
     return features.value[feature] !== false;
   }
 
-  return { features, oidc, profile, loaded, available, load, isEnabled };
+  return { features, oidc, profile, fdpUrl, servingUrl, loaded, available, load, isEnabled };
 });

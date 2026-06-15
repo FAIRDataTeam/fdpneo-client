@@ -3,15 +3,17 @@
  *
  * The Turtle fixtures mirror what the FDP server returns for a record
  * (DCAT vocabulary, absolute IRIs under `http://localhost:8000`). `iriToId`
- * strips the configured API base to derive the path id the client routes on,
- * so we pin `runtimeApiUrl` to that origin here. (The runtime default is now
- * `/` / same-origin, under which absolute IRIs would not be stripped.)
+ * strips the persistent-identifier base to derive the path id the client routes
+ * on, so we pin the PID/serving bases to that origin here. (The runtime default
+ * is now `/` / same-origin, under which absolute IRIs would not be stripped.)
  */
 
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/runtimeConfig", () => ({
   runtimeApiUrl: () => "http://localhost:8000",
+  runtimePidBase: () => "http://localhost:8000",
+  runtimeServingBase: () => "http://localhost:8000",
   runtimePublicOrigin: () => "http://localhost:5173",
 }));
 import {
@@ -31,10 +33,14 @@ const DATASET_TTL = `
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 <http://localhost:8000/dataset/ad-cohort-2024> a dcat:Dataset ;
   dcterms:title "AD Cohort 2024" ;
   dcterms:description "Longitudinal MRI data." ;
   dcterms:identifier "https://doi.org/10.5072/fdp/ad" ;
+  owl:sameAs <https://w3id.org/example/ad-cohort-2024> ;
+  skos:exactMatch <https://registry.example.org/ad> ;
   dcterms:publisher <https://www.erasmusmc.nl> ;
   dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
   dcterms:isPartOf <http://localhost:8000/catalog/cohort> ;
@@ -61,6 +67,11 @@ describe("mapRecord", () => {
     expect(rec.description).toBe("Longitudinal MRI data.");
     expect(rec.identifier).toBe("https://doi.org/10.5072/fdp/ad");
     expect(rec.keywords).toEqual(["alzheimer", "mri"]);
+  });
+
+  it("maps equivalent foreign identifiers (owl:sameAs, skos:exactMatch) — ADR-0014", () => {
+    expect(rec.sameAs).toEqual(["https://w3id.org/example/ad-cohort-2024"]);
+    expect(rec.exactMatch).toEqual(["https://registry.example.org/ad"]);
   });
 
   it("formats dateTimes as ISO dates", () => {

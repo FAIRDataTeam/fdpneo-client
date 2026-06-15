@@ -29,9 +29,44 @@ function read(key: keyof FdpRuntimeConfig): string | undefined {
   return v ? v : undefined;
 }
 
-/** API base URL: runtime → build-time `VITE_FDP_API_URL` → same origin (`/`). */
+/**
+ * Bootstrap API base URL: runtime → build-time `VITE_FDP_API_URL` → same origin
+ * (`/`). This is the origin the app boots from and fetches `GET /fdp-api/config`
+ * through, i.e. where the API is actually reachable — the **serving** origin.
+ */
 export function runtimeApiUrl(): string {
   return read("apiUrl") || import.meta.env.VITE_FDP_API_URL || "/";
+}
+
+/**
+ * Persistent-identifier (PID) base vs serving origin — ADR-0014.
+ *
+ * A record's canonical IRI (its RDF subject) is minted under the server's
+ * `fdp_url` (a W3ID/PURL namespace), which is decoupled from `serving_url`, the
+ * origin where the API answers. In dev they coincide; in production they differ:
+ * a record displayed as `{fdp_url}/catalog/x` is fetched at `{serving_url}/catalog/x`.
+ *
+ * Both are learned from `GET /fdp-api/config` at startup (`stores/config.ts`).
+ * Until that resolves — and always in dev — they fall back to the bootstrap
+ * origin, so nothing breaks before config loads.
+ */
+let serverFdpUrl: string | undefined;
+let serverServingUrl: string | undefined;
+
+/** Record the server's PID base (`fdp_url`) and serving origin (`serving_url`) from `/config`. */
+export function setServerBases(bases: { fdpUrl?: string; servingUrl?: string }): void {
+  serverFdpUrl = bases.fdpUrl?.trim() || undefined;
+  serverServingUrl = bases.servingUrl?.trim() || undefined;
+}
+
+/** The persistent-identifier base: record IRIs (subjects) are rooted here. Use for display/linking PIDs. */
+export function runtimePidBase(): string {
+  return serverFdpUrl ?? runtimeApiUrl();
+}
+
+/** The serving/API origin: all API calls (CRUD, SPARQL, docs) are reached here. */
+export function runtimeServingBase(): string {
+  return serverServingUrl ?? runtimeApiUrl();
 }
 
 /** Public origin for OIDC redirects: runtime → `VITE_PUBLIC_ORIGIN` → this window's origin. */

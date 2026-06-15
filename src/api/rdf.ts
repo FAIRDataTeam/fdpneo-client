@@ -11,7 +11,7 @@
 import { Parser, Store, Writer, DataFactory } from "n3";
 import type { Distribution, FdpRecord } from "@/data/sampleRecord";
 import type { RecordKind } from "@/types/record";
-import { runtimeApiUrl } from "@/runtimeConfig";
+import { runtimePidBase, runtimeServingBase } from "@/runtimeConfig";
 
 // Wrap rather than destructure: pulling the bare method off DataFactory trips
 // @typescript-eslint/unbound-method (n3's factory functions don't use `this`).
@@ -22,18 +22,34 @@ export const NS = {
   dct: "http://purl.org/dc/terms/",
   dcat: "http://www.w3.org/ns/dcat#",
   ldp: "http://www.w3.org/ns/ldp#",
+  owl: "http://www.w3.org/2002/07/owl#",
+  skos: "http://www.w3.org/2004/02/skos/core#",
 } as const;
 
 const RDF_TYPE = `${NS.rdf}type`;
 
-/** Absolute base of the FDP API, without a trailing slash. */
-export const apiBase = (): string => {
-  const url = runtimeApiUrl();
-  // "/" (same origin) carries no base prefix; otherwise strip a trailing slash.
-  return url === "/" ? "" : url.replace(/\/$/, "");
-};
+// "/" (same origin) carries no base prefix; otherwise strip a trailing slash.
+const normalizeBase = (url: string): string => (url === "/" ? "" : url.replace(/\/$/, ""));
 
-/** IRI → the path id the client routes on (`catalog/cohort`); IRI unchanged if it isn't under the base. */
+/**
+ * Absolute base of the FDP **persistent-identifier** namespace (`fdp_url`),
+ * without a trailing slash — where record IRIs (RDF subjects) are rooted.
+ * Use this to build/parse subject IRIs, identifiers and PID links. In dev it
+ * equals {@link servingBase}; in production it's a W3ID/PURL namespace (ADR-0014).
+ */
+export const apiBase = (): string => normalizeBase(runtimePidBase());
+
+/**
+ * Absolute **serving** origin (`serving_url`), without a trailing slash — where
+ * the API is actually reached. Use this only to build absolute API URLs (e.g.
+ * the OpenAPI docs link); ordinary calls go through the `http` client, whose
+ * baseURL is already the serving origin. A record's displayed IRI is *not*
+ * directly fetchable when the bases differ — parse it with {@link iriToId} and
+ * call the relative path instead.
+ */
+export const servingBase = (): string => normalizeBase(runtimeServingBase());
+
+/** IRI → the path id the client routes/calls on (`catalog/cohort`); IRI unchanged if it isn't under the PID base. */
 export function iriToId(iri: string): string {
   const base = apiBase();
   if (base && iri.startsWith(`${base}/`)) return iri.slice(base.length + 1);
@@ -225,6 +241,11 @@ export function mapRecord(
     licenseUri,
     conformsTo: one(store, s, `${NS.dct}conformsTo`) ?? "",
     identifier: one(store, s, `${NS.dct}identifier`) ?? "",
+    // Equivalent foreign identifiers (ADR-0014). The server records owl:sameAs
+    // automatically when a record is created under a foreign subject IRI, so
+    // these can appear without the user having entered them — display, not error.
+    sameAs: many(store, s, `${NS.owl}sameAs`),
+    exactMatch: many(store, s, `${NS.skos}exactMatch`),
     issued: isoDate(one(store, s, `${NS.dct}issued`)),
     modified: isoDate(one(store, s, `${NS.dct}modified`)),
     keywords: many(store, s, `${NS.dcat}keyword`),
