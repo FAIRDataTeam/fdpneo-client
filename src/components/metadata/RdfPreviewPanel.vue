@@ -22,6 +22,7 @@ import { http } from "@/api/http";
 import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import RdfGraphView from "./RdfGraphView.vue";
+import { highlightTurtle } from "./rdfHighlight";
 
 const props = withDefaults(defineProps<{ recordId?: string }>(), { recordId: "" });
 
@@ -60,6 +61,11 @@ const turtle = computed(() => cache.get("text/turtle") ?? "");
 const content = computed(() =>
   activeFormat.value ? (cache.get(activeFormat.value.accept) ?? "") : "",
 );
+
+// Triple-syntax formats get inline syntax tinting; JSON-LD / RDF/XML render plain.
+const TINTED = new Set(["turtle", "ntriples"]);
+const tinted = computed(() => active.value !== null && TINTED.has(active.value));
+const segments = computed(() => (tinted.value ? highlightTurtle(content.value) : []));
 
 async function fetchAs(accept: string): Promise<string> {
   const hit = cache.get(accept);
@@ -189,7 +195,11 @@ function openTab() {
             Open
           </button>
         </div>
-        <pre class="code"><code>{{ content }}</code></pre>
+        <pre class="code"><code v-if="tinted"><span
+            v-for="(seg, i) in segments"
+            :key="i"
+            :class="seg.cls ? `tok-${seg.cls}` : undefined"
+          >{{ seg.text }}</span></code><code v-else>{{ content }}</code></pre>
       </div>
     </div>
   </section>
@@ -258,7 +268,7 @@ function openTab() {
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--r-2, 6px);
-  background: var(--surface-2, var(--surface));
+  background: var(--paper-deep, var(--surface-2));
   overflow: hidden;
 }
 .bar {
@@ -266,6 +276,7 @@ function openTab() {
   gap: 4px;
   padding: 6px;
   border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
 }
 .mini {
   display: inline-flex;
@@ -286,15 +297,33 @@ function openTab() {
 }
 .code {
   margin: 0;
-  padding: 10px;
+  padding: 12px 14px;
   max-height: 320px;
   overflow: auto;
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--ink-1, var(--ink-2));
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
   white-space: pre;
   tab-size: 2;
+}
+/* syntax tinting — kept subtle so the RDF reads as an authored artifact. */
+.code .tok-cmt {
+  color: var(--muted-2);
+  font-style: italic;
+}
+.code .tok-iri {
+  color: var(--accent);
+}
+.code .tok-str {
+  color: var(--signal);
+}
+.code .tok-kw {
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+.code .tok-pname {
+  color: var(--ink);
 }
 .panel:has(.graph) {
   padding: 12px;

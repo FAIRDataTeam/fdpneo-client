@@ -2167,11 +2167,21 @@ leaves the app working and is independently shippable.
   + reload (verify recolor + custom logo + removal restores default), per the plan's
   verification step 2.
 
-### 13.7 RDF panel as first-class artifact — ⬜ todo
-- Restyle `RdfPreviewPanel.vue`: format tabs, syntax tinting (extend the existing
-  `.code .k/.s/.c/.p` classes), copy affordance, paper-deep ground. Presentation
-  only — no change to what RDF is fetched.
-- **Done when:** the turtle/serialization surface reads as an authored artifact.
+### 13.7 RDF panel as first-class artifact — ✅ done (2026-06-15)
+- The panel already had format tabs + copy/save/open + graph view; this pass made
+  the serialization *read* as an artifact: paper-deep ground, surface-2 action bar,
+  larger line-height, and **syntax tinting**.
+- New [`rdfHighlight.ts`](src/components/metadata/rdfHighlight.ts): a small,
+  dependency-free Turtle/N-Triples tokenizer returning plain-data segments
+  (comment/iri/str/kw/pname). **XSS-safe** — rendered as Vue-escaped `<span>`s in
+  [`RdfPreviewPanel.vue`](src/components/metadata/RdfPreviewPanel.vue), never
+  `v-html`, even though the input is server RDF. Tinting applies to turtle/ntriples;
+  JSON-LD / RDF-XML render plain. No change to what's fetched (content negotiation
+  untouched).
+- **Gate green:** lint + typecheck clean; `test:unit` = 329 passed (64 files), incl.
+  new `rdfHighlight.spec.ts` (token classes, exact round-trip, `#`-in-IRI and
+  punctuation-in-literal edge cases). Note: fixed an `exactOptionalPropertyTypes`
+  slip (don't pass `cls: undefined`).
 
 ### 13.8 Roll across surfaces & polish — ⬜ todo
 - Apply spines/atmosphere consistently to `MetadataBrowseView` hero + grid,
