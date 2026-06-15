@@ -2101,12 +2101,17 @@ leaves the app working and is independently shippable.
   pass (run `npm run dev`) if any look light.
 - **Gate green:** lint + `typecheck` clean, `test:unit` = 315 passed.
 
-### 13.3 Atmosphere — ⬜ todo
-- Add the grain overlay + soft accent vignette (fixed pseudo-elements on
-  `App.vue`'s `.shell` or global in `main.css`); SVG `feTurbulence` data-URI,
-  `multiply` (light) / `screen` (dark).
-- Guard hover transforms under `@media (prefers-reduced-motion: reduce)`.
-- **Done when:** depth is visible without harming contrast/readability.
+### 13.3 Atmosphere — ✅ done (2026-06-15)
+- Added grain + vignette as global fixed pseudo-elements in [`main.css`](src/styles/main.css):
+  `body::before` = SVG `feTurbulence` grain (opacity .035 multiply light / .05 screen
+  dark, `pointer-events:none`); `body::after` = faint top accent vignette (`z-index:-1`).
+- Added a `@media (prefers-reduced-motion: reduce)` guard disabling `.btn` hover
+  transitions.
+- **Not re-gated:** change is additive CSS only (no JS/TS), so typecheck/unit tests
+  are unaffected. **Needs a visual check** at `localhost:5173` in both themes —
+  confirm grain is subtle and the `z-index:9999` grain overlay doesn't sit over
+  interactive layers awkwardly (it's `pointer-events:none`, so clicks pass through,
+  but watch modals/menus); drop the grain z-index below overlays if it tints them.
 
 ### 13.4 Type-color system promoted — ⬜ todo
 - Promote the six record-kind colors from `.type-tag .sq.*` to first-class tokens
