@@ -5,14 +5,26 @@
  * Filled slate-blue square (with a paper-coloured inset notch) + a width-matched
  * `FAIR` / `DATA POINT` wordmark + italic `neo` in Instrument Serif rust.
  */
+import { useBranding } from "@/composables/useBranding";
+
 const props = withDefaults(
   defineProps<{ size?: number; showNeo?: boolean }>(),
   { size: 24, showNeo: true },
 );
+
+// Deployer white-label: a configured logo replaces the built-in lockup entirely.
+const { logoUrl, orgName } = useBranding();
 </script>
 
 <template>
-  <span class="logo" aria-label="FAIR Data Point neo">
+  <img
+    v-if="logoUrl"
+    class="brand-logo"
+    :src="logoUrl"
+    :alt="orgName ?? 'FAIR Data Point'"
+    :style="{ height: `${props.size + 8}px` }"
+  />
+  <span v-else class="logo" aria-label="FAIR Data Point neo">
     <span
       class="mark"
       :style="{
@@ -49,6 +61,12 @@ const props = withDefaults(
 </template>
 
 <style scoped>
+.brand-logo {
+  display: block;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+}
 .logo {
   display: inline-flex;
   align-items: center;

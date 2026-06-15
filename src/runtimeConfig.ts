@@ -11,11 +11,33 @@
  * `public/config.js` ships an empty default so dev and tests work unchanged.
  */
 
+/**
+ * Deployer white-label overrides — so an organisation can match its look & feel
+ * without rebuilding the image (set in `/config.js` alongside `apiUrl`). Theme
+ * keys are CSS custom properties; only an allowlisted subset is honoured (see
+ * `useBranding`). Logos should be same-origin or `data:` URIs to stay within the
+ * documented `img-src` CSP.
+ */
+export interface BrandingConfig {
+  /** Organisation name; takes precedence over the repository title in the header lockup. */
+  orgName?: string;
+  /** Logo image (light theme). When set, replaces the built-in FDP Neo lockup. */
+  logoUrl?: string;
+  /** Optional dark-theme logo variant; falls back to `logoUrl`. */
+  logoUrlDark?: string;
+  /** Light-theme token overrides, e.g. `{ "--accent": "#7a1f2b" }`. */
+  theme?: Record<string, string>;
+  /** Dark-theme token overrides. */
+  themeDark?: Record<string, string>;
+}
+
 export interface FdpRuntimeConfig {
   /** Absolute origin of the FDP API, e.g. `https://fdp.example`. Empty/"/" = same origin. */
   apiUrl?: string;
   /** The origin this SPA is served from (OIDC redirect_uri base). */
   publicOrigin?: string;
+  /** Optional deployer white-label overrides (colors, logo, org name). */
+  branding?: BrandingConfig;
 }
 
 declare global {
@@ -24,9 +46,14 @@ declare global {
   }
 }
 
-function read(key: keyof FdpRuntimeConfig): string | undefined {
+function read(key: "apiUrl" | "publicOrigin"): string | undefined {
   const v = typeof window !== "undefined" ? window.__FDP_CONFIG__?.[key]?.trim() : undefined;
   return v ? v : undefined;
+}
+
+/** Deployer white-label overrides, or an empty object when none are configured. */
+export function runtimeBranding(): BrandingConfig {
+  return (typeof window !== "undefined" && window.__FDP_CONFIG__?.branding) || {};
 }
 
 /**

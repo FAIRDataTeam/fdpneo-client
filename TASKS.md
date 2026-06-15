@@ -2143,22 +2143,29 @@ leaves the app working and is independently shippable.
 - **Gate green:** lint + typecheck clean; `test:unit` = 320 passed (62 files),
   incl. new `LineageRail.spec.ts` + `useAncestors.spec.ts`.
 
-### 13.6 Deployer white-labeling — ⬜ todo
-- Extend `FdpRuntimeConfig` (`src/runtimeConfig.ts`) with an optional `branding`
-  block: `orgName`, `logoUrl`, `logoUrlDark`, `theme`, `themeDark`.
-- New `src/composables/useBranding.ts` (+ boot step in `src/main.ts`): apply an
-  **allowlisted** subset of token overrides to `document.documentElement` (light)
-  and an injected `.theme-dark { … }` rule (dark) via one `<style id="fdp-branding">`.
-  Allowlist: `--accent*`, `--signal*`, `--paper*`, `--surface`, `--ink`. In-memory
-  only (CLAUDE.md — no storage).
-- `AppLogo.vue`/`AppHeader.vue`: render `branding.logoUrl` (dark variant swapped
-  by theme) when set, else the built-in FDP Neo lockup; `branding.orgName` takes
-  precedence in the deployment lockup.
-- Ship empty `branding: {}` in `public/config.js`; document keys there + in
-  CLAUDE.md. Note the `img-src` CSP implication for remote logos in `index.html`.
-- **Done when:** a `branding` block in `public/config.js` recolors the whole app +
-  shows a custom logo without a rebuild; removing it restores defaults;
-  `useBranding.spec.ts` passes.
+### 13.6 Deployer white-labeling — ✅ done (2026-06-15)
+- Extended `FdpRuntimeConfig` with a `BrandingConfig` block (`orgName`, `logoUrl`,
+  `logoUrlDark`, `theme`, `themeDark`) + a `runtimeBranding()` reader in
+  [`runtimeConfig.ts`](src/runtimeConfig.ts).
+- New [`useBranding.ts`](src/composables/useBranding.ts): `applyBranding()` (boot
+  step in [`main.ts`](src/main.ts), before mount) injects an **allowlisted** token
+  stylesheet — `BRANDABLE_TOKENS` = `--accent*`/`--signal*`/`--paper*`/`--surface`/
+  `--ink`. **Design note:** overrides go in an injected `<style>` as a `:root` rule
+  + a later `.theme-dark` rule (mirroring tokens.css layering) — NOT inline styles
+  on the root, which would beat the `.theme-dark` selector and leak light values
+  into dark mode. Unknown keys ignored; in-memory only.
+- [`AppLogo.vue`](src/components/shared/AppLogo.vue) renders `branding.logoUrl`
+  (dark variant via `resolvedTheme`) as an `<img>` when set, else the built-in
+  lockup; [`AppHeader.vue`](src/components/shared/AppHeader.vue) `deploymentName`
+  now prefers `branding.orgName` over the repository title.
+- Documented the `branding` shape + allowlist in [`public/config.js`](public/config.js);
+  added the `img-src` CSP note for remote logos in [`index.html`](index.html).
+- **Gate green:** lint + typecheck clean; `test:unit` = 324 passed (63 files),
+  incl. new `useBranding.spec.ts` (allowlist filtering, dark-leak-safe injection,
+  theme-aware logo, no-op when unset).
+- **Still wants a manual check:** drop a real `branding` block in `public/config.js`
+  + reload (verify recolor + custom logo + removal restores default), per the plan's
+  verification step 2.
 
 ### 13.7 RDF panel as first-class artifact — ⬜ todo
 - Restyle `RdfPreviewPanel.vue`: format tabs, syntax tinting (extend the existing

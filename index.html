@@ -34,6 +34,11 @@
       Notes: 'unsafe-inline' in style-src is required (Vue/PrimeVue inject inline
       styles); script-src stays 'self' (the production build has no inline JS).
       Also send X-Content-Type-Options, X-Frame-Options, Referrer-Policy, HSTS.
+
+      Deployer white-label logo (branding.logoUrl in /config.js): img-src already
+      allows 'self' and data: URIs, which covers a logo dropped into the static
+      dir or inlined. A logo on another origin (e.g. a CDN) must be added to
+      img-src for that deployment.
     -->
   </head>
   <body>

@@ -12,6 +12,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { apiBase } from "@/api/rdf";
 import { useRepository } from "@/composables/useRepository";
+import { useBranding } from "@/composables/useBranding";
 import AppLogo from "./AppLogo.vue";
 import AppIcon from "./AppIcon.vue";
 import ThemeToggle from "./ThemeToggle.vue";
@@ -27,7 +28,11 @@ const query = ref("");
 // record resolves (or if it fails), fall back to a neutral label rather than
 // flashing placeholder text.
 const { data: repository } = useRepository();
-const deploymentName = computed(() => repository.value?.title?.trim() || "FAIR Data Point");
+// Org name from deployer branding wins over the repository title.
+const { orgName } = useBranding();
+const deploymentName = computed(
+  () => orgName.value || repository.value?.title?.trim() || "FAIR Data Point",
+);
 const deploymentHost = computed(
   () => apiBase().replace(/^https?:\/\//, "") || window.location.host,
 );

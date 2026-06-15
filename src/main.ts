@@ -18,6 +18,7 @@ import { router } from "./router";
 import { useAuthStore } from "./stores/auth";
 import { useConfigStore } from "./stores/config";
 import { configureOidc } from "./auth/userManager";
+import { applyBranding } from "./composables/useBranding";
 import "./styles/main.css";
 
 // CORS-only networking (TASKS 11.1): the SPA calls the FDP server cross-origin,
@@ -36,6 +37,10 @@ if (import.meta.env.DEV) {
     );
   }
 }
+
+// Apply deployer white-label token overrides before mount so there's no flash of
+// the default palette (this only injects a stylesheet; it needs no Pinia/router).
+applyBranding();
 
 const app = createApp(App);
 const pinia = createPinia();
