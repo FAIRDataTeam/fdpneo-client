@@ -22,6 +22,7 @@ defineProps<{ catalog: CatalogSummary }>();
 
 <style scoped>
 .card {
+  position: relative;
   display: block;
   padding: 22px 24px;
   border: 1px solid var(--line);
@@ -30,6 +31,18 @@ defineProps<{ catalog: CatalogSummary }>();
   text-decoration: none;
   color: inherit;
   transition: border-color 120ms ease;
+}
+/* type-color spine (Phase 13.4): vertically inset so it never clips the rounded
+   corners or the focus ring. Catalog cards are always the catalog kind. */
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--t-catalog);
 }
 .card:hover {
   border-color: var(--line-strong);

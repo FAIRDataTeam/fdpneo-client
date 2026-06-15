@@ -13,12 +13,18 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 import { queryKeys } from "@/api/queries";
 import { fetchExpanded } from "@/api/extensions";
-import { apiBase, iriToId, NS, one, parseTurtle, shortLabel } from "@/api/rdf";
+import { apiBase, classify, iriToId, NS, one, parseTurtle, shortLabel } from "@/api/rdf";
+import type { RecordKind } from "@/types/record";
 
-/** A breadcrumb: a label plus its route target (`null` for the current record). */
+/**
+ * A breadcrumb: a label, its route target (`null` for the current record), and
+ * the record kind (drives the lineage-rail node color). The repository root is
+ * always `fdp`; other hops are classified from their `rdf:type` in the graph.
+ */
 export interface Crumb {
   label: string;
   to: string | null;
+  type: RecordKind;
 }
 
 export function useAncestors(id: Ref<string>) {
@@ -52,7 +58,9 @@ export function useAncestors(id: Ref<string>) {
       // The last crumb is the current record — not a link. The repository root
       // (the API base itself) is browsed at "/"; everything else at /records/:id.
       const to = i === ordered.length - 1 ? null : iri === base ? "/" : `/records/${iriToId(iri)}`;
-      return { label, to };
+      // The root is the FDP repository; other hops classify from their rdf:type.
+      const type: RecordKind = iri === base ? "fdp" : classify(store, iri).kind;
+      return { label, to, type };
     });
   });
 

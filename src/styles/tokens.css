@@ -40,6 +40,17 @@
   --warn: #8a6b0a;
   --warn-soft: #f6efd3;
 
+  /* type-color system — record-kind colors, first-class (Phase 13.4) so one
+     source drives type tags, card spines, and lineage-rail nodes. The first
+     four follow the semantic tokens (auto-adjust in dark); biobank/publication
+     get explicit dark overrides below. */
+  --t-fdp: var(--ink);
+  --t-catalog: var(--accent);
+  --t-dataset: var(--signal);
+  --t-distribution: var(--ok);
+  --t-biobank: #6e4a8e;
+  --t-publication: #1f6f8e;
+
   /* type scales */
   --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", "Iowan Old Style", Georgia, serif;
@@ -84,6 +95,11 @@
   --ok-soft: #142a1e;
   --warn: #d9b257;
   --warn-soft: #2a220e;
+
+  /* type colors: fdp/catalog/dataset/distribution follow the semantic tokens
+     above; only these two need a dark-mode lift. */
+  --t-biobank: #b794d6;
+  --t-publication: #6cb6cf;
 
   --shadow-2: 0 18px 44px -16px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
 }

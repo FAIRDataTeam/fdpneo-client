@@ -2113,24 +2113,35 @@ leaves the app working and is independently shippable.
   interactive layers awkwardly (it's `pointer-events:none`, so clicks pass through,
   but watch modals/menus); drop the grain z-index below overlays if it tints them.
 
-### 13.4 Type-color system promoted — ⬜ todo
-- Promote the six record-kind colors from `.type-tag .sq.*` to first-class tokens
-  (`--t-catalog`, `--t-dataset`, …) in `tokens.css` (incl. `.theme-dark`);
-  rewrite `.type-tag` to consume them.
-- Add type-colored left spines to `CatalogCard.vue`, `RecordCard.vue`,
-  `DistributionList.vue`/`DistributionRow.vue`.
-- **Done when:** record kind is legible at a glance across cards; specs green.
+### 13.4 Type-color system promoted — ✅ done (2026-06-15)
+- Promoted the six record-kind colors to first-class tokens
+  (`--t-fdp/-catalog/-dataset/-distribution/-biobank/-publication`) in
+  [`tokens.css`](src/styles/tokens.css). fdp/catalog/dataset/distribution follow the
+  semantic tokens (auto dark-adjust); biobank/publication get explicit dark lifts.
+  Rewired `.type-tag .sq.*` in [`main.css`](src/styles/main.css) to consume them.
+- Added type-colored left **spines** (3px inset `::before`, vertically inset so they
+  never clip rounded corners / focus rings): [`CatalogCard.vue`](src/components/metadata/CatalogCard.vue)
+  (static `--t-catalog`), [`DistributionRow.vue`](src/components/metadata/DistributionRow.vue)
+  (static `--t-distribution`), and [`RecordCard.vue`](src/components/metadata/RecordCard.vue)
+  (per-kind via a `--spine` var bound from `record.type` in the template).
+- **Gate green:** lint + typecheck clean, `test:unit` = 315 passed (60 files).
 
-### 13.5 Lineage rail (signature motif) — ⬜ todo
-- Extend `Crumb` in `src/composables/useAncestors.ts` with a `type` field, read
-  from each ancestor's `rdf:type` in the `/expanded` store (reuse `one()`/`NS`
-  from `src/api/rdf` and the `useResourceTypes` kind mapping).
-- New `src/components/metadata/LineageRail.vue` — vertical graph thread with
-  type-colored nodes, kind eyebrow + linked title, current hop emphasized.
-- Integrate in `SecondaryNav.vue` for detail views (keep `AppBreadcrumbs` for
-  narrow/secondary contexts); wire enriched crumbs through `RecordDetailView.vue`.
-- **Done when:** detail pages show the lineage with correct kinds/colors/links;
-  new `LineageRail.spec.ts` + `useAncestors.spec.ts` pass.
+### 13.5 Lineage rail (signature motif) — ✅ done (2026-06-15)
+- Extended `Crumb` in [`useAncestors.ts`](src/composables/useAncestors.ts) with a
+  `type: RecordKind` field. Reused the existing store-based classifier in
+  [`rdf.ts`](src/api/rdf.ts) — exported `classify()` — and map the root (the API
+  base) explicitly to `fdp`; other hops classify from `rdf:type`.
+- New [`LineageRail.vue`](src/components/metadata/LineageRail.vue): type-colored
+  node per hop + hairline connectors, current record emphasized, node color bound
+  from `--t-<kind>`, `aria-label="Lineage"` / `aria-current="page"`.
+- **Integration nuance:** rendered as a *horizontal* lineage inside the existing
+  [`SecondaryNav.vue`](src/components/metadata/SecondaryNav.vue) bar (replacing the
+  plain breadcrumb), not the vertical sidebar from the mockup — `RecordDetailView`
+  is a centered single-column layout with no left rail, so a vertical version would
+  mean restructuring the page (worth revisiting in 13.8 if a sidebar layout lands).
+  `AppBreadcrumbs` left intact (still used by `StewardSubnav.vue`).
+- **Gate green:** lint + typecheck clean; `test:unit` = 320 passed (62 files),
+  incl. new `LineageRail.spec.ts` + `useAncestors.spec.ts`.
 
 ### 13.6 Deployer white-labeling — ⬜ todo
 - Extend `FdpRuntimeConfig` (`src/runtimeConfig.ts`) with an optional `branding`

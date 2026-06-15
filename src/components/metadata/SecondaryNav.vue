@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import AppBreadcrumbs from "@/components/shared/AppBreadcrumbs.vue";
+import LineageRail from "./LineageRail.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import ContainerBrowser from "./ContainerBrowser.vue";
 
@@ -27,7 +27,7 @@ async function copyIdentifier(id: string) {
       <AppIcon name="tree" :size="14" /> Browse containers
     </button>
     <span class="dot" aria-hidden="true">·</span>
-    <AppBreadcrumbs :items="breadcrumbs" />
+    <LineageRail :crumbs="breadcrumbs" />
     <div class="spacer" />
     <span class="id mono">{{ identifier.replace("https://", "") }}</span>
     <button class="btn ghost sm" aria-label="Copy identifier" @click="copyIdentifier(identifier)">

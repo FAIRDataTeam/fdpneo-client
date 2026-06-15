@@ -18,7 +18,11 @@ const distributionCount = computed(() => {
 </script>
 
 <template>
-  <RouterLink :to="`/records/${record.id}`" class="card">
+  <RouterLink
+    :to="`/records/${record.id}`"
+    class="card"
+    :style="{ '--spine': `var(--t-${record.type})` }"
+  >
     <div class="main">
       <div class="chips">
         <TypeTag :kind="record.type">{{ record.typeLabel }}</TypeTag>
@@ -54,13 +58,26 @@ const distributionCount = computed(() => {
 
 <style scoped>
 .card {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 14px;
-  padding: 18px 0;
+  padding: 18px 0 18px 16px;
   border-bottom: 1px solid var(--line);
   text-decoration: none;
   color: inherit;
+}
+/* type-color spine (Phase 13.4): color follows the record kind via the bound
+   --spine var; vertically inset within the row's padding. */
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--spine, var(--t-catalog));
 }
 .main {
   display: flex;

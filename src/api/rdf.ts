@@ -179,7 +179,7 @@ const TYPE_MAP: Record<string, { kind: RecordKind; label: string }> = {
   [`${NS.dcat}Distribution`]: { kind: "distribution", label: "Distribution" },
 };
 
-function classify(store: Store, subject: string): { kind: RecordKind; label: string } {
+export function classify(store: Store, subject: string): { kind: RecordKind; label: string } {
   for (const t of many(store, subject, RDF_TYPE)) {
     if (TYPE_MAP[t]) return TYPE_MAP[t];
   }

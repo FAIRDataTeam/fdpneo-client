@@ -30,6 +30,7 @@ const isSparql = computed(() => props.distribution.id === "sparql");
 
 <style scoped>
 .row {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 14px;
@@ -38,6 +39,17 @@ const isSparql = computed(() => props.distribution.id === "sparql");
   border: 1px solid var(--line);
   border-radius: var(--r-2);
   background: var(--surface);
+}
+/* type-color spine (Phase 13.4): distributions are always the distribution kind. */
+.row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--t-distribution);
 }
 .title__main {
   font-family: var(--font-sans);

@@ -209,25 +209,25 @@ button {
   width: 8px;
   height: 8px;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--t-catalog);
 }
 .type-tag .sq.dataset {
-  background: var(--signal);
+  background: var(--t-dataset);
 }
 .type-tag .sq.catalog {
-  background: var(--accent);
+  background: var(--t-catalog);
 }
 .type-tag .sq.distribution {
-  background: var(--ok);
+  background: var(--t-distribution);
 }
 .type-tag .sq.biobank {
-  background: #6e4a8e;
+  background: var(--t-biobank);
 }
 .type-tag .sq.publication {
-  background: #1f6f8e;
+  background: var(--t-publication);
 }
 .type-tag .sq.fdp {
-  background: var(--ink);
+  background: var(--t-fdp);
 }
 
 /* basic input shell */
