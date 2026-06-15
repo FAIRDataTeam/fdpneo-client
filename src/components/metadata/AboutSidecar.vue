@@ -56,7 +56,7 @@ const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
       </template>
 
       <hr class="hr divider" />
-      <RdfPreviewPanel :record-id="recordId ?? ''" />
+      <RdfPreviewPanel :record-id="recordId ?? ''" auto-open />
 
       <hr class="hr divider" />
       <div class="eyebrow">Related</div>

@@ -17,14 +17,17 @@
  *
  * `recordId` is the record's path id ("" for the repository root).
  */
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { http } from "@/api/http";
 import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
-import RdfGraphView from "./RdfGraphView.vue";
+import RdfGraphOverlay from "./RdfGraphOverlay.vue";
 import { highlightTurtle } from "./rdfHighlight";
 
-const props = withDefaults(defineProps<{ recordId?: string }>(), { recordId: "" });
+const props = withDefaults(defineProps<{ recordId?: string; autoOpen?: boolean }>(), {
+  recordId: "",
+  autoOpen: false,
+});
 
 interface Format {
   key: string;
@@ -40,11 +43,12 @@ const FORMATS: Format[] = [
   { key: "ntriples", label: "N-Triples", accept: "application/n-triples", ext: "nt" },
 ];
 
-// The graph view reuses the Turtle fetch (n3 parses it); no separate request.
-const GRAPH_KEY = "graph";
+// The interactive graph opens in a full-screen overlay (the sidecar is too narrow);
+// it fetches its own RDF, so the panel only tracks open/closed here.
+const graphOpen = ref(false);
 
 const open = ref(true);
-/** Which view is stretched out below the chips ("turtle" | … | "graph" | null). */
+/** Which serialization is stretched out below the chips ("turtle" | … | null). */
 const active = ref<string | null>(null);
 const busy = ref(false);
 const errored = ref(false);
@@ -57,7 +61,6 @@ const path = computed(() => (props.recordId ? `/${props.recordId}` : "/"));
 const subjectIri = computed(() => `${apiBase()}/${props.recordId}`);
 
 const activeFormat = computed(() => FORMATS.find((f) => f.key === active.value) ?? null);
-const turtle = computed(() => cache.get("text/turtle") ?? "");
 const content = computed(() =>
   activeFormat.value ? (cache.get(activeFormat.value.accept) ?? "") : "",
 );
@@ -86,8 +89,7 @@ async function select(key: string) {
     return;
   }
   errored.value = false;
-  // Graph and Turtle both ride on the Turtle payload.
-  const accept = key === GRAPH_KEY ? "text/turtle" : (FORMATS.find((f) => f.key === key)?.accept ?? "");
+  const accept = FORMATS.find((f) => f.key === key)?.accept ?? "";
   busy.value = true;
   try {
     await fetchAs(accept);
@@ -130,6 +132,13 @@ function openTab() {
   window.open(url, "_blank", "noopener");
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+// `autoOpen` surfaces the serialized RDF as a first-class artifact: reveal the
+// Turtle view on mount rather than waiting for a click. Best-effort — a failed
+// fetch just leaves the chips for a manual retry.
+onMounted(() => {
+  if (props.autoOpen) void select("turtle");
+});
 </script>
 
 <template>
@@ -141,7 +150,7 @@ function openTab() {
       aria-controls="rdf-body"
       @click="open = !open"
     >
-      <span class="label">View as RDF</span>
+      <span class="label">Metadata source · RDF</span>
       <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="14" color="var(--muted)" />
     </button>
 
@@ -160,28 +169,18 @@ function openTab() {
         >
           {{ f.label }}
         </button>
-        <button
-          type="button"
-          role="tab"
-          class="chip"
-          :class="{ on: active === GRAPH_KEY }"
-          :aria-selected="active === GRAPH_KEY"
-          :disabled="busy"
-          @click="select(GRAPH_KEY)"
-        >
+        <button type="button" class="chip graph-chip" @click="graphOpen = true">
           <AppIcon name="graph" :size="13" />
           Graph
+          <AppIcon name="arrow-up" :size="11" style="transform: rotate(45deg)" />
         </button>
       </div>
 
       <p v-if="busy" class="hint">Loading…</p>
       <p v-else-if="errored" class="hint err">Couldn't fetch the record.</p>
 
-      <!-- Inline reveal: the chosen view stretches out below the chips. -->
-      <div v-if="active === GRAPH_KEY" class="panel">
-        <RdfGraphView :turtle="turtle" :subject-iri="subjectIri" />
-      </div>
-      <div v-else-if="activeFormat" class="panel">
+      <!-- Inline reveal: the chosen serialization stretches out below the chips. -->
+      <div v-if="activeFormat" class="panel">
         <div class="bar">
           <button type="button" class="mini" @click="copy">
             {{ copied ? "Copied" : "Copy" }}
@@ -202,6 +201,13 @@ function openTab() {
           >{{ seg.text }}</span></code><code v-else>{{ content }}</code></pre>
       </div>
     </div>
+
+    <RdfGraphOverlay
+      :open="graphOpen"
+      :record-id="recordId"
+      :subject-iri="subjectIri"
+      @close="graphOpen = false"
+    />
   </section>
 </template>
 
@@ -264,6 +270,15 @@ function openTab() {
 .chip:disabled {
   opacity: 0.55;
   cursor: default;
+}
+.graph-chip {
+  margin-left: auto;
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.graph-chip:hover {
+  border-color: var(--accent);
 }
 .panel {
   border: 1px solid var(--line);

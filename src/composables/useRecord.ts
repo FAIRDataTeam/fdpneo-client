@@ -19,8 +19,26 @@ async function fetchTurtle(path: string): Promise<string> {
   const res = await http.get<string>(`/${path}`, {
     headers: { Accept: "text/turtle" },
     responseType: "text",
+    transformResponse: (d: unknown) => d,
   });
   return res.data;
+}
+
+/**
+ * Raw record Turtle by path id, cached — backs the live RDF graph's refocus, so
+ * expanding a record you've visited is instant. Distinct from {@link useRecord}
+ * (which maps to an `FdpRecord`): the graph needs the unmapped triples. `enabled`
+ * is false for an empty id (the graph passes "" before a focus resolves).
+ */
+export function useRecordTurtle(id: Ref<string>) {
+  // The repository root has the empty path id and is served at GET "/" — which
+  // `fetchTurtle("")` produces — so an empty id is valid here (unlike useRecord).
+  return useQuery({
+    queryKey: computed(() => ["record-turtle", id.value] as const),
+    queryFn: () => fetchTurtle(id.value),
+    staleTime: 60_000,
+    retry: false,
+  });
 }
 
 async function fetchDistributions(iris: string[]): Promise<Distribution[]> {

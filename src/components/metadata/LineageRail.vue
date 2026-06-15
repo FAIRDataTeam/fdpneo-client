@@ -22,20 +22,24 @@ defineProps<{ crumbs: Crumb[] }>();
         :to="c.to"
         class="hop"
         :style="{ '--node': `var(--t-${c.type})` }"
-        :title="c.type"
       >
         <span class="node" aria-hidden="true" />
-        <span class="label">{{ c.label }}</span>
+        <span class="hop__text">
+          <span class="kind">{{ c.type }}</span>
+          <span class="label">{{ c.label }}</span>
+        </span>
       </RouterLink>
       <span
         v-else
         class="hop current"
         :style="{ '--node': `var(--t-${c.type})` }"
-        :title="c.type"
         aria-current="page"
       >
         <span class="node" aria-hidden="true" />
-        <span class="label">{{ c.label }}</span>
+        <span class="hop__text">
+          <span class="kind">{{ c.type }}</span>
+          <span class="label">{{ c.label }}</span>
+        </span>
       </span>
     </template>
   </nav>
@@ -45,42 +49,57 @@ defineProps<{ crumbs: Crumb[] }>();
 .lineage {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-  font-size: 13px;
 }
 .thread {
-  width: 16px;
+  width: 22px;
   height: 2px;
   flex: none;
-  background: linear-gradient(90deg, var(--line-strong), var(--line));
+  background: linear-gradient(90deg, var(--line-strong), var(--line-strong));
   border-radius: 2px;
 }
 .hop {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   min-width: 0;
   color: var(--ink-2);
   text-decoration: none;
 }
 .node {
-  width: 9px;
-  height: 9px;
+  width: 13px;
+  height: 13px;
   flex: none;
-  border-radius: 2.5px;
+  border-radius: 4px;
   background: var(--surface);
   box-shadow: inset 0 0 0 2px var(--node, var(--muted));
 }
 .hop.current .node {
   background: var(--node);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--node) 22%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--node) 20%, transparent);
+}
+.hop__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.1;
+}
+.kind {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--node, var(--muted));
+  font-weight: 500;
 }
 .label {
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 a.hop:hover .label {
   color: var(--accent);

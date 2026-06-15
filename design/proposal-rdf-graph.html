@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en" class="theme-light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FDP Neo — live RDF graph (design proposal)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   FDP Neo — "Living specimen plate": an interactive, instance-focused RDF graph.
+   Two independent layers around the focus node:
+     • RELATIONS  → links to other FDP metadata records (the structure/hierarchy):
+                    typed, refocusable nodes, solid labelled arrows.
+     • ATTRIBUTES → the focused record's own properties (literals + vocabulary IRIs):
+                    "specimen tags" of predicate → value on dashed leaders.
+   Toggle each layer on/off to read the hierarchy vs. a single record's profile.
+   Click a record node to refocus + expand. Wheel = zoom, drag canvas = pan,
+   drag node = pin, hover = spotlight. Self-contained, no deps.
+   ────────────────────────────────────────────────────────────────────────── */
+:root {
+  --paper:#f5f1e8; --paper-deep:#ece6d8; --surface:#fffdf7; --surface-2:#f1ece0;
+  --line:#e2dccc; --line-strong:#d0c7b3; --ink:#16191d; --ink-2:#353a40;
+  --muted:#6c7178; --muted-2:#969aa0;
+  --accent:#2d5b89; --accent-deep:#1d3f60; --accent-soft:#e6eef6; --accent-line:#bcd0e3;
+  --signal:#b04a23; --signal-soft:#f6e6da;
+  --t-fdp:#16191d; --t-catalog:#2d5b89; --t-dataset:#b04a23; --t-distribution:#2f7a4a;
+  --t-agent:#6e4a8e; --t-license:#1f6f8e; --t-theme:#8a6b0a; --t-class:#9a5b2b;
+  --font-display:"Fraunces",Georgia,serif; --font-sans:"Hanken Grotesk",system-ui,sans-serif;
+  --font-mono:"Spline Sans Mono",ui-monospace,monospace;
+  --shadow:0 10px 34px -14px rgba(28,40,60,.30), 0 2px 6px rgba(20,24,31,.05);
+}
+.theme-dark{
+  --paper:#0c0f14; --paper-deep:#090b0f; --surface:#14181f; --surface-2:#1b212b;
+  --line:#242b37; --line-strong:#323a48; --ink:#ece9e0; --ink-2:#c9c6bd;
+  --muted:#8a93a0; --muted-2:#636c78;
+  --accent:#84acda; --accent-deep:#abc8e8; --accent-soft:#182636; --accent-line:#2c3e58;
+  --signal:#e08858; --signal-soft:#2b1a11;
+  --t-fdp:#ece9e0; --t-catalog:#84acda; --t-dataset:#e08858; --t-distribution:#6bb58a;
+  --t-agent:#b794d6; --t-license:#6cb6cf; --t-theme:#d9b257; --t-class:#cf9b6b;
+  --shadow:0 18px 44px -16px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.theme-dark body::before{mix-blend-mode:screen}
+.stage{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column}
+header.bar{display:flex;align-items:center;gap:14px;padding:12px 22px;flex:none;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--surface) 80%,transparent);backdrop-filter:blur(8px)}
+.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.focus-title{font-family:var(--font-display);font-weight:500;font-size:21px;line-height:1.1;color:var(--ink)}
+.focus-iri{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:2px}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:9px;font-family:var(--font-sans);
+  font-weight:600;font-size:12.5px;cursor:pointer;background:var(--surface);color:var(--ink-2);border:1px solid var(--line-strong);
+  transition:transform .12s ease, box-shadow .12s ease}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.iconbtn{width:34px;height:34px;padding:0;justify-content:center}
+
+/* layer toggles */
+.toggles{display:flex;gap:8px;margin-right:6px}
+.toggle{display:inline-flex;align-items:center;gap:9px;height:34px;padding:0 13px;border-radius:9px;cursor:pointer;
+  font-family:var(--font-sans);font-size:12.5px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line-strong);
+  transition:color .2s,border-color .2s}
+.toggle .sw{width:30px;height:16px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;transition:background .2s}
+.toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--paper);transition:transform .2s}
+.toggle.on{color:var(--ink)}
+.toggle.on.rel{border-color:var(--accent-line)} .toggle.on.rel .sw{background:var(--accent)}
+.toggle.on.attr{border-color:color-mix(in srgb,var(--signal) 45%,var(--line-strong))} .toggle.on.attr .sw{background:var(--signal)}
+.toggle.on .sw::after{transform:translateX(14px)}
+.toggle .dotk{width:10px;height:10px;border-radius:3px;flex:none}
+.toggle.rel .dotk{background:var(--accent)} .toggle.attr .dotk{background:var(--signal)}
+
+.canvas-wrap{position:relative;flex:1;min-height:0}
+svg.canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg.canvas.panning{cursor:grabbing}
+
+.edge{fill:none;stroke:var(--line-strong);stroke-width:1.4;transition:stroke .2s,opacity .2s}
+.edge.attr{stroke:var(--line-strong);stroke-width:1.1;stroke-dasharray:2 4;opacity:.8}
+.edge.hot{stroke:var(--accent);stroke-width:2}
+.edge-label{font-family:var(--font-mono);font-size:10px;fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+.edge-label.hot{fill:var(--accent)}
+.dim{opacity:.14}
+
+.node{cursor:pointer}
+.node .halo{fill:var(--c-soft);opacity:0;transition:opacity .2s}
+.node.focus .halo{opacity:1}
+.node .disc{fill:var(--surface);stroke:var(--c);stroke-width:2.5;transition:stroke-width .15s,fill .2s}
+.node.focus .disc{fill:var(--c);stroke:var(--c)}
+.node:hover .disc{stroke-width:3.5}
+.node .glyph{fill:var(--c);font-family:var(--font-mono);font-size:11px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none;text-transform:uppercase}
+.node.focus .glyph{fill:var(--paper)}
+.node .nlabel{font-family:var(--font-sans);font-weight:600;font-size:12.5px;fill:var(--ink-2);text-anchor:middle;
+  paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+.node.focus .nlabel{font-family:var(--font-display);font-weight:500;font-size:15px;fill:var(--ink)}
+
+/* attribute specimen tags: predicate eyebrow + value */
+.attrtag rect{fill:var(--surface);stroke:var(--line-strong);stroke-width:1}
+.attrtag .apred{font-family:var(--font-mono);font-size:9px;letter-spacing:.04em;fill:var(--muted);text-transform:uppercase;dominant-baseline:central}
+.attrtag .aval{font-family:var(--font-mono);font-size:11.5px;dominant-baseline:central}
+.attrtag.lit .aval{fill:var(--signal)}
+.attrtag.iri .aval{fill:var(--accent)}
+.attrtag .aval{cursor:default}
+.attrtag.iri{cursor:alias}
+
+.legend{position:absolute;left:18px;bottom:18px;z-index:3;display:flex;flex-direction:column;gap:6px;padding:12px 14px;
+  border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(8px);box-shadow:var(--shadow)}
+.legend h4{margin:8px 0 4px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);font-weight:700}
+.legend h4:first-child{margin-top:0}
+.legend .row{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink-2)}
+.legend .swatch{width:11px;height:11px;border-radius:4px;border:2px solid currentColor;background:transparent;flex:none}
+.legend .tagsw{width:13px;height:9px;border-radius:3px;border:1px solid var(--line-strong);background:var(--surface);flex:none}
+.controls{position:absolute;right:18px;bottom:18px;z-index:3;display:flex;flex-direction:column;gap:8px}
+.hint{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:3;font-family:var(--font-mono);font-size:11px;color:var(--muted);
+  background:color-mix(in srgb,var(--surface) 80%,transparent);padding:5px 12px;border-radius:999px;border:1px solid var(--line);transition:opacity .4s}
+</style>
+</head>
+<body>
+<div class="stage">
+  <header class="bar">
+    <div>
+      <div class="eyebrow">Metadata graph · live</div>
+      <div class="focus-title" id="ftitle">…</div>
+      <div class="focus-iri mono" id="firi"></div>
+    </div>
+    <div class="grow"></div>
+    <div class="toggles">
+      <button class="toggle rel on" id="t-rel" title="Show links to other metadata records">
+        <span class="dotk"></span> Relations <span class="sw"></span>
+      </button>
+      <button class="toggle attr on" id="t-attr" title="Show this record's own properties">
+        <span class="dotk"></span> Attributes <span class="sw"></span>
+      </button>
+    </div>
+    <button class="btn" id="back">← Back</button>
+    <button class="btn iconbtn" id="zin" title="Zoom in">+</button>
+    <button class="btn iconbtn" id="zout" title="Zoom out">−</button>
+    <button class="btn" id="fit">Fit</button>
+    <button class="btn iconbtn" id="theme" title="Toggle theme">◐</button>
+  </header>
+
+  <div class="canvas-wrap">
+    <div class="hint" id="hint">Relations = record hierarchy · Attributes = this record's properties · click a record to refocus</div>
+    <svg class="canvas" id="svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--line-strong)"></path></marker>
+        <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path></marker>
+      </defs>
+      <g id="edges"></g>
+      <g id="elabels"></g>
+      <g id="nodes"></g>
+    </svg>
+    <div class="legend" id="legend"></div>
+    <div class="controls"></div>
+  </div>
+</div>
+
+<script>
+const SVGNS="http://www.w3.org/2000/svg";
+const RECORD_TYPES=new Set(["fdp","catalog","dataset","distribution"]);
+const KIND={fdp:{label:"Repository"},catalog:{label:"Catalog"},dataset:{label:"Dataset"},distribution:{label:"Distribution"},
+  agent:{label:"Agent"},license:{label:"License"},theme:{label:"Theme"},class:{label:"Class"}};
+const N={
+  "fdp:root":{type:"fdp",label:"Erasmus MC Data Repository",iri:"https://fdp.erasmusmc.nl/"},
+  "catalog:imaging":{type:"catalog",label:"Imaging & Cohort Studies",iri:".../catalog/imaging"},
+  "dataset:brain":{type:"dataset",label:"Rotterdam Study — Brain MRI",iri:".../dataset/rotterdam-brain-mri"},
+  "dataset:cardio":{type:"dataset",label:"Rotterdam Study — Cardiac",iri:".../dataset/rotterdam-cardiac"},
+  "dist:tabular":{type:"distribution",label:"Tabular phenotypes",iri:".../distribution/tabular"},
+  "dist:imaging":{type:"distribution",label:"Imaging archive (BIDS)",iri:".../distribution/imaging"},
+  "org:emc":{type:"agent",label:"Erasmus MC · Epidemiology",iri:"https://ror.org/018906e22"},
+  "lic:ccby":{type:"license",label:"CC BY 4.0",iri:"https://creativecommons.org/licenses/by/4.0/"},
+  "theme:heal":{type:"theme",label:"HEAL",iri:"http://eurovoc/HEAL"},
+  "class:dataset":{type:"class",label:"dcat:Dataset",iri:"http://www.w3.org/ns/dcat#Dataset"},
+  "class:catalog":{type:"class",label:"dcat:Catalog",iri:"http://www.w3.org/ns/dcat#Catalog"},
+  "class:dist":{type:"class",label:"dcat:Distribution",iri:"http://www.w3.org/ns/dcat#Distribution"},
+  "class:fdp":{type:"class",label:"fdp-o:FAIRDataPoint",iri:"…#FAIRDataPoint"},
+};
+// triple = [subject, predicate, objNodeId | {lit, iri?}]
+const T=[
+  ["fdp:root","a","class:fdp"],
+  ["fdp:root","dct:title",{lit:"Erasmus MC Data Repository"}],
+  ["fdp:root","dct:description",{lit:"FAIR metadata for Erasmus MC research data."}],
+  ["fdp:root","dcat:catalog","catalog:imaging"],
+
+  ["catalog:imaging","a","class:catalog"],
+  ["catalog:imaging","dct:title",{lit:"Imaging & Cohort Studies"}],
+  ["catalog:imaging","dct:publisher","org:emc"],
+  ["catalog:imaging","dct:isPartOf","fdp:root"],
+  ["catalog:imaging","dcat:dataset","dataset:brain"],
+  ["catalog:imaging","dcat:dataset","dataset:cardio"],
+
+  ["dataset:brain","a","class:dataset"],
+  ["dataset:brain","dct:title",{lit:"Rotterdam Study — Brain MRI Substudy"}],
+  ["dataset:brain","dct:description",{lit:"Structural & functional brain MRI from a population cohort."}],
+  ["dataset:brain","dct:identifier",{lit:"10.5281/zenodo.8421197"}],
+  ["dataset:brain","dct:issued",{lit:"2019-03-01"}],
+  ["dataset:brain","dct:modified",{lit:"2026-04-11"}],
+  ["dataset:brain","owl:versionInfo",{lit:"2.3.0"}],
+  ["dataset:brain","dcat:keyword",{lit:"brain MRI"}],
+  ["dataset:brain","dcat:keyword",{lit:"cohort"}],
+  ["dataset:brain","dct:language",{lit:"en"}],
+  ["dataset:brain","dct:accessRights",{lit:"DUA required"}],
+  ["dataset:brain","dct:publisher","org:emc"],
+  ["dataset:brain","dct:license","lic:ccby"],
+  ["dataset:brain","dcat:theme","theme:heal"],
+  ["dataset:brain","dct:isPartOf","catalog:imaging"],
+  ["dataset:brain","dcat:distribution","dist:tabular"],
+  ["dataset:brain","dcat:distribution","dist:imaging"],
+
+  ["dataset:cardio","a","class:dataset"],
+  ["dataset:cardio","dct:title",{lit:"Rotterdam Study — Cardiac Imaging"}],
+  ["dataset:cardio","dct:isPartOf","catalog:imaging"],
+
+  ["dist:tabular","a","class:dist"],
+  ["dist:tabular","dct:title",{lit:"Tabular phenotypes"}],
+  ["dist:tabular","dcat:mediaType",{lit:"text/csv"}],
+  ["dist:tabular","dcat:byteSize",{lit:"2.4 GB"}],
+  ["dist:tabular","dcat:downloadURL",{lit:"…/tabular.csv",iri:true}],
+  ["dist:tabular","dct:isPartOf","dataset:brain"],
+
+  ["dist:imaging","a","class:dist"],
+  ["dist:imaging","dct:title",{lit:"Imaging archive (BIDS)"}],
+  ["dist:imaging","dcat:mediaType",{lit:"application/zip"}],
+  ["dist:imaging","dcat:byteSize",{lit:"812 GB"}],
+  ["dist:imaging","dct:isPartOf","dataset:brain"],
+];
+
+// ── Neighbourhood split into relations (record↔record) and attributes ─────────
+function neighbourhood(focus){
+  const relNodes=new Map(); relNodes.set(focus,{id:focus,...N[focus],focus:true});
+  const attrs=[]; const edges=[]; let seq=0;
+  const isRecord=id=>N[id]&&RECORD_TYPES.has(N[id].type);
+  for(const [s,p,o] of T){
+    if(s===focus){
+      if(typeof o==="object"){ attrs.push({id:`attr:${seq++}`,pred:p,value:o.lit,isIri:!!o.iri}); }
+      else if(isRecord(o)){ if(!relNodes.has(o)) relNodes.set(o,{id:o,...N[o]}); edges.push({s:focus,o,p,kind:"rel"}); }
+      else { attrs.push({id:`attr:${seq++}`,pred:p,value:N[o].label,isIri:true,href:N[o].iri}); }
+    } else if(o===focus && isRecord(s)){
+      if(!relNodes.has(s)) relNodes.set(s,{id:s,...N[s]}); edges.push({s,o:focus,p,kind:"rel",incoming:true});
+    }
+  }
+  // attribute edges (focus → tag)
+  attrs.forEach(a=>edges.push({s:focus,o:a.id,p:a.pred,kind:"attr"}));
+  return {recordNodes:[...relNodes.values()],attrs,edges};
+}
+
+// visible subset honouring the layer toggles
+function visible(){
+  const nodes=showRel?ALL.recordNodes:ALL.recordNodes.filter(n=>n.focus);
+  const attrs=showAttr?ALL.attrs:[];
+  const liveIds=new Set([...nodes.map(n=>n.id),...attrs.map(a=>a.id)]);
+  const edges=ALL.edges.filter(e=>{
+    if(e.kind==="rel"&&!showRel) return false;
+    if(e.kind==="attr"&&!showAttr) return false;
+    return liveIds.has(e.s)&&liveIds.has(e.o);
+  });
+  return {nodes,attrs,edges};
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let focus="dataset:brain", ALL=null, G=null;
+let showRel=true, showAttr=true;
+const history=[]; const pos=new Map();
+let view={x:0,y:0,w:1000,h:600}; let alpha=1;
+const svg=document.getElementById("svg"),gEdges=document.getElementById("edges"),gLabels=document.getElementById("elabels"),gNodes=document.getElementById("nodes");
+const cssVar=t=>`var(--t-${t})`;
+const rOf=n=>n&&n.focus?34:22;
+const predLabel=p=>p==="a"?"rdf:type":p;
+
+function seed(){
+  const cx=view.x+view.w/2,cy=view.y+view.h/2;
+  const all=[...G.nodes,...G.attrs]; const ring=all.filter(n=>n.id!==focus);
+  ring.forEach((n,i)=>{ if(!pos.has(n.id)){ const a=(i/ring.length)*Math.PI*2-Math.PI/2; const rad=("pred"in n)?150:230;
+    pos.set(n.id,{x:cx+Math.cos(a)*rad,y:cy+Math.sin(a)*rad,vx:0,vy:0}); } });
+  if(!pos.has(focus)) pos.set(focus,{x:cx,y:cy,vx:0,vy:0});
+  const live=new Set(all.map(n=>n.id)); for(const k of [...pos.keys()]) if(!live.has(k)) pos.delete(k);
+  alpha=1;
+}
+function tick(){
+  const all=[...G.nodes,...G.attrs]; const cx=view.x+view.w/2,cy=view.y+view.h/2;
+  for(let i=0;i<all.length;i++){ const a=pos.get(all[i].id); if(!a) continue;
+    for(let j=i+1;j<all.length;j++){ const b=pos.get(all[j].id); if(!b) continue;
+      let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||1,d=Math.sqrt(d2);
+      const rep=9000/d2,fx=dx/d*rep,fy=dy/d*rep; a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy; } }
+  for(const e of G.edges){ const a=pos.get(e.s),b=pos.get(e.o); if(!a||!b) continue;
+    const L=e.kind==="attr"?115:175; let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
+    const f=(d-L)*0.035,fx=dx/d*f,fy=dy/d*f; if(e.s!==focus){a.vx+=fx;a.vy+=fy} if(e.o!==focus){b.vx-=fx;b.vy-=fy} }
+  for(const n of all){ const p=pos.get(n.id); if(!p) continue;
+    if(n.id===focus&&!p.pinned){ p.x+=(cx-p.x)*0.12; p.y+=(cy-p.y)*0.12; p.vx=0;p.vy=0; continue; }
+    p.vx+=(cx-p.x)*0.003; p.vy+=(cy-p.y)*0.003;
+    if(p.pinned){p.vx=0;p.vy=0;continue} p.vx*=0.82;p.vy*=0.82; p.x+=p.vx*alpha;p.y+=p.vy*alpha; }
+  alpha*=0.985; if(alpha<0.02) alpha=0.02;
+}
+function edgePath(e){
+  const a=pos.get(e.s),b=pos.get(e.o); if(!a||!b) return "";
+  const na=G.nodes.find(n=>n.id===e.s),nb=G.nodes.find(n=>n.id===e.o);
+  const ra=rOf(na)+3, rb=(nb?rOf(nb):0)+(e.kind==="attr"?2:6);
+  let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
+  const ax=a.x+dx/d*ra,ay=a.y+dy/d*ra,bx=b.x-dx/d*rb,by=b.y-dy/d*rb;
+  const mx=(ax+bx)/2,my=(ay+by)/2,curve=e.kind==="attr"?10:22,nx=-dy/d*curve,ny=dx/d*curve;
+  return `M${ax.toFixed(1)},${ay.toFixed(1)} Q${(mx+nx).toFixed(1)},${(my+ny).toFixed(1)} ${bx.toFixed(1)},${by.toFixed(1)}`;
+}
+
+let nodeEls=new Map(),edgeEls=[],labelEls=[];
+function build(){
+  gEdges.innerHTML="";gLabels.innerHTML="";gNodes.innerHTML="";nodeEls=new Map();edgeEls=[];labelEls=[];
+  for(const e of G.edges){
+    const path=document.createElementNS(SVGNS,"path"); path.setAttribute("class","edge"+(e.kind==="attr"?" attr":""));
+    if(e.kind==="rel") path.setAttribute("marker-end","url(#arrow)");
+    gEdges.appendChild(path); edgeEls.push({e,path});
+    if(e.kind==="rel"){ const lab=document.createElementNS(SVGNS,"text"); lab.setAttribute("class","edge-label"); lab.setAttribute("text-anchor","middle"); lab.textContent=predLabel(e.p); gLabels.appendChild(lab); labelEls.push({e,lab}); }
+  }
+  // attribute specimen tags (predicate eyebrow + value)
+  for(const a of G.attrs){
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("class","attrtag "+(a.isIri?"iri":"lit"));
+    const rect=document.createElementNS(SVGNS,"rect"); rect.setAttribute("rx","7"); rect.setAttribute("height","34");
+    const pr=document.createElementNS(SVGNS,"text"); pr.setAttribute("class","apred"); pr.textContent=predLabel(a.pred);
+    const vl=document.createElementNS(SVGNS,"text"); vl.setAttribute("class","aval");
+    vl.textContent=a.value.length>28?a.value.slice(0,27)+"…":a.value;
+    g.appendChild(rect);g.appendChild(pr);g.appendChild(vl); gNodes.appendChild(g);
+    nodeEls.set(a.id,{node:a,g,rect,pr,vl});
+    if(a.href){ g.addEventListener("click",()=>window.open("#","_self")); }
+  }
+  for(const n of G.nodes){
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("class","node"+(n.focus?" focus":""));
+    g.style.setProperty("--c",cssVar(n.type)); g.style.setProperty("--c-soft",`color-mix(in srgb, ${cssVar(n.type)} 16%, transparent)`);
+    const halo=document.createElementNS(SVGNS,"circle"); halo.setAttribute("class","halo"); halo.setAttribute("r",rOf(n)+10);
+    const disc=document.createElementNS(SVGNS,"circle"); disc.setAttribute("class","disc"); disc.setAttribute("r",rOf(n));
+    const glyph=document.createElementNS(SVGNS,"text"); glyph.setAttribute("class","glyph"); glyph.textContent=(KIND[n.type]?.label||n.type).slice(0,3);
+    const nlabel=document.createElementNS(SVGNS,"text"); nlabel.setAttribute("class","nlabel"); nlabel.textContent=n.label.length>30?n.label.slice(0,29)+"…":n.label; nlabel.setAttribute("y",rOf(n)+16);
+    g.appendChild(halo);g.appendChild(disc);g.appendChild(glyph);g.appendChild(nlabel); gNodes.appendChild(g);
+    nodeEls.set(n.id,{node:n,g,disc,glyph,nlabel,halo});
+    g.addEventListener("pointerenter",()=>spotlight(n.id)); g.addEventListener("pointerleave",()=>spotlight(null));
+    g.addEventListener("pointerdown",ev=>startDrag(ev,n.id)); g.addEventListener("click",()=>{ if(!dragMoved) refocus(n.id); });
+  }
+}
+function frame(){
+  tick();
+  for(const {e,path} of edgeEls) path.setAttribute("d",edgePath(e));
+  for(const {e,lab} of labelEls){ const a=pos.get(e.s),b=pos.get(e.o); if(!a||!b) continue;
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1; lab.setAttribute("x",((a.x+b.x)/2-dy/d*14).toFixed(1)); lab.setAttribute("y",((a.y+b.y)/2+dx/d*14).toFixed(1)); }
+  for(const [id,el] of nodeEls){ const p=pos.get(id); if(!p) continue;
+    if(el.node.pred!==undefined){ const w=Math.min(240,Math.max(70,(Math.max(el.pr.textContent.length,el.vl.textContent.length))*7+20));
+      el.rect.setAttribute("width",w); el.rect.setAttribute("x",(p.x-w/2).toFixed(1)); el.rect.setAttribute("y",(p.y-17).toFixed(1));
+      el.pr.setAttribute("x",(p.x-w/2+10).toFixed(1)); el.pr.setAttribute("y",(p.y-7).toFixed(1));
+      el.vl.setAttribute("x",(p.x-w/2+10).toFixed(1)); el.vl.setAttribute("y",(p.y+8).toFixed(1));
+    } else { el.g.setAttribute("transform",`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`); }
+  }
+  svg.setAttribute("viewBox",`${view.x} ${view.y} ${view.w} ${view.h}`);
+  requestAnimationFrame(frame);
+}
+function spotlight(id){
+  if(id===null){ for(const [,el] of nodeEls) el.g.classList.remove("dim");
+    edgeEls.forEach(({path})=>{path.classList.remove("hot","dim"); if(path.classList.contains("attr")){}else path.setAttribute("marker-end","url(#arrow)")});
+    labelEls.forEach(({lab})=>lab.classList.remove("hot","dim")); return; }
+  const keep=new Set([id]); G.edges.forEach(e=>{ if(e.s===id||e.o===id){keep.add(e.s);keep.add(e.o);} });
+  for(const [nid,el] of nodeEls) el.g.classList.toggle("dim",!keep.has(nid));
+  edgeEls.forEach(({e,path})=>{ const on=e.s===id||e.o===id; path.classList.toggle("dim",!on); path.classList.toggle("hot",on&&e.kind==="rel");
+    if(e.kind==="rel") path.setAttribute("marker-end",on?"url(#arrow-hot)":"url(#arrow)"); });
+  labelEls.forEach(({e,lab})=>{ const on=e.s===id||e.o===id; lab.classList.toggle("dim",!on); lab.classList.toggle("hot",on); });
+}
+function refocus(id){ if(id===focus||!N[id]) return; history.push(focus); focus=id; load(); }
+function rebuild(){ G=visible(); seed(); build(); }
+function load(){
+  ALL=neighbourhood(focus);
+  document.getElementById("ftitle").textContent=N[focus].label;
+  document.getElementById("firi").textContent=N[focus].iri;
+  document.getElementById("back").style.visibility=history.length?"visible":"hidden";
+  rebuild();
+}
+
+// pan/zoom/drag
+function svgPoint(ev){ const r=svg.getBoundingClientRect(); return {x:view.x+(ev.clientX-r.left)/r.width*view.w,y:view.y+(ev.clientY-r.top)/r.height*view.h}; }
+let dragId=null,dragMoved=false,panStart=null,dragOff={x:0,y:0};
+function startDrag(ev,id){ ev.stopPropagation(); dragId=id; dragMoved=false; const p=svgPoint(ev),n=pos.get(id); dragOff={x:p.x-n.x,y:p.y-n.y}; svg.setPointerCapture(ev.pointerId); }
+svg.addEventListener("pointerdown",ev=>{ if(dragId) return; panStart={mx:ev.clientX,my:ev.clientY,vx:view.x,vy:view.y}; svg.classList.add("panning"); svg.setPointerCapture(ev.pointerId); });
+svg.addEventListener("pointermove",ev=>{
+  if(dragId){ const p=svgPoint(ev),n=pos.get(dragId); n.x=p.x-dragOff.x; n.y=p.y-dragOff.y; n.pinned=true; n.vx=n.vy=0; dragMoved=true; alpha=Math.max(alpha,.4); return; }
+  if(panStart){ const r=svg.getBoundingClientRect(); view.x=panStart.vx-(ev.clientX-panStart.mx)/r.width*view.w; view.y=panStart.vy-(ev.clientY-panStart.my)/r.height*view.h; } });
+function endPtr(){ dragId=null; panStart=null; svg.classList.remove("panning"); }
+svg.addEventListener("pointerup",endPtr); svg.addEventListener("pointercancel",endPtr);
+svg.addEventListener("wheel",ev=>{ ev.preventDefault(); const p=svgPoint(ev),k=ev.deltaY>0?1.12:0.89;
+  const nw=Math.min(3000,Math.max(260,view.w*k)),nh=nw*(view.h/view.w);
+  view.x=p.x-(p.x-view.x)*(nw/view.w); view.y=p.y-(p.y-view.y)*(nh/view.h); view.w=nw; view.h=nh; },{passive:false});
+function fit(){ const all=[...G.nodes,...G.attrs].map(n=>pos.get(n.id)).filter(Boolean); if(!all.length) return;
+  let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9; for(const p of all){minx=Math.min(minx,p.x);miny=Math.min(miny,p.y);maxx=Math.max(maxx,p.x);maxy=Math.max(maxy,p.y);}
+  const pad=130,w=Math.max(360,maxx-minx+pad*2),h=Math.max(260,maxy-miny+pad*2),ar=svg.clientWidth/svg.clientHeight; let vw=w,vh=h;
+  if(w/h>ar) vh=w/ar; else vw=h*ar; view={x:(minx+maxx)/2-vw/2,y:(miny+maxy)/2-vh/2,w:vw,h:vh}; }
+
+document.getElementById("zin").onclick=()=>{const cx=view.x+view.w/2,cy=view.y+view.h/2;view.w*=.8;view.h*=.8;view.x=cx-view.w/2;view.y=cy-view.h/2;};
+document.getElementById("zout").onclick=()=>{const cx=view.x+view.w/2,cy=view.y+view.h/2;view.w/=.8;view.h/=.8;view.x=cx-view.w/2;view.y=cy-view.h/2;};
+document.getElementById("fit").onclick=fit;
+document.getElementById("back").onclick=()=>{ if(history.length){ focus=history.pop(); load(); } };
+document.getElementById("theme").onclick=()=>{document.documentElement.classList.toggle("theme-dark");document.documentElement.classList.toggle("theme-light");};
+document.getElementById("t-rel").onclick=function(){ showRel=!showRel; this.classList.toggle("on",showRel); rebuild(); };
+document.getElementById("t-attr").onclick=function(){ showAttr=!showAttr; this.classList.toggle("on",showAttr); rebuild(); };
+setTimeout(()=>{const h=document.getElementById("hint");if(h)h.style.opacity=0;},5000);
+
+// legend
+const legend=document.getElementById("legend");
+legend.innerHTML="<h4>Records (relations)</h4>";
+for(const k of ["fdp","catalog","dataset","distribution"]){ const r=document.createElement("div"); r.className="row"; r.innerHTML=`<span class="swatch" style="color:var(--t-${k})"></span> ${KIND[k].label}`; legend.appendChild(r); }
+const h2=document.createElement("h4"); h2.textContent="Attributes"; legend.appendChild(h2);
+const ar=document.createElement("div"); ar.className="row"; ar.innerHTML=`<span class="tagsw"></span> property → value`; legend.appendChild(ar);
+
+function init(){ view={x:0,y:0,w:svg.clientWidth||1000,h:svg.clientHeight||600}; load(); fit(); frame(); }
+init();
+</script>
+</body>
+</html>

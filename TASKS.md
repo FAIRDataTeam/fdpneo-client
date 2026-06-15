@@ -2202,6 +2202,23 @@ leaves the app working and is independently shippable.
 
 ---
 
+### 13.9 Prominence fix for lineage rail + RDF panel — ✅ done (2026-06-15)
+- Feedback: on a record page both features rendered but read as "invisible" — the
+  lineage rail looked like a plain breadcrumb (9px nodes) and the RDF panel was a
+  collapsed sidecar widget. Verified via headless browser they *were* live on 5173
+  (fonts/paper too); the issue was prominence, not a stale build.
+- [LineageRail.vue](src/components/metadata/LineageRail.vue): larger 13px type-colored
+  nodes + a per-hop uppercase **kind label** (FDP / CATALOG / DATASET) above the title,
+  stronger connectors — now reads as a labeled lineage, not a breadcrumb. Spec updated
+  for the new markup.
+- [RdfPreviewPanel.vue](src/components/metadata/RdfPreviewPanel.vue): new `autoOpen` prop;
+  [AboutSidecar.vue](src/components/metadata/AboutSidecar.vue) sets it so the record
+  page reveals syntax-tinted Turtle on mount (header relabelled "Metadata source · RDF").
+  **Behavior change:** one extra RDF GET per record-detail view (the landing hero is
+  unchanged — still click-to-open). Easy to revert if the auto-fetch is unwanted.
+- **Gate green:** lint + typecheck clean; `test:unit` = 334 passed (64 files). Verified
+  visually with the headless browser on `/records/dataset/test-bmi-dataset`.
+
 **Phase 13 complete (13.1–13.8).** Remaining is human visual QA in both themes +
 the white-label manual check (drop a `branding` block in `public/config.js`). The
 vertical lineage-rail layout (vs the horizontal one shipped in 13.5) is noted there
@@ -2232,6 +2249,35 @@ shape + everything it composes via `sh:node`/`sh:and`), but the client builder
   5 new closure cases (union, origin tags, dedupe/override, cycle, inherited `sh:or`).
 - *Follow-up option:* full section-by-origin grouping in the form (deferred — would
   fight the title-first field ordering; per-field tags chosen instead).
+
+---
+
+## 15. Live RDF graph — "Living specimen plate" (2026-06-15) — ✅ done
+
+Replaced the sidecar's static one-hop RDF tree with an interactive, instance-focused
+node-link graph (design prototype: `design/proposal-rdf-graph.html`, approved).
+
+- **Pure model** [graphModel.ts](src/components/metadata/graphModel.ts) (+ spec): splits a
+  focused record's triples into **relations** (object IRIs under `apiBase()` = other FDP
+  records) and **attributes** (literals + external/vocabulary IRIs). `curie()` for compact
+  predicate labels. Reuses `apiBase`/`iriToId`/`shortLabel`/`classify`/`NS` from rdf.ts.
+- **Component** [RdfGraphView.vue](src/components/metadata/RdfGraphView.vue): reworked from
+  the static tree into a compact hand-rolled **force canvas** (reactive positions + rAF
+  loop, no new dep). Type-colored nodes (`--t-*`), focus node enlarged; attribute "specimen
+  tags" (predicate → value, rust literal / accent IRI) on dashed leaders. **Relations** +
+  **Attributes** toggles, wheel-zoom, drag-pan, node-drag, hover-spotlight, refocus+expand
+  with back-history, fit. Honours `prefers-reduced-motion` (settles statically).
+- **Refocus fetch**: `useRecordTurtle(id)` added to [useRecord.ts](src/composables/useRecord.ts)
+  — cached raw-turtle `GET /{id}`; root ("") served at `/`.
+- **Overlay**: [RdfGraphOverlay.vue](src/components/metadata/RdfGraphOverlay.vue) (Teleport,
+  `role=dialog`, Esc/backdrop close, scroll-lock) mirroring `ContainerBrowser`. The
+  [RdfPreviewPanel.vue](src/components/metadata/RdfPreviewPanel.vue) **Graph** chip opens it
+  (the 308px sidecar is too narrow); serialization tabs stay inline as the non-visual
+  alternative.
+- **Gate green**: lint + typecheck clean; `test:unit` = 340 (65 files) incl. graphModel (7)
+  + RdfGraphView (5). Live-verified headlessly (overlay opens, layers toggle, refocus, Esc).
+- *Notes:* no new deps / no server change. A deep-linkable `/graph` route was left out of
+  scope (overlay chosen). The old static-tree `RdfGraphView` is fully replaced.
 
 ---
 

@@ -34,14 +34,14 @@ describe("LineageRail", () => {
     expect(w.findAllComponents(RouterLinkStub)).toHaveLength(2);
     const current = w.find(".hop.current");
     expect(current.exists()).toBe(true);
-    expect(current.text()).toBe("Brain MRI");
+    expect(current.find(".label").text()).toBe("Brain MRI");
     expect(current.attributes("aria-current")).toBe("page");
   });
 
-  it("binds the node color from the crumb kind", () => {
+  it("binds the node color and shows the kind label from the crumb kind", () => {
     const w = render();
     const current = w.find(".hop.current");
     expect(current.attributes("style")).toContain("var(--t-dataset)");
-    expect(current.attributes("title")).toBe("dataset");
+    expect(current.find(".kind").text()).toBe("dataset");
   });
 });
