@@ -2209,6 +2209,32 @@ as a future option if a sidebar layout is introduced.
 
 ---
 
+## 14. Authoring form unions inherited property shapes (schema composition) — ✅ done (2026-06-15)
+
+The create/edit form for a type showed only that type's own properties, not the
+ones it inherits — e.g. a Catalog form omitted the Dataset/Resource fields it
+composes. `GET /{type}/spec` already returns the full shape **closure** (target
+shape + everything it composes via `sh:node`/`sh:and`), but the client builder
+[`fieldsFromShape`](src/api/entityForms.ts) only read the target shape's own
+`sh:property`. (Confirmed with the server agent — no server change needed.)
+
+- Added a `shapeClosure()` walk (shape-level `sh:node` + `sh:and` list members,
+  BFS target-first, cycle-guarded) in [entityForms.ts](src/api/entityForms.ts);
+  `fieldsFromShape` now unions `sh:property` across the closure, **deduping by
+  `sh:path` with the most-derived (target) shape winning**. Same walk applied to
+  `orGroupsFromShape` so inherited `sh:or` groups count too.
+- Each `FieldSpec` carries an optional `origin` (the source shape's `rdfs:label`).
+  [EntityForm.vue](src/components/metadata/EntityForm.vue) shows a small origin tag
+  per field, but only when the type composes ≥2 shapes — so simple types stay clean
+  and composed types visibly "indicate the combination" (the original ask).
+- **Distinct from property-level `sh:node`** (nested sub-forms) — left unchanged.
+- **Gate green:** lint + typecheck clean; `test:unit` = 334 passed (64 files), incl.
+  5 new closure cases (union, origin tags, dedupe/override, cycle, inherited `sh:or`).
+- *Follow-up option:* full section-by-origin grouping in the form (deferred — would
+  fight the title-first field ordering; per-field tags chosen instead).
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13

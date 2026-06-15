@@ -52,6 +52,13 @@ function setDateTime(key: string, v: string) {
 
 const fields = computed(() => props.spec.fields);
 
+// Show per-field origin tags only when the type's schema actually composes more
+// than one source shape (≥2 distinct origins) — otherwise they'd be noise.
+const showOrigins = computed(() => {
+  const origins = new Set(fields.value.map((f) => f.origin).filter(Boolean));
+  return origins.size >= 2;
+});
+
 // "At least one of" requirements from the shape's sh:or (rendered as a hint).
 const orGroups = computed(() => props.spec.orGroups ?? []);
 function orLabels(keys: string[]): string {
@@ -64,6 +71,9 @@ function orLabels(keys: string[]): string {
     <label v-for="f in fields" :key="f.key" class="field">
       <span v-if="f.kind !== 'details'" class="label">
         {{ f.label }}<span v-if="f.required" class="req"> *</span>
+        <span v-if="showOrigins && f.origin" class="origin" :title="`Inherited from ${f.origin}`">{{
+          f.origin
+        }}</span>
       </span>
 
       <!-- DASH reference editor: pick an IRI from a class lookup. -->
@@ -260,6 +270,19 @@ function orLabels(keys: string[]): string {
 }
 .req {
   color: var(--signal);
+}
+.origin {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
 }
 input,
 textarea,

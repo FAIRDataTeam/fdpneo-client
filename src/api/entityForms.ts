@@ -94,6 +94,13 @@ export interface FieldSpec {
    * `dct:license`). The field stays a free-text IRI input with a `<datalist>`.
    */
   source?: "policies" | "licenses";
+  /**
+   * `rdfs:label` of the SHACL shape this field originated from, when the field
+   * was inherited through the shape closure (`sh:node`/`sh:and`) — e.g.
+   * "DCAT Resource" / "DCAT Dataset". Lets the form group fields by source so the
+   * schema composition is visible. Absent when the originating shape is unlabelled.
+   */
+  origin?: string;
 }
 
 /**
@@ -122,24 +129,111 @@ export interface EntitySpec {
 export type EntityModel = Record<string, string | string[]>;
 
 const F = {
-  title: { key: "title", predicate: `${NS.dct}title`, label: "Title", kind: "text", required: true } as FieldSpec,
-  description: { key: "description", predicate: `${NS.dct}description`, label: "Description", kind: "textarea" } as FieldSpec,
-  publisher: { key: "publisher", predicate: `${NS.dct}publisher`, label: "Publisher (IRI)", kind: "iri", placeholder: "https://example.org/org", autocomplete: "publisher" } as FieldSpec,
-  license: { key: "license", predicate: `${NS.dct}license`, label: "License", kind: "ref", source: "licenses", placeholder: "a managed license IRI", help: "From Licenses; or paste any IRI." } as FieldSpec,
-  rights: { key: "rights", predicate: `${NS.dct}rights`, label: "Access policy", kind: "ref", source: "policies", placeholder: "a managed policy IRI", help: "An ODRL Offer from Policies (dct:rights)." } as FieldSpec,
-  keywords: { key: "keywords", predicate: `${NS.dcat}keyword`, label: "Keywords", kind: "keywords", help: "Comma-separated." } as FieldSpec,
-  theme: { key: "theme", predicate: `${NS.dcat}theme`, label: "Theme (IRI)", kind: "iri", autocomplete: "theme" } as FieldSpec,
-  format: { key: "format", predicate: `${NS.dct}format`, label: "Format", kind: "text", placeholder: "text/csv", autocomplete: "mime" } as FieldSpec,
-  downloadURL: { key: "downloadURL", predicate: `${NS.dcat}downloadURL`, label: "Download URL", kind: "iri" } as FieldSpec,
-  accessURL: { key: "accessURL", predicate: `${NS.dcat}accessURL`, label: "Access URL", kind: "iri" } as FieldSpec,
-  endpointURL: { key: "endpointURL", predicate: `${NS.dcat}endpointURL`, label: "Endpoint URL", kind: "iri" } as FieldSpec,
+  title: {
+    key: "title",
+    predicate: `${NS.dct}title`,
+    label: "Title",
+    kind: "text",
+    required: true,
+  } as FieldSpec,
+  description: {
+    key: "description",
+    predicate: `${NS.dct}description`,
+    label: "Description",
+    kind: "textarea",
+  } as FieldSpec,
+  publisher: {
+    key: "publisher",
+    predicate: `${NS.dct}publisher`,
+    label: "Publisher (IRI)",
+    kind: "iri",
+    placeholder: "https://example.org/org",
+    autocomplete: "publisher",
+  } as FieldSpec,
+  license: {
+    key: "license",
+    predicate: `${NS.dct}license`,
+    label: "License",
+    kind: "ref",
+    source: "licenses",
+    placeholder: "a managed license IRI",
+    help: "From Licenses; or paste any IRI.",
+  } as FieldSpec,
+  rights: {
+    key: "rights",
+    predicate: `${NS.dct}rights`,
+    label: "Access policy",
+    kind: "ref",
+    source: "policies",
+    placeholder: "a managed policy IRI",
+    help: "An ODRL Offer from Policies (dct:rights).",
+  } as FieldSpec,
+  keywords: {
+    key: "keywords",
+    predicate: `${NS.dcat}keyword`,
+    label: "Keywords",
+    kind: "keywords",
+    help: "Comma-separated.",
+  } as FieldSpec,
+  theme: {
+    key: "theme",
+    predicate: `${NS.dcat}theme`,
+    label: "Theme (IRI)",
+    kind: "iri",
+    autocomplete: "theme",
+  } as FieldSpec,
+  format: {
+    key: "format",
+    predicate: `${NS.dct}format`,
+    label: "Format",
+    kind: "text",
+    placeholder: "text/csv",
+    autocomplete: "mime",
+  } as FieldSpec,
+  downloadURL: {
+    key: "downloadURL",
+    predicate: `${NS.dcat}downloadURL`,
+    label: "Download URL",
+    kind: "iri",
+  } as FieldSpec,
+  accessURL: {
+    key: "accessURL",
+    predicate: `${NS.dcat}accessURL`,
+    label: "Access URL",
+    kind: "iri",
+  } as FieldSpec,
+  endpointURL: {
+    key: "endpointURL",
+    predicate: `${NS.dcat}endpointURL`,
+    label: "Endpoint URL",
+    kind: "iri",
+  } as FieldSpec,
   // Dual-identifier properties (ADR-0014). Optional and additive: the record's
   // canonical IRI is the FDP-minted subject; these point at equivalent
   // identifiers elsewhere. The server may also add `owl:sameAs` itself when a
   // record is created under a foreign subject IRI.
-  identifier: { key: "identifier", predicate: `${NS.dct}identifier`, label: "Identifier", kind: "text", placeholder: "e.g. a DOI string", help: "An external identifier string (literal), e.g. a DOI." } as FieldSpec,
-  sameAs: { key: "sameAs", predicate: `${NS.owl}sameAs`, label: "Same as (IRI)", kind: "iris", help: "Equivalent foreign persistent identifier(s). Comma-separated IRIs." } as FieldSpec,
-  exactMatch: { key: "exactMatch", predicate: `${NS.skos}exactMatch`, label: "Exact match (IRI)", kind: "iris", help: "Equivalent IRI(s) in another registry. Comma-separated IRIs." } as FieldSpec,
+  identifier: {
+    key: "identifier",
+    predicate: `${NS.dct}identifier`,
+    label: "Identifier",
+    kind: "text",
+    placeholder: "e.g. a DOI string",
+    help: "An external identifier string (literal), e.g. a DOI.",
+  } as FieldSpec,
+  sameAs: {
+    key: "sameAs",
+    predicate: `${NS.owl}sameAs`,
+    label: "Same as (IRI)",
+    kind: "iris",
+    help: "Equivalent foreign persistent identifier(s). Comma-separated IRIs.",
+  } as FieldSpec,
+  exactMatch: {
+    key: "exactMatch",
+    predicate: `${NS.skos}exactMatch`,
+    label: "Exact match (IRI)",
+    kind: "iris",
+    help: "Equivalent IRI(s) in another registry. Comma-separated IRIs.",
+  } as FieldSpec,
 };
 
 // The optional dual-identifier block, appended to every resource type's fields.
@@ -152,7 +246,14 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Catalog",
     prefix: "catalog",
     childTypes: ["dataset", "data-service"],
-    fields: [F.title, F.description, F.publisher, F.license, F.rights, ...IDENTIFIER_FIELDS],
+    fields: [
+      F.title,
+      F.description,
+      F.publisher,
+      F.license,
+      F.rights,
+      ...IDENTIFIER_FIELDS,
+    ],
   },
   dataset: {
     type: "dataset",
@@ -160,7 +261,16 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Dataset",
     prefix: "dataset",
     childTypes: ["distribution"],
-    fields: [F.title, F.description, F.publisher, F.license, F.keywords, F.theme, F.rights, ...IDENTIFIER_FIELDS],
+    fields: [
+      F.title,
+      F.description,
+      F.publisher,
+      F.license,
+      F.keywords,
+      F.theme,
+      F.rights,
+      ...IDENTIFIER_FIELDS,
+    ],
   },
   distribution: {
     type: "distribution",
@@ -168,7 +278,16 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Distribution",
     prefix: "distribution",
     childTypes: [],
-    fields: [F.title, F.description, F.format, F.license, F.downloadURL, F.accessURL, F.rights, ...IDENTIFIER_FIELDS],
+    fields: [
+      F.title,
+      F.description,
+      F.format,
+      F.license,
+      F.downloadURL,
+      F.accessURL,
+      F.rights,
+      ...IDENTIFIER_FIELDS,
+    ],
   },
   "data-service": {
     type: "data-service",
@@ -176,7 +295,14 @@ export const ENTITY_SPECS: Record<EntityType, EntitySpec> = {
     label: "Data service",
     prefix: "data-service",
     childTypes: [],
-    fields: [F.title, F.description, F.publisher, F.endpointURL, F.rights, ...IDENTIFIER_FIELDS],
+    fields: [
+      F.title,
+      F.description,
+      F.publisher,
+      F.endpointURL,
+      F.rights,
+      ...IDENTIFIER_FIELDS,
+    ],
   },
 };
 
@@ -203,20 +329,23 @@ export function typeForId(id: string): EntityType | null {
   return prefix in ENTITY_SPECS ? prefix : null;
 }
 
-const isMulti = (kind: FieldKind): boolean => kind === "keywords" || kind === "iris";
+const isMulti = (kind: FieldKind): boolean =>
+  kind === "keywords" || kind === "iris";
 
 /** The model key holding a lang-tagged field's language (sibling to its value). */
 export const langKey = (key: string): string => `${key}__lang`;
 
 /** The flat model key for a nested field of a `kind: "details"` field. */
-export const detailKey = (parentKey: string, nestedKey: string): string => `${parentKey}.${nestedKey}`;
+export const detailKey = (parentKey: string, nestedKey: string): string =>
+  `${parentKey}.${nestedKey}`;
 
 /** An empty model for a create form. */
 export function emptyModel(spec: EntitySpec): EntityModel {
   const model: EntityModel = {};
   for (const f of spec.fields) {
     if (f.kind === "details" && f.nested) {
-      for (const nf of f.nested) model[detailKey(f.key, nf.key)] = isMulti(nf.kind) ? [] : "";
+      for (const nf of f.nested)
+        model[detailKey(f.key, nf.key)] = isMulti(nf.kind) ? [] : "";
       continue;
     }
     model[f.key] = isMulti(f.kind) ? [] : "";
@@ -226,36 +355,73 @@ export function emptyModel(spec: EntitySpec): EntityModel {
 }
 
 /** Read a model out of a resource graph (for the edit form). */
-export function modelFromTurtle(turtle: string, iri: string, spec: EntitySpec): EntityModel {
+export function modelFromTurtle(
+  turtle: string,
+  iri: string,
+  spec: EntitySpec,
+): EntityModel {
   const store = parseTurtle(turtle);
   const model: EntityModel = {};
   for (const f of spec.fields) {
     if (f.kind === "details" && f.nested) {
-      const [obj] = store.getObjects(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), null);
+      const [obj] = store.getObjects(
+        DataFactory.namedNode(iri),
+        DataFactory.namedNode(f.predicate),
+        null,
+      );
       for (const nf of f.nested) {
         model[detailKey(f.key, nf.key)] = obj
-          ? (store.getObjects(obj, DataFactory.namedNode(nf.predicate), null)[0]?.value ?? "")
+          ? (store.getObjects(obj, DataFactory.namedNode(nf.predicate), null)[0]
+              ?.value ?? "")
           : "";
       }
       continue;
     }
-    model[f.key] = isMulti(f.kind) ? many(store, iri, f.predicate) : (one(store, iri, f.predicate) ?? "");
+    model[f.key] = isMulti(f.kind)
+      ? many(store, iri, f.predicate)
+      : (one(store, iri, f.predicate) ?? "");
     if (f.lang) model[langKey(f.key)] = oneLang(store, iri, f.predicate);
   }
   return model;
 }
 
 /** Write a `kind: "details"` field as a nested blank node with its scalar props. */
-function applyDetails(store: Store, iri: string, f: FieldSpec, model: EntityModel): void {
-  store.removeQuads(store.getQuads(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), null, null));
+function applyDetails(
+  store: Store,
+  iri: string,
+  f: FieldSpec,
+  model: EntityModel,
+): void {
+  store.removeQuads(
+    store.getQuads(
+      DataFactory.namedNode(iri),
+      DataFactory.namedNode(f.predicate),
+      null,
+      null,
+    ),
+  );
   const nested = f.nested ?? [];
   const vals = nested.map((nf) => ({ nf, v: model[detailKey(f.key, nf.key)] }));
-  const hasAny = vals.some(({ v }) => (typeof v === "string" ? v.trim() !== "" : Array.isArray(v) && v.length > 0));
+  const hasAny = vals.some(({ v }) =>
+    typeof v === "string" ? v.trim() !== "" : Array.isArray(v) && v.length > 0,
+  );
   if (!hasAny) return; // omit the whole nested node when empty
   const bn = DataFactory.blankNode();
-  store.addQuad(DataFactory.quad(DataFactory.namedNode(iri), DataFactory.namedNode(f.predicate), bn));
+  store.addQuad(
+    DataFactory.quad(
+      DataFactory.namedNode(iri),
+      DataFactory.namedNode(f.predicate),
+      bn,
+    ),
+  );
   if (f.nestedClass) {
-    store.addQuad(DataFactory.quad(bn, DataFactory.namedNode(`${NS.rdf}type`), DataFactory.namedNode(f.nestedClass)));
+    store.addQuad(
+      DataFactory.quad(
+        bn,
+        DataFactory.namedNode(`${NS.rdf}type`),
+        DataFactory.namedNode(f.nestedClass),
+      ),
+    );
   }
   for (const { nf, v } of vals) {
     const s = typeof v === "string" ? v.trim() : "";
@@ -266,11 +432,18 @@ function applyDetails(store: Store, iri: string, f: FieldSpec, model: EntityMode
         : nf.datatype
           ? DataFactory.literal(s, DataFactory.namedNode(nf.datatype))
           : DataFactory.literal(s);
-    store.addQuad(DataFactory.quad(bn, DataFactory.namedNode(nf.predicate), obj));
+    store.addQuad(
+      DataFactory.quad(bn, DataFactory.namedNode(nf.predicate), obj),
+    );
   }
 }
 
-function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityModel): void {
+function applyModel(
+  store: Store,
+  iri: string,
+  spec: EntitySpec,
+  model: EntityModel,
+): void {
   for (const f of spec.fields) {
     if (f.kind === "details" && f.nested) {
       applyDetails(store, iri, f, model);
@@ -281,9 +454,13 @@ function applyModel(store: Store, iri: string, spec: EntitySpec, model: EntityMo
     const scalar = typeof value === "string" ? value : "";
     if (f.kind === "keywords") setLiterals(store, iri, f.predicate, list);
     else if (f.kind === "iris") setIris(store, iri, f.predicate, list);
-    else if (f.kind === "iri" || f.kind === "ref") setIri(store, iri, f.predicate, scalar);
+    else if (f.kind === "iri" || f.kind === "ref")
+      setIri(store, iri, f.predicate, scalar);
     else if (f.lang) {
-      const lang = typeof model[langKey(f.key)] === "string" ? (model[langKey(f.key)] as string) : "";
+      const lang =
+        typeof model[langKey(f.key)] === "string"
+          ? (model[langKey(f.key)] as string)
+          : "";
       setLangLiteral(store, iri, f.predicate, scalar, lang);
     }
     // Typed literals (date/number/boolean/enum) carry their datatype; bare text
@@ -354,7 +531,10 @@ const DASH_EDITOR_KIND: Record<string, FieldKind> = {
 };
 
 /** DASH reference editors → the lookup widget (the value stays a single IRI). */
-const DASH_REF_WIDGET: Record<string, "autocomplete" | "instances" | "subclass"> = {
+const DASH_REF_WIDGET: Record<
+  string,
+  "autocomplete" | "instances" | "subclass"
+> = {
   AutoCompleteEditor: "autocomplete",
   InstancesSelectEditor: "instances",
   SubClassEditor: "subclass",
@@ -364,9 +544,22 @@ const XSD = "http://www.w3.org/2001/XMLSchema#";
 /** xsd numeric datatypes → the Number input. */
 const NUMERIC_XSD = new Set<string>(
   [
-    "integer", "decimal", "float", "double", "long", "int", "short", "byte",
-    "nonNegativeInteger", "positiveInteger", "nonPositiveInteger", "negativeInteger",
-    "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
+    "integer",
+    "decimal",
+    "float",
+    "double",
+    "long",
+    "int",
+    "short",
+    "byte",
+    "nonNegativeInteger",
+    "positiveInteger",
+    "nonPositiveInteger",
+    "negativeInteger",
+    "unsignedLong",
+    "unsignedInt",
+    "unsignedShort",
+    "unsignedByte",
   ].map((t) => `${XSD}${t}`),
 );
 
@@ -389,6 +582,55 @@ const SHACL_SINGLE_LITERALS = new Set<string>([
   `${NS.dct}identifier`,
 ]);
 
+const RDFS_LABEL = DataFactory.namedNode(
+  "http://www.w3.org/2000/01/rdf-schema#label",
+);
+
+/**
+ * The shape closure: the starting NodeShape plus every shape it composes through
+ * **shape-level** `sh:node` / `sh:and` list members, transitively. Ordered
+ * target-first (BFS), so a caller deduping by `sh:path` keeps the most-derived
+ * constraint. Cycle-guarded by a visited set.
+ *
+ * This is distinct from *property-level* `sh:node` (a nested sub-form for one
+ * property) — that is handled separately and is not followed here.
+ */
+function shapeClosure(store: Store, target: Term): Term[] {
+  const RDF_FIRST = DataFactory.namedNode(`${NS.rdf}first`);
+  const RDF_REST = DataFactory.namedNode(`${NS.rdf}rest`);
+  const RDF_NIL = `${NS.rdf}nil`;
+  const listMembers = (head: Term): Term[] => {
+    const out: Term[] = [];
+    const seen = new Set<string>();
+    let node: Term | undefined = head;
+    while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
+      seen.add(node.value);
+      const m = store.getObjects(node, RDF_FIRST, null)[0];
+      if (m) out.push(m);
+      node = store.getObjects(node, RDF_REST, null)[0];
+    }
+    return out;
+  };
+
+  const ordered: Term[] = [];
+  const visited = new Set<string>();
+  const queue: Term[] = [target];
+  while (queue.length) {
+    const s = queue.shift() as Term;
+    if (visited.has(s.value)) continue;
+    visited.add(s.value);
+    ordered.push(s);
+    for (const n of store.getObjects(s, sh("node"), null)) {
+      if (!visited.has(n.value)) queue.push(n);
+    }
+    for (const andHead of store.getObjects(s, sh("and"), null)) {
+      for (const m of listMembers(andHead))
+        if (!visited.has(m.value)) queue.push(m);
+    }
+  }
+  return ordered;
+}
+
 /**
  * Derive form fields from a resource type's SHACL NodeShape (from
  * `GET /{type}/spec`). Maps `sh:property` constraints onto `FieldSpec`s:
@@ -398,11 +640,23 @@ const SHACL_SINGLE_LITERALS = new Set<string>([
  * `dcat:contactPoint`) are skipped, as are excluded predicates. Returns `[]`
  * if the shape can't be found, so callers can fall back to the static spec.
  */
-export function fieldsFromShape(turtle: string, classIri: string, depth = 0): FieldSpec[] {
+export function fieldsFromShape(
+  turtle: string,
+  classIri: string,
+  depth = 0,
+): FieldSpec[] {
   const store = parseTurtle(turtle);
   let shape: Term | null =
-    store.getSubjects(sh("targetClass"), DataFactory.namedNode(classIri), null)[0] ?? null;
-  if (!shape && store.getQuads(DataFactory.namedNode(classIri), sh("property"), null, null).length) {
+    store.getSubjects(
+      sh("targetClass"),
+      DataFactory.namedNode(classIri),
+      null,
+    )[0] ?? null;
+  if (
+    !shape &&
+    store.getQuads(DataFactory.namedNode(classIri), sh("property"), null, null)
+      .length
+  ) {
     shape = DataFactory.namedNode(classIri);
   }
   if (!shape) return [];
@@ -422,100 +676,152 @@ export function fieldsFromShape(turtle: string, classIri: string, depth = 0): Fi
     let node: Term | undefined = headHead;
     while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
       seen.add(node.value);
-      const v = store.getObjects(node, DataFactory.namedNode(RDF_FIRST), null)[0];
+      const v = store.getObjects(
+        node,
+        DataFactory.namedNode(RDF_FIRST),
+        null,
+      )[0];
       if (v) out.push(v.value);
       node = store.getObjects(node, DataFactory.namedNode(RDF_REST), null)[0];
     }
     return out.length ? out : null;
   };
 
+  // Union property shapes across the shape closure (target + inherited shapes),
+  // deduping by sh:path with the most-derived (target-first) shape winning.
   const fields: FieldSpec[] = [];
-  for (const p of store.getObjects(shape, sh("property"), null)) {
-    const path = store.getObjects(p, sh("path"), null)[0]?.value;
-    if (!path || SHACL_EXCLUDED.has(path)) continue;
-    const datatype = first(p, "datatype");
-    const nodeKind = first(p, "nodeKind");
-    const options = readIn(p);
-    const editorIri = store.getObjects(p, DataFactory.namedNode(`${DASH}editor`), null)[0]?.value;
-    const editorKind = editorIri ? DASH_EDITOR_KIND[editorIri.replace(DASH, "")] : undefined;
-    // A nested-shape reference (sh:node) → an inline "details" sub-form. Only one
-    // level deep (depth 0) to avoid unbounded / cyclic recursion.
-    const nodeShape = depth === 0 ? first(p, "node") : undefined;
-    if (!datatype && !options && nodeKind !== `${SH}IRI` && !editorKind && !nodeShape) continue; // not a simple field
+  const seenPaths = new Set<string>();
+  for (const src of shapeClosure(store, shape)) {
+    const origin = store.getObjects(src, RDFS_LABEL, null)[0]?.value;
+    for (const p of store.getObjects(src, sh("property"), null)) {
+      const path = store.getObjects(p, sh("path"), null)[0]?.value;
+      if (!path || SHACL_EXCLUDED.has(path) || seenPaths.has(path)) continue;
+      const datatype = first(p, "datatype");
+      const nodeKind = first(p, "nodeKind");
+      const options = readIn(p);
+      const editorIri = store.getObjects(
+        p,
+        DataFactory.namedNode(`${DASH}editor`),
+        null,
+      )[0]?.value;
+      const editorKind = editorIri
+        ? DASH_EDITOR_KIND[editorIri.replace(DASH, "")]
+        : undefined;
+      // A nested-shape reference (sh:node) → an inline "details" sub-form. Only one
+      // level deep (depth 0) to avoid unbounded / cyclic recursion.
+      const nodeShape = depth === 0 ? first(p, "node") : undefined;
+      if (
+        !datatype &&
+        !options &&
+        nodeKind !== `${SH}IRI` &&
+        !editorKind &&
+        !nodeShape
+      )
+        continue; // not a simple field
 
-    const single = first(p, "maxCount") === "1" || SHACL_SINGLE_LITERALS.has(path);
-    const minCount = first(p, "minCount");
-    const required = minCount !== undefined && Number(minCount) >= 1;
+      const single =
+        first(p, "maxCount") === "1" || SHACL_SINGLE_LITERALS.has(path);
+      const minCount = first(p, "minCount");
+      const required = minCount !== undefined && Number(minCount) >= 1;
 
-    // Pick the input control: details (sh:node) → enum (sh:in) → IRI → repeatable
-    // literals → explicit dash:editor → typed literal by datatype → textarea/text.
-    let kind: FieldKind;
-    if (nodeShape) kind = "details";
-    else if (options) kind = "enum";
-    else if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
-    else if (!single) kind = "keywords";
-    else if (editorKind) kind = editorKind;
-    else if (datatype === `${XSD}boolean`) kind = "boolean";
-    else if (datatype === `${XSD}date`) kind = "date";
-    else if (datatype === `${XSD}dateTime` || datatype === `${XSD}time`) kind = "datetime";
-    else if (datatype && NUMERIC_XSD.has(datatype)) kind = "number";
-    else kind = path === `${NS.dct}description` ? "textarea" : "text";
+      // Pick the input control: details (sh:node) → enum (sh:in) → IRI → repeatable
+      // literals → explicit dash:editor → typed literal by datatype → textarea/text.
+      let kind: FieldKind;
+      if (nodeShape) kind = "details";
+      else if (options) kind = "enum";
+      else if (nodeKind === `${SH}IRI`) kind = single ? "iri" : "iris";
+      else if (!single) kind = "keywords";
+      else if (editorKind) kind = editorKind;
+      else if (datatype === `${XSD}boolean`) kind = "boolean";
+      else if (datatype === `${XSD}date`) kind = "date";
+      else if (datatype === `${XSD}dateTime` || datatype === `${XSD}time`)
+        kind = "datetime";
+      else if (datatype && NUMERIC_XSD.has(datatype)) kind = "number";
+      else kind = path === `${NS.dct}description` ? "textarea" : "text";
 
-    const field: FieldSpec = {
-      key: shortLabel(path),
-      predicate: path,
-      label: first(p, "name") || shortLabel(path),
-      kind,
-    };
-    if (options) field.options = options;
-    if (nodeShape) {
-      field.nested = fieldsFromShape(turtle, nodeShape, depth + 1);
-      const cls = first(p, "class");
-      if (cls) field.nestedClass = cls;
-    }
-    // Carry the datatype for typed literals so values serialize correctly.
-    if (datatype && (kind === "enum" || kind === "boolean" || kind === "date" || kind === "datetime" || kind === "number")) {
-      field.datatype = datatype;
-    }
-    // Language-tagged literal: rdf:langString or a dash:*WithLangEditor.
-    if (datatype === `${NS.rdf}langString` || editorIri?.endsWith("WithLangEditor")) {
-      field.lang = true;
-    }
-    // Reference editor: a single-IRI value picked from a class lookup (needs sh:class).
-    const refWidget = editorIri ? DASH_REF_WIDGET[editorIri.replace(DASH, "")] : undefined;
-    if (refWidget && kind === "iri") {
-      const cls = first(p, "class");
-      if (cls) {
-        field.refWidget = refWidget;
-        field.refClass = cls;
+      const field: FieldSpec = {
+        key: shortLabel(path),
+        predicate: path,
+        label: first(p, "name") || shortLabel(path),
+        kind,
+      };
+      if (options) field.options = options;
+      if (nodeShape) {
+        field.nested = fieldsFromShape(turtle, nodeShape, depth + 1);
+        const cls = first(p, "class");
+        if (cls) field.nestedClass = cls;
       }
-    }
-    if (path === `${NS.dct}license`) {
-      field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI
-      field.source = "licenses";
-      field.label = first(p, "name") || "License";
-    }
-    if (required) field.required = true;
-    const description = first(p, "description");
-    if (description) field.help = description;
+      // Carry the datatype for typed literals so values serialize correctly.
+      if (
+        datatype &&
+        (kind === "enum" ||
+          kind === "boolean" ||
+          kind === "date" ||
+          kind === "datetime" ||
+          kind === "number")
+      ) {
+        field.datatype = datatype;
+      }
+      // Language-tagged literal: rdf:langString or a dash:*WithLangEditor.
+      if (
+        datatype === `${NS.rdf}langString` ||
+        editorIri?.endsWith("WithLangEditor")
+      ) {
+        field.lang = true;
+      }
+      // Reference editor: a single-IRI value picked from a class lookup (needs sh:class).
+      const refWidget = editorIri
+        ? DASH_REF_WIDGET[editorIri.replace(DASH, "")]
+        : undefined;
+      if (refWidget && kind === "iri") {
+        const cls = first(p, "class");
+        if (cls) {
+          field.refWidget = refWidget;
+          field.refClass = cls;
+        }
+      }
+      if (path === `${NS.dct}license`) {
+        field.kind = "ref"; // a managed-license picker (5.5), not a bare IRI
+        field.source = "licenses";
+        field.label = first(p, "name") || "License";
+      }
+      if (required) field.required = true;
+      const description = first(p, "description");
+      if (description) field.help = description;
 
-    // String + numeric constraints (for hints + client pre-validation).
-    const numOf = (local: string): number | undefined => {
-      const v = first(p, local);
-      return v !== undefined && Number.isFinite(Number(v)) ? Number(v) : undefined;
-    };
-    const pattern = first(p, "pattern");
-    if (pattern) field.pattern = pattern;
-    for (const c of ["minLength", "maxLength", "minInclusive", "maxInclusive", "minExclusive", "maxExclusive"] as const) {
-      const v = numOf(c);
-      if (v !== undefined) field[c] = v;
-    }
+      // String + numeric constraints (for hints + client pre-validation).
+      const numOf = (local: string): number | undefined => {
+        const v = first(p, local);
+        return v !== undefined && Number.isFinite(Number(v))
+          ? Number(v)
+          : undefined;
+      };
+      const pattern = first(p, "pattern");
+      if (pattern) field.pattern = pattern;
+      for (const c of [
+        "minLength",
+        "maxLength",
+        "minInclusive",
+        "maxInclusive",
+        "minExclusive",
+        "maxExclusive",
+      ] as const) {
+        const v = numOf(c);
+        if (v !== undefined) field[c] = v;
+      }
 
-    fields.push(field);
+      if (origin) field.origin = origin;
+      fields.push(field);
+      seenPaths.add(path);
+    }
   }
 
   const rank = (f: FieldSpec) =>
-    f.predicate === `${NS.dct}title` ? 0 : f.predicate === `${NS.dct}description` ? 1 : 2;
+    f.predicate === `${NS.dct}title`
+      ? 0
+      : f.predicate === `${NS.dct}description`
+        ? 1
+        : 2;
   fields.sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label));
   // Always offer the access-policy picker — dct:rights is SHACL_EXCLUDED, so it
   // never comes from the shape, but any record can opt into a policy (5.5).
@@ -531,50 +837,76 @@ export function fieldsFromShape(turtle: string, classIri: string, depth = 0): Fi
  * both the canonical property-shape branch (`[ sh:path P ; … ]`) and the
  * node-shape branch (`[ sh:property [ sh:path P … ] ]`).
  */
-export function orGroupsFromShape(turtle: string, classIri: string): OrConstraint[] {
+export function orGroupsFromShape(
+  turtle: string,
+  classIri: string,
+): OrConstraint[] {
   const store = parseTurtle(turtle);
   let shape: Term | null =
-    store.getSubjects(sh("targetClass"), DataFactory.namedNode(classIri), null)[0] ?? null;
-  if (!shape && store.getQuads(DataFactory.namedNode(classIri), sh("or"), null, null).length) {
+    store.getSubjects(
+      sh("targetClass"),
+      DataFactory.namedNode(classIri),
+      null,
+    )[0] ?? null;
+  if (
+    !shape &&
+    store.getQuads(DataFactory.namedNode(classIri), sh("or"), null, null).length
+  ) {
     shape = DataFactory.namedNode(classIri);
   }
   if (!shape) return [];
 
   const rdf = (local: string) =>
-    DataFactory.namedNode(`http://www.w3.org/1999/02/22-rdf-syntax-ns#${local}`);
+    DataFactory.namedNode(
+      `http://www.w3.org/1999/02/22-rdf-syntax-ns#${local}`,
+    );
   const RDF_NIL = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
   const branchPath = (member: Term): string | undefined => {
     const direct = store.getObjects(member, sh("path"), null)[0]?.value;
     if (direct) return direct;
     const prop = store.getObjects(member, sh("property"), null)[0];
-    return prop ? store.getObjects(prop, sh("path"), null)[0]?.value : undefined;
+    return prop
+      ? store.getObjects(prop, sh("path"), null)[0]?.value
+      : undefined;
   };
 
+  // Walk the shape closure so inherited `sh:or` groups are honoured too, deduping
+  // identical groups (same key set) contributed by more than one shape.
   const groups: OrConstraint[] = [];
-  for (const head of store.getObjects(shape, sh("or"), null)) {
-    const keys: string[] = [];
-    let node: Term | undefined = head;
-    let ok = true;
-    const seen = new Set<string>();
-    while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
-      seen.add(node.value);
-      const member = store.getObjects(node, rdf("first"), null)[0];
-      const path = member ? branchPath(member) : undefined;
-      if (!path || SHACL_EXCLUDED.has(path)) {
-        ok = false;
-        break;
+  const seenGroups = new Set<string>();
+  for (const src of shapeClosure(store, shape)) {
+    for (const head of store.getObjects(src, sh("or"), null)) {
+      const keys: string[] = [];
+      let node: Term | undefined = head;
+      let ok = true;
+      const seen = new Set<string>();
+      while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
+        seen.add(node.value);
+        const member = store.getObjects(node, rdf("first"), null)[0];
+        const path = member ? branchPath(member) : undefined;
+        if (!path || SHACL_EXCLUDED.has(path)) {
+          ok = false;
+          break;
+        }
+        keys.push(shortLabel(path));
+        node = store.getObjects(node, rdf("rest"), null)[0];
       }
-      keys.push(shortLabel(path));
-      node = store.getObjects(node, rdf("rest"), null)[0];
+      if (!ok || keys.length < 2) continue;
+      const sig = [...keys].sort().join(" ");
+      if (seenGroups.has(sig)) continue;
+      seenGroups.add(sig);
+      groups.push({ keys });
     }
-    if (ok && keys.length >= 2) groups.push({ keys });
   }
   return groups;
 }
 
 /** The "at least one of" groups in `spec` where the model fills none of them. */
-export function missingOrGroups(spec: EntitySpec, model: EntityModel): OrConstraint[] {
+export function missingOrGroups(
+  spec: EntitySpec,
+  model: EntityModel,
+): OrConstraint[] {
   const filled = (key: string): boolean => {
     const v = model[key];
     if (Array.isArray(v)) return v.length > 0;
@@ -595,16 +927,25 @@ export interface ConstraintViolation {
  * trip to the server to learn of a simple violation. Returns the first failure,
  * or null. The server remains the validation authority.
  */
-export function validateConstraints(spec: EntitySpec, model: EntityModel): ConstraintViolation | null {
+export function validateConstraints(
+  spec: EntitySpec,
+  model: EntityModel,
+): ConstraintViolation | null {
   for (const f of spec.fields) {
     const v = model[f.key];
     if (typeof v !== "string") continue; // multi-value / unset handled elsewhere
     const s = v.trim();
     if (!s) continue; // emptiness is the required check's job
-    const fail = (message: string): ConstraintViolation => ({ key: f.key, label: f.label, message });
+    const fail = (message: string): ConstraintViolation => ({
+      key: f.key,
+      label: f.label,
+      message,
+    });
 
-    if (f.minLength != null && s.length < f.minLength) return fail(`must be at least ${f.minLength} characters`);
-    if (f.maxLength != null && s.length > f.maxLength) return fail(`must be at most ${f.maxLength} characters`);
+    if (f.minLength != null && s.length < f.minLength)
+      return fail(`must be at least ${f.minLength} characters`);
+    if (f.maxLength != null && s.length > f.maxLength)
+      return fail(`must be at most ${f.maxLength} characters`);
     if (f.pattern) {
       let re: RegExp | null = null;
       try {
@@ -617,10 +958,14 @@ export function validateConstraints(spec: EntitySpec, model: EntityModel): Const
     if (f.kind === "number") {
       const n = Number(s);
       if (Number.isFinite(n)) {
-        if (f.minInclusive != null && n < f.minInclusive) return fail(`must be ≥ ${f.minInclusive}`);
-        if (f.maxInclusive != null && n > f.maxInclusive) return fail(`must be ≤ ${f.maxInclusive}`);
-        if (f.minExclusive != null && n <= f.minExclusive) return fail(`must be > ${f.minExclusive}`);
-        if (f.maxExclusive != null && n >= f.maxExclusive) return fail(`must be < ${f.maxExclusive}`);
+        if (f.minInclusive != null && n < f.minInclusive)
+          return fail(`must be ≥ ${f.minInclusive}`);
+        if (f.maxInclusive != null && n > f.maxInclusive)
+          return fail(`must be ≤ ${f.maxInclusive}`);
+        if (f.minExclusive != null && n <= f.minExclusive)
+          return fail(`must be > ${f.minExclusive}`);
+        if (f.maxExclusive != null && n >= f.maxExclusive)
+          return fail(`must be < ${f.maxExclusive}`);
       }
     }
   }
@@ -631,7 +976,8 @@ export function validateConstraints(spec: EntitySpec, model: EntityModel): Const
 export function constraintHint(f: FieldSpec): string {
   const parts: string[] = [];
   if (f.minLength != null || f.maxLength != null) {
-    if (f.minLength != null && f.maxLength != null) parts.push(`${f.minLength}–${f.maxLength} chars`);
+    if (f.minLength != null && f.maxLength != null)
+      parts.push(`${f.minLength}–${f.maxLength} chars`);
     else if (f.minLength != null) parts.push(`min ${f.minLength} chars`);
     else parts.push(`max ${f.maxLength} chars`);
   }

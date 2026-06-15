@@ -405,3 +405,82 @@ describe("missingOrGroups (at-least-one validation)", () => {
     expect(missingOrGroups(spec, { accessURL: "http://x/api" })).toEqual([]);
   });
 });
+
+describe("fieldsFromShape — shape closure (sh:node / sh:and inheritance)", () => {
+  // fs:catalog → sh:node fs:dataset → sh:node fs:resource. Each contributes a
+  // distinct property; the form should union all three (the closure /spec serves).
+  const CHAIN = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fs: <http://x/shapes/> .
+fs:catalog a sh:NodeShape ; sh:targetClass dcat:Catalog ; rdfs:label "DCAT Catalog" ;
+  sh:node fs:dataset ;
+  sh:property [ sh:path dcat:themeTaxonomy ; sh:nodeKind sh:IRI ] .
+fs:dataset a sh:NodeShape ; sh:targetClass dcat:Dataset ; rdfs:label "DCAT Dataset" ;
+  sh:node fs:resource ;
+  sh:property [ sh:path dcat:theme ; sh:nodeKind sh:IRI ] .
+fs:resource a sh:NodeShape ; rdfs:label "DCAT Resource" ;
+  sh:property [ sh:path dcterms:title ; sh:datatype xsd:string ; sh:minCount 1 ] .`;
+
+  it("unions property shapes across the whole closure", () => {
+    const paths = fieldsFromShape(CHAIN, `${NS.dcat}Catalog`).map((f) => f.predicate);
+    expect(paths).toContain(`${NS.dcat}themeTaxonomy`); // catalog
+    expect(paths).toContain(`${NS.dcat}theme`); // dataset (inherited)
+    expect(paths).toContain(`${NS.dct}title`); // resource (inherited)
+  });
+
+  it("tags inherited fields with their originating shape label", () => {
+    const fields = fieldsFromShape(CHAIN, `${NS.dcat}Catalog`);
+    expect(fields.find((f) => f.predicate === `${NS.dct}title`)?.origin).toBe("DCAT Resource");
+    expect(fields.find((f) => f.predicate === `${NS.dcat}theme`)?.origin).toBe("DCAT Dataset");
+  });
+
+  it("dedupes by sh:path, most-derived (target-first) shape winning", () => {
+    // Both catalog and resource constrain dcterms:title; catalog makes it optional
+    // (no minCount), resource requires it. The target (catalog) must win.
+    const OVERRIDE = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix fs: <http://x/shapes/> .
+fs:catalog a sh:NodeShape ; sh:targetClass dcat:Catalog ; sh:node fs:resource ;
+  sh:property [ sh:path dcterms:title ; sh:datatype xsd:string ] .
+fs:resource a sh:NodeShape ;
+  sh:property [ sh:path dcterms:title ; sh:datatype xsd:string ; sh:minCount 1 ] .`;
+    const titles = fieldsFromShape(OVERRIDE, `${NS.dcat}Catalog`).filter(
+      (f) => f.predicate === `${NS.dct}title`,
+    );
+    expect(titles).toHaveLength(1);
+    expect(titles[0]?.required).toBeUndefined(); // catalog's (optional) constraint won
+  });
+
+  it("terminates on a sh:node cycle", () => {
+    const CYCLE = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix fs: <http://x/shapes/> .
+fs:a a sh:NodeShape ; sh:targetClass dcat:Catalog ; sh:node fs:b ;
+  sh:property [ sh:path dcterms:title ; sh:datatype xsd:string ] .
+fs:b a sh:NodeShape ; sh:node fs:a ;
+  sh:property [ sh:path dcterms:description ; sh:datatype xsd:string ] .`;
+    const paths = fieldsFromShape(CYCLE, `${NS.dcat}Catalog`).map((f) => f.predicate);
+    expect(paths).toContain(`${NS.dct}title`);
+    expect(paths).toContain(`${NS.dct}description`);
+  });
+
+  it("honours inherited sh:or groups via the closure", () => {
+    const OR = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix fs: <http://x/shapes/> .
+fs:distribution a sh:NodeShape ; sh:targetClass dcat:Distribution ; sh:node fs:base ;
+  sh:property [ sh:path dcat:byteSize ] .
+fs:base a sh:NodeShape ;
+  sh:or ( [ sh:path dcat:downloadURL ] [ sh:path dcat:accessURL ] ) .`;
+    const groups = orGroupsFromShape(OR, `${NS.dcat}Distribution`);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.keys.sort()).toEqual(["accessURL", "downloadURL"]);
+  });
+});
