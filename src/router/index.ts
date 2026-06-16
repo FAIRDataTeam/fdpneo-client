@@ -136,6 +136,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Metrics", feature: "metrics" },
   },
   {
+    path: "/about",
+    name: "about",
+    component: () => import("@/views/AttributionsView.vue"),
+    meta: { title: "About & attributions" },
+  },
+  {
     path: "/auth/callback",
     name: "auth-callback",
     component: () => import("@/views/AuthCallbackView.vue"),
