@@ -2312,6 +2312,100 @@ deeper hierarchy can't silently lose inherited properties again.
 
 ---
 
+## 17. Authoring form: repeatable multi-value fields + reference-form ideas — planned (2026-06-16)
+
+**Motivation:** the dynamic record form renders multi-valued properties (`dcat:keyword`,
+`owl:sameAs`, `skos:exactMatch` — the `keywords`/`iris` field kinds) as a **single text
+input** whose value is `array.join(", ")`, re-parsed on every keystroke by
+`parseKeywords()` ([EntityForm.vue:127-134](src/components/metadata/EntityForm.vue#L127-L134)).
+That round-trip is lossy mid-typing: typing `foo,` parses to `["foo"]` and re-renders as
+`foo`, so the comma is eaten — the field the help text calls "Comma-separated" actively
+refuses commas. The old client
+([FAIRDataPoint-client `ShaclForm`](https://github.com/FAIRDataTeam/FAIRDataPoint-client/tree/develop/src/components/ShaclForm))
+instead renders one input per value with per-row remove (×) and an "Add" (+) button, gated
+on `sh:minCount`/`sh:maxCount`. A review of that implementation surfaced three more ideas
+worth porting (17.3–17.5), each independent of the core fix.
+
+**Key enabler:** the model/RDF layers already represent these as `string[]` end-to-end
+(`emptyModel` → `[]`, `modelFromTurtle` → `many()`, `applyModel` → `setLiterals`/`setIris`),
+and `setLiterals`/`setIris` already `.trim()` and drop blanks
+([rdf.ts:143-159](src/api/rdf.ts#L143)). So 17.1–17.2 are a **presentation-only** change —
+no serialization, parsing, or round-trip logic moves. The comma-join lives solely in the
+form widget.
+
+### 17.1 `RepeatableInput` component — core
+- New [src/components/metadata/RepeatableInput.vue](src/components/metadata/RepeatableInput.vue):
+  props `modelValue: string[]`, `type: "text" | "url"`, `label`, `placeholder?`,
+  `minCount?` (default 0), `maxCount?` (default ∞).
+- One `<input>` per entry (bound by index); a remove button per row
+  (`<AppIcon name="x">`) shown while `count > minCount`; an "Add" button below
+  (`<AppIcon name="plus">`) hidden once `count >= maxCount`. Empty array → just the Add
+  button. Emits `update:modelValue` on every edit/add/remove.
+- A11y: per-row `aria-label` `"{label} (value N)"`; remove `"Remove {label} value N"`;
+  add `"Add {label}"`.
+- Nicety (preserves the old power-user flow): a paste handler that splits comma-separated
+  pasted text into multiple rows via the existing `parseKeywords` (keeps it used + tested).
+- **Test** `RepeatableInput.spec.ts`: Add appends; remove splices the right index; Add
+  hidden at `maxCount`; remove hidden at `minCount`; emits arrays; paste splits on commas.
+
+### 17.2 Wire into `EntityForm` + carry cardinality — core
+- Replace the `keywords`/`iris` branch in `EntityForm.vue` with `<RepeatableInput
+  :type="f.kind === 'iris' ? 'url' : 'text'" …>`; delete the now-dead `asList` helper.
+- Add optional `minCount?`/`maxCount?` to `FieldSpec`; populate both from
+  `sh:minCount`/`sh:maxCount` in `fieldsFromShape` so add/remove gating is shape-accurate
+  (the `single` detection already reads `maxCount`).
+- Drop "Comma-separated" from the static `keywords`/`sameAs`/`exactMatch` help strings
+  (→ e.g. "Add one value per row.").
+- **Test**: extend `entityForms.spec.ts` to assert `fieldsFromShape` sets `minCount`/
+  `maxCount`; add a round-trip test (multi-value edit incl. a blank row → correct triples,
+  blanks dropped). New `EntityForm.spec.ts`: mount a `keywords` field, assert add/remove
+  drives the bound model. Keep the `parseKeywords` test.
+
+### 17.3 `sh:group` sectioning + `sh:order` ordering — enhancement
+- The reference groups fields into titled sections (`sh:group` → `<h2>` + comment) and
+  sorts by `sh:order`; neo renders a flat list sorted title→description→alpha with `origin`
+  badges. Read `sh:group` (PropertyGroup `rdfs:label`/`rdfs:comment`) and `sh:order` in
+  `fieldsFromShape`; render grouped sections in `EntityForm`, falling back to the current
+  flat+sorted layout when a shape declares neither (so nothing regresses for the bundled
+  DCAT shapes). `sh:order` becomes the primary sort key, current rank the tiebreaker.
+- **Decide:** whether `origin` badges and `sh:group` sections coexist or the group
+  subsumes origin grouping. **Verify** the server `/spec` actually serves `sh:group`/
+  `sh:order` before building UI on them; if absent, this is a server-coordinated change.
+- **Test**: a shape with two groups + orders yields ordered sections; a shape with neither
+  renders the existing flat layout unchanged.
+
+### 17.4 Per-field server-validation annotation — enhancement
+- Today a failed save shows one banner with a flat `violations` list
+  ([EntityCreateView.vue:162-167](src/views/EntityCreateView.vue#L162)). The reference maps
+  the SHACL validation report (`focusNode` + `resultPath` → field) and shows the message
+  inline under the offending control. Map server violations to `FieldSpec.key` by predicate
+  (`resultPath`) and render the message beneath that field in `EntityForm`; keep the banner
+  for node-level / unmapped violations. Show a field's error only once it's dirty (touched),
+  per the reference, to avoid shouting on first paint.
+- Depends on `parseFdpError` violations carrying the `resultPath`/predicate — **confirm**
+  the server error shape includes it; if not, coordinate the server change.
+- **Test**: a violation with a known path annotates that field; an unmapped one stays in the
+  banner.
+
+### 17.5 Live Turtle preview on the authoring form — optional
+- The reference offers a collapsible "View RDF" turtle preview on the form. Neo shows RDF
+  panels on record/detail surfaces but not while authoring. Add a collapsible read-only
+  `TurtleEditor` (already used by `LicensesView`) to `EntityCreateView`/`EntityEditView`
+  fed by `buildCreateTurtle`/`applyEditTurtle`, so authors see exactly what will be saved.
+- **Test**: editing a field updates the previewed Turtle.
+
+### 17.6 Gate
+- `npm run lint && npm run typecheck && npm run test:unit` green; live-verify add/remove on
+  a dataset's Keywords (create form is steward-gated — verify signed in, or via the
+  component test if anon redirect blocks headless).
+
+**Sequencing:** 17.1–17.2 are the requested fix and ship together. 17.3–17.5 are
+independent follow-ons (each its own PR); 17.3 and 17.4 may need a server-spec/error-shape
+confirmation first — surface that before building, per the repo's "don't improvise
+underspecified contracts" rule.
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13
