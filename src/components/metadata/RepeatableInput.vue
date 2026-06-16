@@ -19,8 +19,10 @@ const props = withDefaults(
     label: string;
     type?: "text" | "url";
     placeholder?: string;
-    minCount?: number;
-    maxCount?: number;
+    // Allow explicit `undefined` (exactOptionalPropertyTypes) so callers can
+    // forward an absent FieldSpec.minCount/maxCount; withDefaults fills them.
+    minCount?: number | undefined;
+    maxCount?: number | undefined;
   }>(),
   { type: "text", placeholder: "", minCount: 0, maxCount: Number.POSITIVE_INFINITY },
 );

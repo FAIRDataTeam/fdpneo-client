@@ -68,6 +68,10 @@ export interface FieldSpec {
   nested?: FieldSpec[];
   /** rdf:type stamped on the nested blank node (from the property's sh:class). */
   nestedClass?: string;
+  /** Cardinality (from sh:minCount/sh:maxCount) — drives the repeatable editor's
+   * add/remove gating for multi-value (`keywords`/`iris`) fields. */
+  minCount?: number;
+  maxCount?: number;
   /** DASH reference editor: the value is an IRI picked from a class lookup. */
   refWidget?: "autocomplete" | "instances" | "subclass";
   /** The class (sh:class) whose instances/subclasses the reference picker offers. */
@@ -173,7 +177,7 @@ const F = {
     predicate: `${NS.dcat}keyword`,
     label: "Keywords",
     kind: "keywords",
-    help: "Comma-separated.",
+    help: "Add one value per row.",
   } as FieldSpec,
   theme: {
     key: "theme",
@@ -225,14 +229,14 @@ const F = {
     predicate: `${NS.owl}sameAs`,
     label: "Same as (IRI)",
     kind: "iris",
-    help: "Equivalent foreign persistent identifier(s). Comma-separated IRIs.",
+    help: "Equivalent foreign persistent identifier(s). Add one IRI per row.",
   } as FieldSpec,
   exactMatch: {
     key: "exactMatch",
     predicate: `${NS.skos}exactMatch`,
     label: "Exact match (IRI)",
     kind: "iris",
-    help: "Equivalent IRI(s) in another registry. Comma-separated IRIs.",
+    help: "Equivalent IRI(s) in another registry. Add one IRI per row.",
   } as FieldSpec,
 };
 
@@ -786,6 +790,12 @@ export function fieldsFromShape(
         field.label = first(p, "name") || "License";
       }
       if (required) field.required = true;
+      // Carry raw cardinality for the repeatable editor's add/remove gating.
+      if (minCount !== undefined && Number.isFinite(Number(minCount)))
+        field.minCount = Number(minCount);
+      const maxCount = first(p, "maxCount");
+      if (maxCount !== undefined && Number.isFinite(Number(maxCount)))
+        field.maxCount = Number(maxCount);
       const description = first(p, "description");
       if (description) field.help = description;
 

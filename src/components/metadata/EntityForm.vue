@@ -6,7 +6,7 @@
  */
 import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
-import { constraintHint, detailKey, langKey, parseKeywords } from "@/api/entityForms";
+import { constraintHint, detailKey, langKey } from "@/api/entityForms";
 import { orderedLanguages, type LanguageOption } from "@/api/languages";
 
 // Browser language first, then English, then the rest (note #26).
@@ -21,6 +21,7 @@ import { usePublishedPolicies } from "@/composables/usePolicies";
 import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
 import ReferencePicker from "./ReferencePicker.vue";
+import RepeatableInput from "./RepeatableInput.vue";
 
 const props = defineProps<{ spec: EntitySpec }>();
 const model = defineModel<EntityModel>({ required: true });
@@ -39,9 +40,9 @@ function asText(key: string): string {
   return typeof v === "string" ? v : "";
 }
 
-function asList(key: string): string {
+function asArray(key: string): string[] {
   const v = model.value[key];
-  return Array.isArray(v) ? v.join(", ") : "";
+  return Array.isArray(v) ? v : [];
 }
 
 // <input type="datetime-local"> yields minute precision ("…T10:30"); pad to
@@ -124,13 +125,15 @@ function orLabels(keys: string[]): string {
         @input="model[f.key] = ($event.target as HTMLTextAreaElement).value"
       />
 
-      <input
+      <RepeatableInput
         v-else-if="f.kind === 'keywords' || f.kind === 'iris'"
-        type="text"
-        :value="asList(f.key)"
-        :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'comma-separated IRIs' : 'comma-separated')"
-        :aria-label="f.label"
-        @input="model[f.key] = parseKeywords(($event.target as HTMLInputElement).value)"
+        :type="f.kind === 'iris' ? 'url' : 'text'"
+        :model-value="asArray(f.key)"
+        :label="f.label"
+        :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'an IRI' : 'a value')"
+        :min-count="f.minCount"
+        :max-count="f.maxCount"
+        @update:model-value="model[f.key] = $event"
       />
 
       <AutocompleteInput
