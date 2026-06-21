@@ -16,6 +16,7 @@ import { computed, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { runSparqlQuery, type SparqlQueryResult } from "@/api/sparql";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { safeHref } from "@/composables/safeUrl";
 import { useSparqlHistoryStore } from "@/stores/sparqlHistory";
 import SparqlEditor from "@/components/sparql/SparqlEditor.vue";
 import SparqlResultsTable from "@/components/sparql/SparqlResultsTable.vue";
@@ -122,8 +123,8 @@ function timeLabel(at: number): string {
                 Sign in
               </button>
               <a
-                v-if="error.docsUrl"
-                :href="error.docsUrl"
+                v-if="safeHref(error.docsUrl)"
+                :href="safeHref(error.docsUrl)"
                 target="_blank"
                 rel="noopener"
                 class="btn ghost"

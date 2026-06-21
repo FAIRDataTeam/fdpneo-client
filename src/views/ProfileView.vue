@@ -7,6 +7,7 @@
  */
 import { computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { safeHref } from "@/composables/safeUrl";
 
 const auth = useAuthStore();
 
@@ -23,8 +24,10 @@ const rows = computed(() => [
   { label: "Email", value: claim("email") },
   { label: "Subject (sub)", value: claim("sub"), mono: true },
 ]);
-/** Keycloak account console lives at `{issuer}/account`. */
-const accountUrl = computed(() => (claim("iss") ? `${claim("iss")}/account` : null));
+/** Keycloak account console lives at `{issuer}/account`. The issuer comes from
+ * the ID-token `iss` claim — sanitized through `safeHref` before it reaches a
+ * `:href` (returns undefined for a non-http(s) issuer, hiding the link). */
+const accountUrl = computed(() => safeHref(claim("iss") ? `${claim("iss")}/account` : undefined));
 </script>
 
 <template>

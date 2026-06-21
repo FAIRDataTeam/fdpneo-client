@@ -1,10 +1,13 @@
 /**
  * End-to-end render of the c-focus dataset detail view.
  *
- * `useRecord` now fetches over the network, so we mock it with the shared
- * fixture: this test exercises the view's rendering, not the data layer
- * (the RDF mapping is covered directly in `src/api/rdf.spec.ts`). Asserts the
- * title, the stats, distributions and related records render from the record.
+ * The view fans out over several data composables; this test exercises the
+ * view's *rendering*, not the data layer (the RDF mapping is covered directly
+ * in `src/api/rdf.spec.ts`). So we mock every composable the view mounts —
+ * `useRecord` returns the shared fixture, the rest return inert refs. Mocking
+ * them all is what keeps the run quiet: leaving the siblings live let them fire
+ * real XHR that jsdom rejected as cross-origin (the old `localhost:3000` noise).
+ * Asserts the title, stats, distributions and related records render.
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -23,6 +26,39 @@ vi.mock("@/composables/useRecord", async () => {
       data: ref(fixture),
       isLoading: ref(false),
       isError: ref(false),
+    }),
+  };
+});
+
+// The detail view also mounts these network-backed composables. Stub them with
+// inert returns so no XHR fires during the render test.
+vi.mock("@/composables/useResourceTypes", async () => {
+  const { ref } = await import("vue");
+  return {
+    useResourceTypes: () => ({
+      defs: ref([]),
+      isLoading: ref(false),
+      isError: ref(false),
+      specFor: () => null,
+      typeForId: () => null,
+      childSpecs: () => [],
+    }),
+  };
+});
+vi.mock("@/composables/useChildRecords", async () => {
+  const { ref } = await import("vue");
+  return { useChildRecords: () => ({ children: ref([]) }) };
+});
+vi.mock("@/composables/useAncestors", async () => {
+  const { ref } = await import("vue");
+  return { useAncestors: () => ({ crumbs: ref([]) }) };
+});
+vi.mock("@/composables/useRecordState", async () => {
+  const { ref } = await import("vue");
+  return {
+    useRecordState: () => ({
+      state: ref(null),
+      transition: { mutate: vi.fn(), error: ref(null), isPending: ref(false) },
     }),
   };
 });
@@ -46,8 +82,7 @@ describe("RecordDetailView (c-focus)", () => {
       global: { plugins: [createPinia(), router, VueQueryPlugin] },
     });
 
-    // wait for the fake-fetch (200ms) and Vue updates
-    await new Promise((r) => setTimeout(r, 250));
+    // All data is mocked synchronously — just let Vue flush its update queue.
     await flushPromises();
 
     const text = wrapper.text();

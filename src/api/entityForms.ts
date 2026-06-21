@@ -903,7 +903,7 @@ export function orGroupsFromShape(
         node = store.getObjects(node, rdf("rest"), null)[0];
       }
       if (!ok || keys.length < 2) continue;
-      const sig = [...keys].sort().join(" ");
+      const sig = [...keys].sort().join("\u0000");
       if (seenGroups.has(sig)) continue;
       seenGroups.add(sig);
       groups.push({ keys });

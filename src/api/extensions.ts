@@ -18,7 +18,7 @@
  * the repository root.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 import { iriToId, one, parseTurtle, shortLabel, typedSubjects, NS } from "./rdf";
 
@@ -46,19 +46,6 @@ function readTotal(headers: unknown, fallback: number): number {
     if (Number.isFinite(n)) return n;
   }
   return fallback;
-}
-
-function normaliseError(err: unknown): never {
-  // Error bodies arrive as a JSON string (responseType: text); parse so the
-  // envelope-aware error mapper can read it (mirrors records.ts).
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
 }
 
 /** `GET …/expanded` — record + ancestors as Turtle. `path` is `""` for root. */

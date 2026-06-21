@@ -15,7 +15,7 @@
  * path id (`catalog/cohort`), or `""` for the repository root.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 import { anyObject, parseTurtle } from "./rdf";
 import type { components } from "./schema";
@@ -46,17 +46,6 @@ export function allowedTransitions(current: MetadataState, isAdmin: boolean): Tr
     default:
       return [];
   }
-}
-
-function normaliseError(err: unknown): never {
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
 }
 
 /** Transition a record to `to`. Throws the server envelope (409/403/404) on failure. */

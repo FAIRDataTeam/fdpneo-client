@@ -156,3 +156,23 @@ export function parseFdpError(input: unknown): ParsedError {
     fromServer: false,
   };
 }
+
+/**
+ * Rethrow an Axios error after parsing a JSON-*string* error body into an
+ * object, so the envelope-aware `parseFdpError` can read `code`/`message`.
+ *
+ * The RDF endpoints read responses as text (`responseType: "text"`), so error
+ * envelopes arrive as a JSON string rather than a parsed object. Non-Axios
+ * errors and already-parsed bodies pass through untouched. Always throws
+ * (`never`) — call as `return normaliseError(err)` from a `catch`.
+ */
+export function normaliseError(err: unknown): never {
+  if (err instanceof AxiosError && typeof err.response?.data === "string") {
+    try {
+      err.response.data = JSON.parse(err.response.data);
+    } catch {
+      /* leave raw text */
+    }
+  }
+  throw err;
+}
