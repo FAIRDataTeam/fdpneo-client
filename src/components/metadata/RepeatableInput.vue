@@ -9,7 +9,7 @@
  * The bound model is a plain `string[]`; empty entries are harmless — the RDF
  * serializers (`setLiterals` / `setIris`) trim and drop blanks on save.
  */
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import { parseKeywords } from "@/api/entityForms";
 
@@ -32,21 +32,47 @@ const emit = defineEmits<{ (e: "update:modelValue", value: string[]): void }>();
 const canAdd = computed(() => props.modelValue.length < props.maxCount);
 const canRemove = computed(() => props.modelValue.length > props.minCount);
 
-function setAt(i: number, v: string) {
-  const next = [...props.modelValue];
-  next[i] = v;
+// Stable per-row keys. The model is a bare `string[]` (values can repeat or be
+// empty), so the v-for can't key by value, and keying by index rebinds focus to
+// the wrong <input> when a middle row is removed. Instead we keep an id list in
+// lockstep: our own mutations splice ids alongside values; an *external*
+// replacement (parent loads/resets the array) is detected via `selfEdit` and
+// triggers a fresh reissue.
+let uid = 0;
+const ids = ref<number[]>(props.modelValue.map(() => uid++));
+let selfEdit = false;
+
+/** Emit a new value, flagging it as our own so the watcher leaves `ids` alone. */
+function commit(next: string[]) {
+  selfEdit = true;
   emit("update:modelValue", next);
 }
 
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (selfEdit) {
+      selfEdit = false; // our mutation already kept `ids` aligned
+      return;
+    }
+    ids.value = val.map(() => uid++); // external replacement: reissue ids
+  },
+);
+
+function setAt(i: number, v: string) {
+  const next = [...props.modelValue];
+  next[i] = v;
+  commit(next); // length unchanged → ids stay aligned
+}
+
 function removeAt(i: number) {
-  emit(
-    "update:modelValue",
-    props.modelValue.filter((_, j) => j !== i),
-  );
+  ids.value.splice(i, 1);
+  commit(props.modelValue.filter((_, j) => j !== i));
 }
 
 function add() {
-  emit("update:modelValue", [...props.modelValue, ""]);
+  ids.value.push(uid++);
+  commit([...props.modelValue, ""]);
 }
 
 // Power-user convenience: pasting comma-separated text explodes into rows
@@ -60,13 +86,14 @@ function onPaste(e: ClipboardEvent, i: number) {
   e.preventDefault();
   const next = [...props.modelValue];
   next.splice(i, 1, ...parts);
-  emit("update:modelValue", next);
+  ids.value.splice(i, 1, ...parts.map(() => uid++));
+  commit(next);
 }
 </script>
 
 <template>
   <div class="repeatable">
-    <div v-for="(val, i) in modelValue" :key="i" class="row">
+    <div v-for="(val, i) in modelValue" :key="ids[i]" class="row">
       <input
         :type="type === 'url' ? 'url' : 'text'"
         :value="val"

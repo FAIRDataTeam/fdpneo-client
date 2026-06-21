@@ -62,4 +62,28 @@ describe("RepeatableInput", () => {
     });
     expect(w.emitted("update:modelValue")?.at(-1)).toEqual([["a", "b", "c"]]);
   });
+
+  it("keeps a surviving row's input element stable across a middle removal (stable keys)", async () => {
+    const w = mount(RepeatableInput, { props: { ...base, modelValue: ["a", "b", "c"] } });
+    const cBefore = w.findAll("input")[2]!.element;
+    await w.get('button[aria-label="Remove Keywords value 2"]').trigger("click");
+    await w.setProps({ modelValue: ["a", "c"] }); // parent applies the v-model emit
+
+    const inputs = w.findAll("input");
+    expect(inputs).toHaveLength(2);
+    expect((inputs[1]!.element as HTMLInputElement).value).toBe("c");
+    // The "c" row reuses its original DOM node; an index key would have discarded
+    // it and rebound the old "b" node to "c" instead.
+    expect(inputs[1]!.element).toBe(cBefore);
+  });
+
+  it("reissues keys on an external replacement without leaving stale rows", async () => {
+    const w = mount(RepeatableInput, { props: { ...base, modelValue: ["a", "b"] } });
+    await w.setProps({ modelValue: ["x", "y", "z"] }); // parent loads a fresh array
+    expect(w.findAll("input").map((i) => (i.element as HTMLInputElement).value)).toEqual([
+      "x",
+      "y",
+      "z",
+    ]);
+  });
 });
