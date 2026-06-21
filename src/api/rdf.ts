@@ -12,18 +12,24 @@ import { Parser, Store, Writer, DataFactory } from "n3";
 import type { Distribution, FdpRecord } from "@/data/sampleRecord";
 import type { RecordKind } from "@/types/record";
 import { runtimePidBase, runtimeServingBase } from "@/runtimeConfig";
+import { NAMESPACES } from "@/rdf/namespaces";
 
 // Wrap rather than destructure: pulling the bare method off DataFactory trips
 // @typescript-eslint/unbound-method (n3's factory functions don't use `this`).
 const namedNode = (iri: string) => DataFactory.namedNode(iri);
 
+/**
+ * Prefixes used by the metadata/RDF mapping layer — a curated subset of the
+ * app-wide `NAMESPACES` (single source of truth in `src/rdf/namespaces.ts`),
+ * so the two can never drift apart.
+ */
 export const NS = {
-  rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  dct: "http://purl.org/dc/terms/",
-  dcat: "http://www.w3.org/ns/dcat#",
-  ldp: "http://www.w3.org/ns/ldp#",
-  owl: "http://www.w3.org/2002/07/owl#",
-  skos: "http://www.w3.org/2004/02/skos/core#",
+  rdf: NAMESPACES.rdf,
+  dct: NAMESPACES.dct,
+  dcat: NAMESPACES.dcat,
+  ldp: NAMESPACES.ldp,
+  owl: NAMESPACES.owl,
+  skos: NAMESPACES.skos,
 } as const;
 
 const RDF_TYPE = `${NS.rdf}type`;
