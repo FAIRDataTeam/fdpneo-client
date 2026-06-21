@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { FdpRecord } from "@/data/sampleRecord";
+import { safeHref } from "@/composables/safeUrl";
 import MetaItem from "./MetaItem.vue";
 import RdfPreviewPanel from "./RdfPreviewPanel.vue";
 import RelatedList from "./RelatedList.vue";
@@ -17,7 +18,6 @@ const hasIdentifiers = computed(
     props.record.sameAs.length > 0 ||
     props.record.exactMatch.length > 0,
 );
-const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
 </script>
 
 <template>
@@ -35,20 +35,22 @@ const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
         <div class="eyebrow">Identifiers</div>
         <dl class="meta">
           <MetaItem v-if="record.identifier" label="Identifier" mono>
-            <a v-if="isUrl(record.identifier)" :href="record.identifier" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
+            <a v-if="safeHref(record.identifier)" :href="safeHref(record.identifier)" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
             <template v-else>{{ record.identifier }}</template>
           </MetaItem>
           <MetaItem v-if="record.sameAs.length" label="Same as" mono>
             <ul class="idlist">
               <li v-for="iri in record.sameAs" :key="iri">
-                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <a v-if="safeHref(iri)" :href="safeHref(iri)" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <template v-else>{{ iri }}</template>
               </li>
             </ul>
           </MetaItem>
           <MetaItem v-if="record.exactMatch.length" label="Exact match" mono>
             <ul class="idlist">
               <li v-for="iri in record.exactMatch" :key="iri">
-                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <a v-if="safeHref(iri)" :href="safeHref(iri)" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <template v-else>{{ iri }}</template>
               </li>
             </ul>
           </MetaItem>

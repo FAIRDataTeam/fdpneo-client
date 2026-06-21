@@ -19,6 +19,7 @@
 import { onErrorCaptured, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { safeHref } from "@/composables/safeUrl";
 import AppIcon from "./AppIcon.vue";
 
 const route = useRoute();
@@ -68,8 +69,8 @@ function goHome() {
           </li>
         </ul>
 
-        <p v-if="parsed.docsUrl" class="docs">
-          <a :href="parsed.docsUrl" target="_blank" rel="noopener noreferrer">
+        <p v-if="safeHref(parsed.docsUrl)" class="docs">
+          <a :href="safeHref(parsed.docsUrl)" target="_blank" rel="noopener noreferrer">
             Read the relevant docs <AppIcon name="arrow-r" :size="12" />
           </a>
         </p>
