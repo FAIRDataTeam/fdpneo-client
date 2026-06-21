@@ -54,7 +54,8 @@ npm run build
 # Tests
 npm test              # Vitest, watch mode
 npm run test:unit     # Vitest, single run
-npm run test:e2e      # Playwright
+npm run test:coverage # Vitest, single run + v8 coverage report
+npm run test:e2e      # Playwright — MANUAL (needs the docker stack up); not run in CI
 
 # Lint and format
 npm run lint

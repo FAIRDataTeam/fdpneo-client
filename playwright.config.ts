@@ -1,10 +1,16 @@
 /**
  * Playwright configuration for end-to-end tests.
  *
- * E2E tests run against a fully assembled stack: the FDP server + the SPA
- * dev server. The CI workflow is responsible for bringing both up before
- * invoking `npm run test:e2e`. Locally, ensure the docker compose stack
- * in fdp-server is running and `npm run dev` is serving the SPA.
+ * E2E tests run against a fully assembled stack: the FDP server (docker compose
+ * in `server/deploy/stack`) + the SPA. They are currently a MANUAL gate — CI
+ * (`.github/workflows/ci.yml`) runs lint/typecheck/unit/build only and does NOT
+ * bring up the server stack or invoke `npm run test:e2e`. Wiring full-stack e2e
+ * into CI (standing up Postgres/GraphDB/Keycloak/server) is a separate task.
+ *
+ * To run locally: start the docker stack, then `npm run dev`, then
+ * `npm run test:e2e`. The webServer block below auto-starts the SPA when not in
+ * CI; the backend must already be running (the smoke test reads the repository
+ * title the server serves).
  */
 
 import { defineConfig, devices } from "@playwright/test";
