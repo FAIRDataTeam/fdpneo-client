@@ -33,7 +33,7 @@
     "monaco-editor": "^0.52.2",
     "n3": "^1.21.0",
     "oidc-client-ts": "^3.1.0",
-    "pinia": "^2.2.0",
+    "pinia": "^3.0.4",
     "primevue": "^4.1.0",
     "vue": "^3.5.0",
     "vue-chartjs": "^5.3.0",
