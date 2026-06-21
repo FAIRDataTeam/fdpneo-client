@@ -6,7 +6,7 @@
  * dry-run validate, mirroring `policies.ts`/`schemas.ts`.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 import type { PolicyValidation } from "./policies";
 
@@ -34,17 +34,6 @@ function toSummary(raw: RawLicense): LicenseSummary {
     state: raw.state ?? null,
     version: raw.version ?? null,
   };
-}
-
-function normaliseError(err: unknown): never {
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
 }
 
 /**
