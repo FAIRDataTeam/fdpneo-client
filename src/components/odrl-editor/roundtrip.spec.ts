@@ -105,4 +105,31 @@ describe("Offer round-trip", () => {
     // the dateTime literal kept its datatype across the trip
     expect(serializeOffer(offer)).toContain('"2030-01-01T00:00:00"^^xsd:dateTime');
   });
+
+  it("brackets non-http(s) IRIs (urn:/did:) so they are not reparsed as CURIEs", () => {
+    const offer: OfferModel = {
+      iri: ":offer",
+      assigner: "urn:example:party-1",
+      conflict: null,
+      prefixes: [],
+      rules: [
+        {
+          id: "r1",
+          kind: "permission",
+          action: "odrl:read",
+          constraints: [
+            { id: "c1", leftOperand: "odrl:assignee", operator: "odrl:eq", rightOperand: "did:example:abc", rightIsIri: true },
+          ],
+        },
+      ],
+    };
+    const ttl = serializeOffer(offer);
+    // Full IRIs with non-http schemes must be angle-bracketed...
+    expect(ttl).toContain("<urn:example:party-1>");
+    expect(ttl).toContain("<did:example:abc>");
+    // ...so they survive the round-trip unchanged (not corrupted to prefix:local).
+    const back = parseOffer(ttl);
+    expect(back.assigner).toBe("urn:example:party-1");
+    expect(back.rules[0]?.constraints[0]?.rightOperand).toBe("did:example:abc");
+  });
 });

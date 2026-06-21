@@ -13,6 +13,7 @@
  */
 
 import { DEFAULT_URI, NAMESPACES } from "@/rdf/namespaces";
+import { quoteLiteral as quote } from "@/rdf/turtle";
 import type { Field, Group, SchemaDocument, ShapeModel } from "./model";
 
 // The serializer's own vocabulary. These must always be declared, even if the
@@ -26,10 +27,6 @@ const REQUIRED_PREFIXES: { prefix: string; uri: string }[] = [
   { prefix: "xsd", uri: NAMESPACES.xsd },
 ];
 
-/** Escape a string for a Turtle double-quoted literal. */
-function quote(s: string): string {
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
-}
 
 /** A finite number, or null for anything non-numeric (so the term is omitted). */
 function num(value: number | null): number | null {

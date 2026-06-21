@@ -8,6 +8,7 @@
  */
 
 import { one, parseTurtle } from "@/api/rdf";
+import { quoteLiteral as quote } from "@/rdf/turtle";
 
 const DCT = "http://purl.org/dc/terms/";
 
@@ -17,9 +18,6 @@ export interface LicenseFields {
   description: string;
 }
 
-function quote(s: string): string {
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
-}
 const subject = (iri: string): string => (/^https?:\/\//.test(iri) ? `<${iri}>` : iri || "<>");
 
 export function serializeLicense(iri: string, f: LicenseFields): string {
