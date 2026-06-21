@@ -4,7 +4,7 @@
  * colours so the chart respects the active theme. These are the only two
  * series the server reports per day.
  */
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { registerCharts } from "@/charts/register";
@@ -34,13 +34,24 @@ function readTokens() {
   };
 }
 
-onMounted(readTokens);
-
 // Re-read tokens when the theme class flips so chart colours follow the theme.
-if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
-  const obs = new MutationObserver(() => readTokens());
-  obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-}
+// The observer is created on mount and disconnected on unmount — the dashboard
+// remounts charts on every range/resource change, so an undisconnected observer
+// would leak one (plus its token closure) per remount.
+let themeObserver: MutationObserver | undefined;
+
+onMounted(() => {
+  readTokens();
+  if (typeof MutationObserver !== "undefined") {
+    themeObserver = new MutationObserver(() => readTokens());
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
+});
+
+onBeforeUnmount(() => themeObserver?.disconnect());
 
 const fields = computed(() => props.fields ?? (["requests", "visitors"] as const));
 

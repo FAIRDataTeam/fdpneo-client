@@ -14,18 +14,26 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 
 type Kind = "inline" | "sparql";
 
+// `_id` is a stable per-row key for v-for — never emitted (the watch maps to a
+// clean shape). Keying by array index binds focus/inputs to the wrong row after
+// a mid-list remove.
 interface ItemEdit {
+  _id: string;
   iri: string;
   label: string;
   aliasesText: string;
 }
 interface SourceEdit {
+  _id: string;
   name: string;
   kind: Kind;
   description: string;
   items: ItemEdit[];
   sparql: string;
 }
+
+let rowUid = 0;
+const nextRowId = (): string => `row-${rowUid++}`;
 
 // The setting value is an open object at the API boundary; we read/write the
 // concrete `{ sources: [...] }` shape with runtime guards.
@@ -42,12 +50,13 @@ const sources = reactive<SourceEdit[]>(
     const rawAliases = (it: Record<string, unknown>): string =>
       Array.isArray(it.aliases) ? it.aliases.map(str).filter(Boolean).join(", ") : "";
     return {
+      _id: nextRowId(),
       name: str(s.name),
       kind: s.kind === "sparql" ? "sparql" : "inline",
       description: str(s.description),
       items: rawItems.map((rawIt) => {
         const it = (rawIt ?? {}) as Record<string, unknown>;
-        return { iri: str(it.iri), label: str(it.label), aliasesText: rawAliases(it) };
+        return { _id: nextRowId(), iri: str(it.iri), label: str(it.label), aliasesText: rawAliases(it) };
       }),
       sparql: str(s.sparql),
     };
@@ -82,13 +91,13 @@ watch(
 );
 
 function addSource() {
-  sources.push({ name: "", kind: "inline", description: "", items: [], sparql: "" });
+  sources.push({ _id: nextRowId(), name: "", kind: "inline", description: "", items: [], sparql: "" });
 }
 function removeSource(i: number) {
   sources.splice(i, 1);
 }
 function addItem(s: SourceEdit) {
-  s.items.push({ iri: "", label: "", aliasesText: "" });
+  s.items.push({ _id: nextRowId(), iri: "", label: "", aliasesText: "" });
 }
 function removeItem(s: SourceEdit, i: number) {
   s.items.splice(i, 1);
@@ -99,7 +108,7 @@ function removeItem(s: SourceEdit, i: number) {
   <div class="sources">
     <p v-if="!sources.length" class="empty">No sources configured.</p>
 
-    <section v-for="(s, si) in sources" :key="si" class="source">
+    <section v-for="(s, si) in sources" :key="s._id" class="source">
       <header class="source__head">
         <label class="field grow">
           <span class="lbl">Name</span>
@@ -130,7 +139,7 @@ function removeItem(s: SourceEdit, i: number) {
 
       <!-- inline: an items table -->
       <div v-if="s.kind === 'inline'" class="items">
-        <div v-for="(it, ii) in s.items" :key="ii" class="item">
+        <div v-for="(it, ii) in s.items" :key="it._id" class="item">
           <label class="field grow">
             <span class="lbl">IRI</span>
             <input v-model="it.iri" :disabled="!canEdit" class="mono" placeholder="https://…" />

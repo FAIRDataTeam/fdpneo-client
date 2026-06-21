@@ -99,15 +99,19 @@ describe("auth store", () => {
     expect(mgr.signinRedirect).toHaveBeenCalledOnce();
   });
 
-  it("silentRenew updates the user on success and surfaces an error otherwise", async () => {
+  it("silentRenew updates the user on success and returns null without clobbering error state on failure", async () => {
     const mgr = installMockManager();
     const store = useAuthStore();
     mgr.signinSilent.mockResolvedValueOnce(makeUser({ token: "fresh" }));
     await store.silentRenew();
     expect(store.accessToken).toBe("fresh");
 
+    // A background renew failure must not write the store-wide `error` — it
+    // runs from the 401 interceptor and would otherwise surface a stale banner
+    // over unrelated views. It resolves to null and leaves `error` untouched.
     mgr.signinSilent.mockRejectedValueOnce(new Error("network"));
-    await store.silentRenew();
-    expect(store.error?.message).toBe("network");
+    const result = await store.silentRenew();
+    expect(result).toBeNull();
+    expect(store.error).toBeNull();
   });
 });

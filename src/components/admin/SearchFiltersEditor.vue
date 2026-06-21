@@ -12,11 +12,18 @@ import type { SettingValue } from "@/api/settings";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 interface SearchFilterRow {
+  /** Stable per-row id for the v-for key — never emitted (the watch maps to a
+   * clean shape). Keying by array index would bind focus/inputs to the wrong
+   * row after a mid-list remove. */
+  _id: string;
   name: string;
   label: string;
   predicate: string;
   type_filter: string | null;
 }
+
+let rowUid = 0;
+const nextRowId = (): string => `row-${rowUid++}`;
 
 // The setting value is an open object at the API boundary; we read/write the
 // concrete `{ filters: [...] }` shape with runtime guards.
@@ -30,6 +37,7 @@ const rows = reactive<SearchFilterRow[]>(
   initial.map((raw) => {
     const f = (raw ?? {}) as Record<string, unknown>;
     return {
+      _id: nextRowId(),
       name: str(f.name),
       label: str(f.label),
       predicate: str(f.predicate),
@@ -54,7 +62,7 @@ watch(
 );
 
 function add() {
-  rows.push({ name: "", label: "", predicate: "", type_filter: null });
+  rows.push({ _id: nextRowId(), name: "", label: "", predicate: "", type_filter: null });
 }
 function remove(i: number) {
   rows.splice(i, 1);
@@ -65,7 +73,7 @@ function remove(i: number) {
   <div class="filters">
     <p v-if="!rows.length" class="empty">No facets configured. Add one to expose it on the search page.</p>
 
-    <div v-for="(row, i) in rows" :key="i" class="row">
+    <div v-for="(row, i) in rows" :key="row._id" class="row">
       <label class="field">
         <span class="lbl">Name</span>
         <input v-model="row.name" :disabled="!canEdit" placeholder="theme" />
