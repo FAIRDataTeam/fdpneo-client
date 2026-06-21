@@ -70,7 +70,7 @@ npm run typecheck
 - **Composables for shared logic.** Anything reused across components (auth state, API access, form helpers) goes in `src/composables/`.
 - **One Pinia store per concern, not per page.** Stores own UI state that crosses components; per-page state lives in the page component.
 - **No `any` without a comment.** TypeScript strict mode is on. Use `unknown` and narrow when you genuinely don't know the type.
-- **Server data goes through TanStack Query.** Don't manually `useState` server responses. Query keys are stable and documented in `src/api/queries.ts`.
+- **Server data goes through TanStack Query.** Don't manually `useState` server responses. Query keys are stable and documented in `src/api/queries.ts`; the fetchers live in `src/composables/use*.ts`.
 - **PrimeVue components first, custom components only when needed.** Don't reach for headless libraries if PrimeVue has the primitive.
 - **Tailwind is not in use.** Styles live in component `<style scoped>` blocks or in `src/styles/` for global. Design tokens go in `src/styles/tokens.css` as CSS variables.
 - **Accessibility is a feature, not a polish step.** Every interactive element has a label or aria-label. Modal focus traps. Keyboard navigation in the SHACL editor canvas. Color is never the sole signal.
@@ -88,15 +88,15 @@ src/
 │   └── shared/             Cross-feature UI primitives
 ├── stores/                 Pinia stores
 ├── composables/            Shared composition functions
-├── api/                    OpenAPI-generated types + Axios clients
-│   ├── generated/          ← DO NOT EDIT, regenerated from server
-│   └── queries.ts          TanStack Query keys and fetchers
+├── api/                    Axios clients + OpenAPI-generated types
+│   ├── schema.ts           ← DO NOT EDIT, regenerated from server (npm run generate-api)
+│   └── queries.ts          TanStack Query keys
 ├── router/                 Vue Router config
 ├── styles/                 Global styles, design tokens
 └── main.ts                 App entry point
 tests/
-├── unit/                   Vitest
-└── e2e/                    Playwright
+└── e2e/                    Playwright (smoke)
+# Vitest specs are colocated as *.spec.ts beside the source they test (e.g. src/api/rdf.spec.ts)
 ```
 
 ## Visual editor specifics
@@ -120,7 +120,7 @@ The ODRL editor is guided rather than canvas-based:
 
 - **Don't use `localStorage` or `sessionStorage` for user data.** It breaks in private browsing modes and isn't shared across devices. Server is the source of truth.
 - **Don't bypass the auth interceptor.** Every API call goes through the Axios instance that adds the bearer and handles 401 renewals.
-- **Don't hand-modify `src/api/generated/`.** Files are regenerated. Edits will be lost.
+- **Don't hand-modify `src/api/schema.ts`.** It is regenerated from the server OpenAPI (`npm run generate-api`); edits will be lost.
 - **Don't introduce a CSS framework casually.** The design tokens approach is intentional. If you think we need Tailwind or similar, raise it as a discussion first.
 - **Don't optimize prematurely.** TanStack Query handles most caching needs. Reach for memoization only when there's a measured problem.
 - **Don't add a new top-level dependency without checking.** The stack is intentionally focused. The bar for adding a new dep is "we cannot solve this reasonably with what we have".

@@ -2,9 +2,9 @@
 
 A Vue 3 single-page application providing the reference web interface for the FAIR Data Point v2 server. Lets data stewards manage metadata, schemas, and access policies; lets data consumers browse and query metadata; provides a dashboard of usage metrics.
 
-This repository contains the **client** implementation. The server lives in a separate repository: `fdp-server` (URL to be set at repo creation).
+This repository contains the **client** implementation. The server lives in the sibling `server/` project (`fdpneo-server`).
 
-> **Status: design phase.** This README describes the target architecture. Implementation is in progress.
+> **Status: implemented.** All four surfaces (metadata browsing/search, SHACL editor, ODRL editor, metrics dashboard) are built and covered by unit tests. See the audit notes and `CLAUDE.md` for current conventions.
 
 ## What the client does
 
@@ -41,7 +41,7 @@ For the full architecture context, see the server architecture document (in the 
 ## Repository layout
 
 ```
-fdp-client/
+client/
 ├── README.md                       ← this file
 ├── docs/
 ├── src/
@@ -53,25 +53,24 @@ fdp-client/
 │   │   └── metrics/                ← dashboard widgets
 │   ├── stores/                     ← Pinia stores
 │   ├── composables/                ← shared composition functions
-│   ├── api/                        ← OpenAPI-generated types + Axios clients
+│   ├── api/                        ← Axios clients + OpenAPI-generated types (schema.ts)
 │   ├── router/
 │   ├── styles/
-│   └── main.ts
+│   └── main.ts                     ← Vitest specs are colocated as *.spec.ts beside their sources
 ├── tests/
-│   ├── unit/                       ← Vitest
-│   └── e2e/                        ← Playwright
+│   └── e2e/                        ← Playwright (smoke)
 ├── public/
 ├── package.json
 └── vite.config.ts
 ```
 
-## Getting started (planned)
+## Getting started
 
 ```bash
 # clone, then:
 npm install
-cp .env.example .env       # configure FDP_API_URL, OIDC_AUTHORITY, OIDC_CLIENT_ID
-npm run generate-api       # generate types from server OpenAPI
+cp .env.example .env       # configure VITE_FDP_API_URL, VITE_OIDC_AUTHORITY, VITE_OIDC_CLIENT_ID
+npm run generate-api       # (optional) regenerate src/api/schema.ts from a running server's OpenAPI
 npm run dev
 ```
 
@@ -87,7 +86,7 @@ To be determined; expected to match the server.
 
 ## See also
 
-- Server repository: `fdp-server` (URL to be set at repo creation)
+- Server repository: `fdpneo-server` (sibling `server/` project)
 - Server architecture document: in `fdp-server` under `docs/architecture/`
 - FDP specifications: [specs.fairdatapoint.org](https://specs.fairdatapoint.org)
 - ProjectOak (SHACL editor reference): [github.com/luizbonino/ProjectOak](https://github.com/luizbonino/ProjectOak)
