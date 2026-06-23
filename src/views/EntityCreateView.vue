@@ -23,6 +23,7 @@ import { useEntityShape } from "@/composables/useEntityShape";
 import { useResourceTypes } from "@/composables/useResourceTypes";
 import { useCreateRecord, recordExists } from "@/composables/useRecordMutations";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { slugify } from "@/utils/slug";
 import EntityForm from "@/components/metadata/EntityForm.vue";
 
 const route = useRoute();
@@ -66,13 +67,6 @@ watch(
   },
   { immediate: true },
 );
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 const effectiveSlug = computed(() => slugify(slug.value || String(model.value.title ?? "")));
 
