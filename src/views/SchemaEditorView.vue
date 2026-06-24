@@ -24,6 +24,7 @@ import {
 } from "@/api/schemas";
 import { useSchemas, useInvalidateSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { slugify } from "@/utils/slug";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
 import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
@@ -59,6 +60,11 @@ const result = ref<SchemaValidation | null>(null);
 const loadingShape = ref(false);
 
 const slugLocked = computed(() => savedId.value !== null);
+
+// The id the schema is actually created under: the user types freely, but we
+// normalise to a URL-safe slug so ids stay consistent regardless of input. The
+// help text under the field previews this, so what-you-see is what's stored.
+const effectiveSlug = computed(() => slugify(slug.value));
 
 // Protected shapes (the FDP root schema) report `deletable: false` from the
 // list: editing is allowed, deletion is not. Resolve the flag for the schema
@@ -193,7 +199,10 @@ async function load(id: string) {
 }
 
 const save = useMutation({
-  mutationFn: () => putSchema(slug.value.trim(), turtle.value),
+  // Create: write under the normalised slug. Re-save of an existing schema:
+  // write back to its persisted id (never re-slugify a saved id, which could
+  // fork a legacy non-slug id into a new resource).
+  mutationFn: () => putSchema(savedId.value ?? effectiveSlug.value, turtle.value),
   onSuccess: async (info) => {
     savedId.value = info.id;
     error.value = null;
@@ -232,8 +241,8 @@ const preview = useMutation({
 function onSave() {
   error.value = null;
   result.value = null;
-  if (!slug.value.trim()) {
-    error.value = clientError("Missing id", "Give the schema an id (slug).");
+  if (!effectiveSlug.value) {
+    error.value = clientError("Missing id", "Give the schema an ID (name).");
     return;
   }
   if (!turtle.value.trim()) {
@@ -306,9 +315,9 @@ function onDelete() {
 
       <div class="editor">
         <label class="field">
-          <span class="label">Id (slug)</span>
+          <span class="label">Schema ID (name)</span>
           <input v-model="slug" :disabled="slugLocked" placeholder="ontology" />
-          <span class="help mono">/schemas/{{ slug || "…" }}</span>
+          <span class="help mono">/schemas/{{ effectiveSlug || "…" }}</span>
         </label>
 
         <div class="tabs" role="tablist">
