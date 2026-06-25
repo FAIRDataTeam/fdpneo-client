@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FAIR Data Point v2 — User Manual / Manual do Usuário</title>
+<style>
+  :root {
+    --ink: #1a1f2b; --ink-2: #5a6473; --paper: #fbfaf7; --surface: #ffffff;
+    --line: #e7e3da; --line-strong: #d6d0c4; --accent: #2d5b89; --accent-soft: #eef3f8;
+    --ok: #2f7a4a; --signal: #b5532a; --code-bg: #f4f1ea;
+    --maxw: 860px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  /* language toggle */
+  [data-lang="en"] .pt { display: none; }
+  [data-lang="pt"] .en { display: none; }
+
+  header.bar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(251,250,247,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+  }
+  header.bar .brand { font-weight: 700; letter-spacing: -.2px; font-size: 15px; }
+  header.bar .brand small { color: var(--ink-2); font-weight: 400; }
+  .langtoggle button {
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2);
+    padding: 5px 12px; font-size: 13px; cursor: pointer; border-radius: 6px; margin-left: 6px;
+  }
+  .langtoggle button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 16px 24px 96px; }
+  h1 { font-size: 34px; letter-spacing: -.5px; margin: 28px 0 4px; }
+  h2 { font-size: 25px; letter-spacing: -.3px; margin: 56px 0 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 18px; margin: 28px 0 4px; }
+  .lede { color: var(--ink-2); font-size: 17px; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); }
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 5px 0; }
+  code { background: var(--code-bg); padding: 1.5px 6px; border-radius: 5px; font-size: 13.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink-2); font-weight: 600; background: var(--accent-soft); }
+  figure { margin: 22px 0; }
+  figure img { width: 100%; border: 1px solid var(--line-strong); border-radius: 10px; display: block;
+    box-shadow: 0 2px 14px rgba(20,24,40,.06); }
+  figcaption { color: var(--ink-2); font-size: 13.5px; margin-top: 8px; font-style: italic; text-align: center; }
+  .role { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 5px;
+    background: var(--accent-soft); color: var(--accent); letter-spacing: .2px; vertical-align: middle; }
+  .toc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 20px; margin: 22px 0; }
+  .toc ol { columns: 2; margin: 4px 0 0; }
+  .note { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 8px;
+    padding: 10px 16px; margin: 16px 0; font-size: 14.5px; }
+  footer { max-width: var(--maxw); margin: 0 auto; padding: 24px; color: var(--ink-2); font-size: 13.5px;
+    border-top: 1px solid var(--line); }
+  @media (max-width: 600px) { .toc ol { columns: 1; } h1 { font-size: 28px; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">FAIR Data Point v2 — <span class="en">User Manual</span><span class="pt">Manual do Usuário</span>
+    <small>· FDP Neo</small></div>
+  <div class="langtoggle" role="group" aria-label="Language">
+    <button data-set="en" class="active">English</button>
+    <button data-set="pt">Português</button>
+  </div>
+</header>
+
+<main>
+  <h1><span class="en">FAIR Data Point — User Manual</span><span class="pt">FAIR Data Point — Manual do Usuário</span></h1>
+  <p class="lede">
+    <span class="en">A practical guide to installing a FAIR Data Point (FDP) and using it: browsing and searching metadata, publishing records, and administering schemas, access policies, licenses, and users.</span>
+    <span class="pt">Um guia prático para instalar um FAIR Data Point (FDP) e usá-lo: navegar e pesquisar metadados, publicar registros e administrar esquemas, políticas de acesso, licenças e usuários.</span>
+  </p>
+
+  <div class="toc">
+    <strong><span class="en">Contents</span><span class="pt">Conteúdo</span></strong>
+    <ol>
+      <li><a href="#s1"><span class="en">Install in 5 steps</span><span class="pt">Instalar em 5 passos</span></a></li>
+      <li><a href="#s2"><span class="en">Signing in &amp; roles</span><span class="pt">Entrar &amp; papéis</span></a></li>
+      <li><a href="#s3"><span class="en">Browsing &amp; searching</span><span class="pt">Navegar &amp; pesquisar</span></a></li>
+      <li><a href="#s4"><span class="en">Publishing metadata</span><span class="pt">Publicar metadados</span></a></li>
+      <li><a href="#s5"><span class="en">Schemas</span><span class="pt">Esquemas</span></a></li>
+      <li><a href="#s6"><span class="en">Access policies (ODRL)</span><span class="pt">Políticas de acesso (ODRL)</span></a></li>
+      <li><a href="#s7"><span class="en">Licenses</span><span class="pt">Licenças</span></a></li>
+      <li><a href="#s8"><span class="en">Users</span><span class="pt">Usuários</span></a></li>
+      <li><a href="#s9"><span class="en">Settings &amp; maintenance</span><span class="pt">Configurações &amp; manutenção</span></a></li>
+      <li><a href="#s10"><span class="en">Personal access &amp; API</span><span class="pt">Acesso pessoal &amp; API</span></a></li>
+      <li><a href="#s11"><span class="en">Troubleshooting</span><span class="pt">Solução de problemas</span></a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <h2 id="s1">1. <span class="en">Install in 5 steps</span><span class="pt">Instalar em 5 passos</span></h2>
+  <p>
+    <span class="en">You need <strong>Docker</strong> + <strong>Docker Compose</strong>, <strong><a href="https://docs.astral.sh/uv/">uv</a></strong>, <strong>Node.js ≥ 20</strong>, and two clones side by side: <code>fdp-server/</code> and <code>fdp-client/</code>.</span>
+    <span class="pt">Você precisa de <strong>Docker</strong> + <strong>Docker Compose</strong>, <strong><a href="https://docs.astral.sh/uv/">uv</a></strong>, <strong>Node.js ≥ 20</strong>, e dois clones lado a lado: <code>fdp-server/</code> e <code>fdp-client/</code>.</span>
+  </p>
+  <ol>
+    <li><span class="en"><strong>Backing services</strong> — from <code>fdp-server/</code>: <code>docker compose -f deploy/compose.yaml up -d</code>. Starts GraphDB (<code>:7200</code>), PostgreSQL (<code>:5432</code>) and Keycloak (<code>:8080</code>).</span>
+      <span class="pt"><strong>Serviços de apoio</strong> — em <code>fdp-server/</code>: <code>docker compose -f deploy/compose.yaml up -d</code>. Inicia o GraphDB (<code>:7200</code>), o PostgreSQL (<code>:5432</code>) e o Keycloak (<code>:8080</code>).</span></li>
+    <li><span class="en"><strong>GraphDB repository</strong> — open <a href="http://localhost:7200">localhost:7200</a> → <em>Setup → Repositories → Create</em> → a repository with ID <code>fdp</code>.</span>
+      <span class="pt"><strong>Repositório GraphDB</strong> — abra <a href="http://localhost:7200">localhost:7200</a> → <em>Setup → Repositories → Create</em> → um repositório com ID <code>fdp</code>.</span></li>
+    <li><span class="en"><strong>Server</strong> — from <code>fdp-server/</code>: copy <code>.env</code>, then <code>uv sync --extra dev</code>, <code>uv run fdp db migrate</code>, <code>uv run fdp profile apply ./profiles/default</code>, and <code>uv run fastapi dev src/fdp/main.py</code> (→ <code>:8000</code>).</span>
+      <span class="pt"><strong>Servidor</strong> — em <code>fdp-server/</code>: copie o <code>.env</code>, depois <code>uv sync --extra dev</code>, <code>uv run fdp db migrate</code>, <code>uv run fdp profile apply ./profiles/default</code> e <code>uv run fastapi dev src/fdp/main.py</code> (→ <code>:8000</code>).</span></li>
+    <li><span class="en"><strong>Client</strong> — from <code>fdp-client/</code>: <code>cp .env.example .env</code>, <code>npm install</code>, <code>npm run dev</code> (→ <code>:5173</code>).</span>
+      <span class="pt"><strong>Cliente</strong> — em <code>fdp-client/</code>: <code>cp .env.example .env</code>, <code>npm install</code>, <code>npm run dev</code> (→ <code>:5173</code>).</span></li>
+    <li><span class="en"><strong>Open</strong> <a href="http://localhost:5173">localhost:5173</a> and sign in with <code>admin</code> / <code>admin</code>.</span>
+      <span class="pt"><strong>Abra</strong> <a href="http://localhost:5173">localhost:5173</a> e entre com <code>admin</code> / <code>admin</code>.</span></li>
+  </ol>
+  <div class="note">
+    <span class="en">That's a complete local FDP. For production (TLS, real credentials, hardening), follow the Deployment Guide in the server repository.</span>
+    <span class="pt">Isso é um FDP local completo. Para produção (TLS, credenciais reais, segurança), siga o Guia de Implantação no repositório do servidor.</span>
+  </div>
+  <figure>
+    <img src="manual-assets/01-browse.png" alt="Home / browse page" />
+    <figcaption><span class="en">The home page once everything is running — the repository, its catalogs, and serialization links.</span><span class="pt">A página inicial com tudo em execução — o repositório, seus catálogos e os links de serialização.</span></figcaption>
+  </figure>
+
+  <!-- 2 -->
+  <h2 id="s2">2. <span class="en">Signing in &amp; roles</span><span class="pt">Entrar &amp; papéis</span></h2>
+  <p>
+    <span class="en">Click the avatar / <strong>Sign in</strong> in the top-right. You're redirected to the identity provider (Keycloak), then back. What you can do depends on your <strong>role</strong>:</span>
+    <span class="pt">Clique no avatar / <strong>Entrar</strong> no canto superior direito. Você é redirecionado ao provedor de identidade (Keycloak) e depois de volta. O que você pode fazer depende do seu <strong>papel</strong>:</span>
+  </p>
+  <table class="en">
+    <tr><th>Role</th><th>Can do</th></tr>
+    <tr><td><span class="role">Anonymous</span></td><td>Browse and search <strong>published</strong> records; run SPARQL queries; view metrics.</td></tr>
+    <tr><td><span class="role">Steward</span></td><td>All of the above, <strong>plus</strong> create/edit/delete their own records, manage publication state, and use the "My data" dashboard.</td></tr>
+    <tr><td><span class="role">Admin</span></td><td>Everything, <strong>plus</strong> manage SHACL schemas, resource types, ODRL policies, licenses, instance settings, users, and factory reset.</td></tr>
+  </table>
+  <table class="pt">
+    <tr><th>Papel</th><th>Pode</th></tr>
+    <tr><td><span class="role">Anônimo</span></td><td>Navegar e pesquisar registros <strong>publicados</strong>; executar consultas SPARQL; ver métricas.</td></tr>
+    <tr><td><span class="role">Steward</span></td><td>Tudo acima, <strong>mais</strong> criar/editar/excluir seus próprios registros, gerenciar o estado de publicação e usar o painel "Meus dados".</td></tr>
+    <tr><td><span class="role">Admin</span></td><td>Tudo, <strong>mais</strong> gerenciar esquemas SHACL, tipos de recurso, políticas ODRL, licenças, configurações da instância, usuários e reset de fábrica.</td></tr>
+  </table>
+  <p>
+    <span class="en">Dev users: <code>admin/admin</code> (admin + steward), <code>alice/alice</code> (steward), <code>bob/bob</code> (anonymous-equivalent). Your identity, roles, and a <strong>Manage account</strong> link to the IdP live under <strong>avatar → Profile</strong>. Passwords and email are managed in the identity provider, not the FDP.</span>
+    <span class="pt">Usuários de desenvolvimento: <code>admin/admin</code> (admin + steward), <code>alice/alice</code> (steward), <code>bob/bob</code> (equivalente a anônimo). Sua identidade, papéis e um link <strong>Gerenciar conta</strong> para o IdP ficam em <strong>avatar → Perfil</strong>. Senhas e e-mail são gerenciados no provedor de identidade, não no FDP.</span>
+  </p>
+
+  <!-- 3 -->
+  <h2 id="s3">3. <span class="en">Browsing &amp; searching</span><span class="pt">Navegar &amp; pesquisar</span> <span class="role">everyone / todos</span></h2>
+  <ul class="en">
+    <li><strong>Browse</strong> from the home page: the catalog tree and record cards. Click any record to open its detail page — properties, links, breadcrumbs to its parent catalog, and (for stewards/admins) its publication state.</li>
+    <li><strong>Search</strong> (top bar or the Search page): free-text query plus <strong>facets</strong> (type, license, …) rendered from the live index. Results are policy- and publication-state-aware — anonymous users see only published records. Signed-in users can <strong>save a search</strong>; admins can mark one <strong>shared</strong>.</li>
+    <li><strong>SPARQL playground:</strong> run SPARQL 1.1 queries directly against the metadata, with query history and result tables.</li>
+  </ul>
+  <ul class="pt">
+    <li><strong>Navegar</strong> a partir da página inicial: a árvore de catálogos e os cartões de registro. Clique em qualquer registro para abrir sua página de detalhes — propriedades, links, trilha de navegação até o catálogo pai e (para stewards/admins) seu estado de publicação.</li>
+    <li><strong>Pesquisar</strong> (barra superior ou página de Busca): consulta em texto livre mais <strong>facetas</strong> (tipo, licença, …) renderizadas a partir do índice. Os resultados respeitam política e estado de publicação — usuários anônimos veem apenas registros publicados. Usuários autenticados podem <strong>salvar uma busca</strong>; admins podem marcá-la como <strong>compartilhada</strong>.</li>
+    <li><strong>Playground SPARQL:</strong> execute consultas SPARQL 1.1 diretamente sobre os metadados, com histórico e tabelas de resultados.</li>
+  </ul>
+  <figure>
+    <img src="manual-assets/03-record-detail.png" alt="Record detail" />
+    <figcaption><span class="en">A record detail page: properties, related records, and the RDF preview.</span><span class="pt">Página de detalhe de um registro: propriedades, registros relacionados e a pré-visualização RDF.</span></figcaption>
+  </figure>
+  <figure>
+    <img src="manual-assets/04-search.png" alt="Search with facets" />
+    <figcaption><span class="en">Faceted search — free text plus filters drawn from the live index.</span><span class="pt">Busca facetada — texto livre mais filtros extraídos do índice.</span></figcaption>
+  </figure>
+  <figure>
+    <img src="manual-assets/05-sparql.png" alt="SPARQL playground" />
+    <figcaption><span class="en">The SPARQL playground, with examples, history and a results table.</span><span class="pt">O playground SPARQL, com exemplos, histórico e uma tabela de resultados.</span></figcaption>
+  </figure>
+
+  <!-- 4 -->
+  <h2 id="s4">4. <span class="en">Publishing metadata</span><span class="pt">Publicar metadados</span> <span class="role">stewards &amp; admins</span></h2>
+  <p>
+    <span class="en">FDP metadata follows <strong>DCAT</strong>: a <strong>Catalog</strong> contains <strong>Datasets</strong>, which contain <strong>Distributions</strong> (a deployment may define more types). Records are created top-down.</span>
+    <span class="pt">Os metadados do FDP seguem o <strong>DCAT</strong>: um <strong>Catálogo</strong> contém <strong>Conjuntos de dados</strong>, que contêm <strong>Distribuições</strong> (uma implantação pode definir mais tipos). Os registros são criados de cima para baixo.</span>
+  </p>
+  <h3><span class="en">Create a record</span><span class="pt">Criar um registro</span></h3>
+  <ol class="en">
+    <li>Click <strong>+ Create</strong> (top bar) for a top-level <strong>Catalog</strong>, or open an existing record and use its "new child" link (e.g. a dataset under a catalog).</li>
+    <li>Fill the form. Fields are driven by the deployment's <strong>SHACL schema</strong> for that type (title, description, publisher, keywords, …). Required fields are marked.</li>
+    <li>Two managed-document pickers: <strong>Access policy</strong> (<code>dct:rights</code>) — a published ODRL policy governing read/modify; and <strong>License</strong> (<code>dct:license</code>) — a published license or a pasted IRI.</li>
+    <li><strong>Save.</strong> The record is created as a <strong>draft</strong>.</li>
+  </ol>
+  <ol class="pt">
+    <li>Clique em <strong>+ Criar</strong> (barra superior) para um <strong>Catálogo</strong> de nível superior, ou abra um registro existente e use o link "novo filho" (por exemplo, um conjunto de dados dentro de um catálogo).</li>
+    <li>Preencha o formulário. Os campos são determinados pelo <strong>esquema SHACL</strong> da implantação para aquele tipo (título, descrição, publicador, palavras-chave, …). Os campos obrigatórios são marcados.</li>
+    <li>Dois seletores de documentos gerenciados: <strong>Política de acesso</strong> (<code>dct:rights</code>) — uma política ODRL publicada que governa leitura/modificação; e <strong>Licença</strong> (<code>dct:license</code>) — uma licença publicada ou um IRI colado.</li>
+    <li><strong>Salve.</strong> O registro é criado como <strong>rascunho</strong>.</li>
+  </ol>
+  <figure>
+    <img src="manual-assets/06-create-record.png" alt="Create record form" />
+    <figcaption><span class="en">The schema-driven create form. New records start as a draft.</span><span class="pt">O formulário de criação guiado pelo esquema. Novos registros começam como rascunho.</span></figcaption>
+  </figure>
+  <h3><span class="en">Publish / lifecycle</span><span class="pt">Publicar / ciclo de vida</span></h3>
+  <p>
+    <span class="en">A record moves through <strong>draft → published → archived</strong>. Open the record and use the state control (owner or admin) to publish it. Only <strong>published</strong> records are visible to anonymous users and offered for assignment elsewhere.</span>
+    <span class="pt">Um registro passa por <strong>rascunho → publicado → arquivado</strong>. Abra o registro e use o controle de estado (dono ou admin) para publicá-lo. Apenas registros <strong>publicados</strong> são visíveis a usuários anônimos e oferecidos para uso em outros lugares.</span>
+  </p>
+  <h3><span class="en">My data</span><span class="pt">Meus dados</span></h3>
+  <p>
+    <span class="en">The <strong>Dashboard</strong> ("My data") lists records you own or may edit, with their state, plus a <em>Recently updated</em> section — your working set at a glance.</span>
+    <span class="pt">O <strong>Painel</strong> ("Meus dados") lista os registros que você possui ou pode editar, com seu estado, mais uma seção <em>Atualizados recentemente</em> — seu conjunto de trabalho num relance.</span>
+  </p>
+  <figure>
+    <img src="manual-assets/07-dashboard.png" alt="Steward dashboard" />
+    <figcaption><span class="en">The steward dashboard — records you own or can edit, by state.</span><span class="pt">O painel do steward — registros que você possui ou pode editar, por estado.</span></figcaption>
+  </figure>
+
+  <!-- 5 -->
+  <h2 id="s5">5. <span class="en">Schemas</span><span class="pt">Esquemas</span> <span class="role">admins</span></h2>
+  <p>
+    <span class="en">Open <strong>avatar → Schemas</strong>. Records are validated against <strong>SHACL</strong> shapes you manage here.</span>
+    <span class="pt">Abra <strong>avatar → Esquemas</strong>. Os registros são validados contra <em>shapes</em> <strong>SHACL</strong> que você gerencia aqui.</span>
+  </p>
+  <ul class="en">
+    <li><strong>List / author / publish</strong> shapes as Turtle (text-first editor), with versioning shown as <code>v{n}</code> at a stable IRI.</li>
+    <li>Each schema needs an <strong>ID (name)</strong> — a short, URL-safe identifier shown live as <code>/schemas/&lt;id&gt;</code>; it is normalized for you and locked once saved.</li>
+    <li><strong>Validate</strong> a sample record against a saved shape before relying on it.</li>
+    <li>The <strong>visual SHACL editor</strong> (node canvas + form builder) authors shapes graphically, with a live Turtle preview and round-trip import/export.</li>
+    <li><strong>Resource types</strong> (avatar → Resource types): register the deployment's record types and their child-link relationships, each pointing at a published shape. New types appear across the app without a rebuild.</li>
+  </ul>
+  <ul class="pt">
+    <li><strong>Listar / criar / publicar</strong> <em>shapes</em> em Turtle (editor de texto), com versionamento mostrado como <code>v{n}</code> em um IRI estável.</li>
+    <li>Cada esquema precisa de um <strong>ID (nome)</strong> — um identificador curto e seguro para URL, mostrado ao vivo como <code>/schemas/&lt;id&gt;</code>; ele é normalizado automaticamente e bloqueado após salvar.</li>
+    <li><strong>Validar</strong> um registro de exemplo contra um <em>shape</em> salvo antes de confiar nele.</li>
+    <li>O <strong>editor visual de SHACL</strong> (canvas de nós + construtor de formulário) cria <em>shapes</em> graficamente, com pré-visualização Turtle ao vivo e importação/exportação reversível.</li>
+    <li><strong>Tipos de recurso</strong> (avatar → Tipos de recurso): registre os tipos de registro da implantação e suas relações de filho, cada um apontando para um <em>shape</em> publicado. Novos tipos aparecem em todo o app sem recompilar.</li>
+  </ul>
+  <figure>
+    <img src="manual-assets/08-schemas.png" alt="Schema editor" />
+    <figcaption><span class="en">The schema editor: published shapes, the "Schema ID (name)" field, and SHACL / Visual / Form-Preview tabs.</span><span class="pt">O editor de esquemas: <em>shapes</em> publicados, o campo "Schema ID (name)" e as abas SHACL / Visual / Pré-visualização do formulário.</span></figcaption>
+  </figure>
+  <figure>
+    <img src="manual-assets/11-resource-types.png" alt="Resource types" />
+    <figcaption><span class="en">Resource types — the record types this deployment offers and their child links.</span><span class="pt">Tipos de recurso — os tipos de registro que esta implantação oferece e seus links de filho.</span></figcaption>
+  </figure>
+
+  <!-- 6 -->
+  <h2 id="s6">6. <span class="en">Access policies — ODRL</span><span class="pt">Políticas de acesso — ODRL</span> <span class="role">admins</span></h2>
+  <p>
+    <span class="en">Open <strong>avatar → Policies</strong>. An FDP controls access through <strong>ODRL Offers</strong>: a record opts into a policy via <code>dct:rights</code>, and the server's policy decision point enforces it.</span>
+    <span class="pt">Abra <strong>avatar → Políticas</strong>. Um FDP controla o acesso por meio de <strong>Offers ODRL</strong>: um registro adere a uma política via <code>dct:rights</code>, e o ponto de decisão de política do servidor a aplica.</span>
+  </p>
+  <ul class="en">
+    <li>The <strong>guided composer</strong> builds an Offer from the FDP profile only: pick an <strong>action</strong> (read/modify/delete/distribute), add <strong>permissions/prohibitions</strong>, and attach <strong>constraints</strong> (e.g. role = <code>steward</code>, a party, or a time window). It cannot produce out-of-profile policies.</li>
+    <li>A <strong>live Turtle preview</strong> and inline validation show exactly what will be stored; <strong>Validate</strong> runs the server's profile check.</li>
+    <li><strong>Save / publish / delete</strong> managed policies. Published policies appear in the record form's <em>Access policy</em> picker.</li>
+  </ul>
+  <ul class="pt">
+    <li>O <strong>compositor guiado</strong> monta um Offer apenas a partir do perfil FDP: escolha uma <strong>ação</strong> (ler/modificar/excluir/distribuir), adicione <strong>permissões/proibições</strong> e anexe <strong>restrições</strong> (por exemplo, papel = <code>steward</code>, uma parte, ou uma janela de tempo). Ele não consegue produzir políticas fora do perfil.</li>
+    <li>Uma <strong>pré-visualização Turtle ao vivo</strong> e validação em linha mostram exatamente o que será armazenado; <strong>Validar</strong> executa a verificação de perfil do servidor.</li>
+    <li><strong>Salvar / publicar / excluir</strong> políticas gerenciadas. Políticas publicadas aparecem no seletor <em>Política de acesso</em> do formulário de registro.</li>
+  </ul>
+  <div class="note">
+    <span class="en">The system ships a default Offer (<code>system-default</code>) granting public read and steward modify — the baseline until you author your own.</span>
+    <span class="pt">O sistema vem com um Offer padrão (<code>system-default</code>) que concede leitura pública e modificação por stewards — a linha de base até você criar a sua.</span>
+  </div>
+  <figure>
+    <img src="manual-assets/09-policies.png" alt="ODRL policy composer" />
+    <figcaption><span class="en">The guided ODRL composer with its live Turtle preview.</span><span class="pt">O compositor ODRL guiado com sua pré-visualização Turtle ao vivo.</span></figcaption>
+  </figure>
+
+  <!-- 7 -->
+  <h2 id="s7">7. <span class="en">Licenses</span><span class="pt">Licenças</span> <span class="role">admins</span></h2>
+  <p>
+    <span class="en">Open <strong>avatar → Licenses</strong>. Curate reusable license documents (e.g. CC BY 4.0, CC0) that records reference via <code>dct:license</code>. Each has a title, an optional canonical IRI (<code>dct:source</code>), and a description. Published licenses appear in the record form's <em>License</em> picker. Licenses are descriptive only — they are not access policy.</span>
+    <span class="pt">Abra <strong>avatar → Licenças</strong>. Mantenha documentos de licença reutilizáveis (por exemplo, CC BY 4.0, CC0) que os registros referenciam via <code>dct:license</code>. Cada um tem um título, um IRI canônico opcional (<code>dct:source</code>) e uma descrição. Licenças publicadas aparecem no seletor <em>Licença</em> do formulário. Licenças são apenas descritivas — não são política de acesso.</span>
+  </p>
+  <figure>
+    <img src="manual-assets/10-licenses.png" alt="Licenses editor" />
+    <figcaption><span class="en">Curating reusable license documents.</span><span class="pt">Mantendo documentos de licença reutilizáveis.</span></figcaption>
+  </figure>
+
+  <!-- 8 -->
+  <h2 id="s8">8. <span class="en">Users</span><span class="pt">Usuários</span> <span class="role">admins, when enabled / quando habilitado</span></h2>
+  <p>
+    <span class="en">Open <strong>avatar → Users</strong> (visible only when the user-management facade is configured).</span>
+    <span class="pt">Abra <strong>avatar → Usuários</strong> (visível apenas quando a fachada de gerenciamento de usuários está configurada).</span>
+  </p>
+  <ul class="en">
+    <li><strong>Search</strong> the directory; see each user's email, roles, and enabled status.</li>
+    <li><strong>Edit</strong> roles (<code>steward</code>/<code>admin</code>) and enable/disable a user.</li>
+    <li><strong>Invite</strong> a new user — they receive an email to set a password and verify (no passwords pass through the FDP).</li>
+    <li><strong>Delete</strong> a user.</li>
+  </ul>
+  <ul class="pt">
+    <li><strong>Pesquisar</strong> o diretório; ver e-mail, papéis e status de habilitação de cada usuário.</li>
+    <li><strong>Editar</strong> papéis (<code>steward</code>/<code>admin</code>) e habilitar/desabilitar um usuário.</li>
+    <li><strong>Convidar</strong> um novo usuário — ele recebe um e-mail para definir uma senha e verificar (nenhuma senha passa pelo FDP).</li>
+    <li><strong>Excluir</strong> um usuário.</li>
+  </ul>
+  <div class="note">
+    <span class="en">Guard rails prevent locking yourself out: you cannot delete yourself, remove your own admin role, or disable your own account.</span>
+    <span class="pt">Há proteções contra se trancar para fora: você não pode excluir a si mesmo, remover seu próprio papel de admin, ou desabilitar sua própria conta.</span>
+  </div>
+  <figure>
+    <img src="manual-assets/12-users.png" alt="User management" />
+    <figcaption><span class="en">The user-management facade — directory, roles, invite and delete.</span><span class="pt">A fachada de gerenciamento de usuários — diretório, papéis, convite e exclusão.</span></figcaption>
+  </figure>
+
+  <!-- 9 -->
+  <h2 id="s9">9. <span class="en">Settings &amp; maintenance</span><span class="pt">Configurações &amp; manutenção</span> <span class="role">admins</span></h2>
+  <ul class="en">
+    <li><strong>Settings</strong> (avatar → Settings): per-key configuration the server exposes — branding, search-filter config, form autocomplete sources, etc., edited as JSON and validated server-side.</li>
+    <li><strong>Metrics dashboard:</strong> anonymous, GDPR-safe usage metrics — summary, time series, top resources, and (if a GeoIP database is configured) geography.</li>
+    <li><strong>Factory reset:</strong> re-applies the deployment profile. Destructive — it restores schemas/policies to the profile baseline.</li>
+  </ul>
+  <ul class="pt">
+    <li><strong>Configurações</strong> (avatar → Configurações): configuração por chave que o servidor expõe — identidade visual, configuração de filtros de busca, fontes de autocompletar de formulários, etc., editadas como JSON e validadas no servidor.</li>
+    <li><strong>Painel de métricas:</strong> métricas de uso anônimas e em conformidade com a LGPD/GDPR — resumo, séries temporais, principais recursos e (se um banco GeoIP estiver configurado) geografia.</li>
+    <li><strong>Reset de fábrica:</strong> reaplica o perfil da implantação. Destrutivo — restaura esquemas/políticas à linha de base do perfil.</li>
+  </ul>
+  <figure>
+    <img src="manual-assets/13-settings.png" alt="Instance settings" />
+    <figcaption><span class="en">Instance settings — server-validated, per-key configuration.</span><span class="pt">Configurações da instância — configuração por chave, validada pelo servidor.</span></figcaption>
+  </figure>
+  <figure>
+    <img src="manual-assets/14-metrics.png" alt="Metrics dashboard" />
+    <figcaption><span class="en">The metrics dashboard — anonymous usage summary and time series.</span><span class="pt">O painel de métricas — resumo de uso anônimo e séries temporais.</span></figcaption>
+  </figure>
+
+  <!-- 10 -->
+  <h2 id="s10">10. <span class="en">Personal access &amp; API</span><span class="pt">Acesso pessoal &amp; API</span> <span class="role">everyone signed in / autenticados</span></h2>
+  <ul class="en">
+    <li><strong>Profile</strong> (avatar → Profile): your identity and roles, with a deep link to the IdP account console for password/email changes.</li>
+    <li><strong>Access tokens</strong> (avatar → Access tokens): create personal API keys to call the FDP API from scripts; revoke them anytime.</li>
+    <li>The full REST/LDP API is documented at the server's <code>…/docs</code> (OpenAPI). Records are dereferenceable Linked Data — a record's URL <em>is</em> its identifier.</li>
+  </ul>
+  <ul class="pt">
+    <li><strong>Perfil</strong> (avatar → Perfil): sua identidade e papéis, com um link direto para o console de conta do IdP para alterar senha/e-mail.</li>
+    <li><strong>Tokens de acesso</strong> (avatar → Tokens de acesso): crie chaves de API pessoais para chamar a API do FDP a partir de scripts; revogue-as a qualquer momento.</li>
+    <li>A API REST/LDP completa está documentada em <code>…/docs</code> do servidor (OpenAPI). Os registros são Linked Data desreferenciáveis — a URL de um registro <em>é</em> seu identificador.</li>
+  </ul>
+  <figure>
+    <img src="manual-assets/16-tokens.png" alt="Access tokens" />
+    <figcaption><span class="en">Personal access tokens for scripting against the API.</span><span class="pt">Tokens de acesso pessoais para usar a API em scripts.</span></figcaption>
+  </figure>
+  <figure>
+    <img src="manual-assets/15-profile.png" alt="Profile" />
+    <figcaption><span class="en">Your profile — identity, roles, and a link to the IdP account console.</span><span class="pt">Seu perfil — identidade, papéis e um link para o console de conta do IdP.</span></figcaption>
+  </figure>
+
+  <!-- 11 -->
+  <h2 id="s11">11. <span class="en">Troubleshooting</span><span class="pt">Solução de problemas</span></h2>
+  <table class="en">
+    <tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr>
+    <tr><td>"Server is unreachable" on save</td><td>CORS/origin mismatch, or a server error without CORS headers. Confirm the origin coupling; check the server logs / <code>GET /readyz</code>.</td></tr>
+    <tr><td>Login loops or "invalid redirect"</td><td>The Keycloak client redirect URI doesn't include your client origin. Add it in the realm.</td></tr>
+    <tr><td>Search returns nothing / errors</td><td>PostgreSQL is down or the index is empty. Check Postgres; run <code>uv run fdp search reindex</code>.</td></tr>
+    <tr><td>"policy denies modify" when creating a record</td><td>The root access policy isn't resolving. Ensure the profile is applied and <code>GET /policies/system-default</code> returns 200 (PUBLISHED).</td></tr>
+    <tr><td>Newly written record looks empty when fetched</td><td>Drafts aren't served anonymously — fetch with a bearer token, or publish it.</td></tr>
+    <tr><td>No "Users" menu</td><td>The user-management facade isn't configured — set <code>FDP_IDP_ADMIN_*</code>.</td></tr>
+  </table>
+  <table class="pt">
+    <tr><th>Sintoma</th><th>Causa provável &amp; correção</th></tr>
+    <tr><td>"Servidor inacessível" ao salvar</td><td>Incompatibilidade de CORS/origem, ou erro do servidor sem cabeçalhos CORS. Confirme o acoplamento de origem; verifique os logs do servidor / <code>GET /readyz</code>.</td></tr>
+    <tr><td>Login em loop ou "redirect inválido"</td><td>O redirect URI do cliente Keycloak não inclui a origem do seu cliente. Adicione-a no realm.</td></tr>
+    <tr><td>Busca não retorna nada / dá erro</td><td>O PostgreSQL está fora do ar ou o índice está vazio. Verifique o Postgres; execute <code>uv run fdp search reindex</code>.</td></tr>
+    <tr><td>"política nega modificação" ao criar um registro</td><td>A política de acesso raiz não está resolvendo. Garanta que o perfil foi aplicado e que <code>GET /policies/system-default</code> retorna 200 (PUBLISHED).</td></tr>
+    <tr><td>Registro recém-criado aparece vazio ao buscar</td><td>Rascunhos não são servidos anonimamente — busque com um token bearer, ou publique-o.</td></tr>
+    <tr><td>Sem menu "Usuários"</td><td>A fachada de gerenciamento de usuários não está configurada — defina <code>FDP_IDP_ADMIN_*</code>.</td></tr>
+  </table>
+</main>
+
+<footer>
+  <p>
+    <span class="en">See also the Deployment Guide (server repository) for production hardening, and <a href="https://specs.fairdatapoint.org">specs.fairdatapoint.org</a> for the FDP specifications.</span>
+    <span class="pt">Veja também o Guia de Implantação (repositório do servidor) para segurança em produção, e <a href="https://specs.fairdatapoint.org">specs.fairdatapoint.org</a> para as especificações do FDP.</span>
+  </p>
+  <p><span class="en">Screenshots captured from a local FDP Neo deployment.</span><span class="pt">Capturas de tela obtidas de uma implantação local do FDP Neo.</span></p>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll(".langtoggle button");
+    function setLang(lang) {
+      root.setAttribute("data-lang", lang);
+      root.setAttribute("lang", lang);
+      buttons.forEach(function (b) { b.classList.toggle("active", b.dataset.set === lang); });
+      try { localStorage.setItem("fdp-manual-lang", lang); } catch (e) { /* ignore */ }
+    }
+    buttons.forEach(function (b) { b.addEventListener("click", function () { setLang(b.dataset.set); }); });
+    var saved = null;
+    try { saved = localStorage.getItem("fdp-manual-lang"); } catch (e) { /* ignore */ }
+    var initial = saved || (navigator.language && navigator.language.toLowerCase().indexOf("pt") === 0 ? "pt" : "en");
+    setLang(initial);
+  })();
+</script>
+</body>
+</html>
