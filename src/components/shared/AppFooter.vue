@@ -52,6 +52,7 @@ const serverTitle = computed(() => {
     <div class="right">
       <ReadinessStrip />
       <a :href="apiDocsUrl" target="_blank" rel="noopener">API</a>
+      <RouterLink to="/appearance">Appearance</RouterLink>
       <RouterLink to="/about">About</RouterLink>
       <a :href="SPEC_URL" target="_blank" rel="noopener">Specification</a>
     </div>

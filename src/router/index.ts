@@ -118,6 +118,16 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Settings", requiresAuth: true },
   },
   {
+    // Public on purpose: branding is a *client* deployment concern (it only
+    // authors a /config.js block, touching nothing server-side), so a sysadmin
+    // can customize look & feel before any auth/IdP is configured. Not under
+    // /admin — it requires no admin role.
+    path: "/appearance",
+    name: "appearance",
+    component: () => import("@/views/AppearanceView.vue"),
+    meta: { title: "Appearance" },
+  },
+  {
     path: "/account/profile",
     name: "profile",
     component: () => import("@/views/ProfileView.vue"),

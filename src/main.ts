@@ -18,7 +18,8 @@ import { router } from "./router";
 import { useAuthStore } from "./stores/auth";
 import { useConfigStore } from "./stores/config";
 import { configureOidc } from "./auth/userManager";
-import { applyBranding } from "./composables/useBranding";
+import { applyBranding, validateBranding } from "./composables/useBranding";
+import { runtimeBranding } from "./runtimeConfig";
 import "./styles/main.css";
 
 // CORS-only networking (TASKS 11.1): the SPA calls the FDP server cross-origin,
@@ -41,6 +42,17 @@ if (import.meta.env.DEV) {
 // Apply deployer white-label token overrides before mount so there's no flash of
 // the default palette (this only injects a stylesheet; it needs no Pinia/router).
 applyBranding();
+
+// Surface branding config mistakes explicitly: a typo in /config.js or
+// FDP_BRANDING is otherwise silently ignored. Explain each issue in the console
+// so a deployer sees exactly what was wrong and how to fix it.
+const brandingIssues = validateBranding(runtimeBranding());
+if (brandingIssues.length) {
+  console.warn(
+    "[fdp] Branding configuration issues (window.__FDP_CONFIG__.branding):\n" +
+      brandingIssues.map((issue) => `  • ${issue}`).join("\n"),
+  );
+}
 
 const app = createApp(App);
 const pinia = createPinia();

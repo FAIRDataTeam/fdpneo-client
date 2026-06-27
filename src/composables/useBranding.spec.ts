@@ -6,7 +6,16 @@
 
 import { describe, expect, it, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { applyBranding, applyFaviconFromLogo, useBranding } from "./useBranding";
+import {
+  applyBranding,
+  applyFaviconFromLogo,
+  brandingConfigSnippet,
+  brandingEnvValue,
+  brandingPreviewActive,
+  setBrandingPreview,
+  useBranding,
+  validateBranding,
+} from "./useBranding";
 import { useThemeStore } from "@/stores/theme";
 import type { BrandingConfig } from "@/runtimeConfig";
 
@@ -21,6 +30,7 @@ function brandingStyle(): HTMLStyleElement | null {
 beforeEach(() => {
   setActivePinia(createPinia());
   setBranding(undefined);
+  setBrandingPreview(null);
   brandingStyle()?.remove();
 });
 
@@ -109,6 +119,124 @@ describe("applyFaviconFromLogo", () => {
   it("no-ops when there is no icon link to update", () => {
     expect(() => applyFaviconFromLogo("/branding/logo.svg")).not.toThrow();
     expect(document.querySelector('link[rel~="icon"]')).toBeNull();
+  });
+});
+
+describe("setBrandingPreview", () => {
+  it("overlays a draft as the active branding and clears back to deployed", () => {
+    setBranding({ theme: { "--accent": "#deployed" } });
+    applyBranding();
+    expect(brandingStyle()?.textContent).toContain("--accent: #deployed;");
+    expect(brandingPreviewActive.value).toBe(false);
+
+    setBrandingPreview({ theme: { "--accent": "#preview" } });
+    expect(brandingPreviewActive.value).toBe(true);
+    expect(brandingStyle()?.textContent).toContain("--accent: #preview;");
+    // The preview replaces the deployed overrides for the session.
+    expect(brandingStyle()?.textContent).not.toContain("#deployed");
+
+    setBrandingPreview(null);
+    expect(brandingPreviewActive.value).toBe(false);
+    expect(brandingStyle()?.textContent).toContain("--accent: #deployed;");
+  });
+
+  it("makes useBranding accessors reflect the live preview", () => {
+    setBranding({ logoUrl: "/deployed.svg" });
+    const { logoUrl } = useBranding();
+    expect(logoUrl.value).toBe("/deployed.svg");
+
+    setBrandingPreview({ logoUrl: "/preview.svg" });
+    expect(logoUrl.value).toBe("/preview.svg");
+  });
+});
+
+describe("brandingConfigSnippet", () => {
+  it("emits a minimal, valid branding block and drops empties + unknown tokens", () => {
+    const snippet = brandingConfigSnippet({
+      orgName: "  Erasmus MC  ",
+      logoUrl: " /logo.svg ",
+      logoUrlDark: "   ",
+      theme: { "--accent": " #7a1f2b ", "--nope": "#000", "--blank": "  " },
+      themeDark: {},
+    });
+
+    expect(snippet).toContain("window.__FDP_CONFIG__");
+    expect(snippet).toContain("branding:");
+    expect(snippet).toContain('"orgName": "Erasmus MC"');
+    expect(snippet).toContain('"logoUrl": "/logo.svg"');
+    expect(snippet).toContain('"--accent": "#7a1f2b"');
+    // Dropped: empty logoUrlDark, unknown/blank tokens, empty themeDark.
+    expect(snippet).not.toContain("logoUrlDark");
+    expect(snippet).not.toContain("--nope");
+    expect(snippet).not.toContain("--blank");
+    expect(snippet).not.toContain("themeDark");
+
+    // The emitted object is valid JSON (and thus valid JS): the slice between the
+    // `branding:` key and the trailing `,` parses back to the cleaned config.
+    const start = snippet.indexOf("branding:") + "branding:".length;
+    const end = snippet.lastIndexOf(",\n};");
+    const parsed = JSON.parse(snippet.slice(start, end).trim()) as BrandingConfig;
+    expect(parsed.orgName).toBe("Erasmus MC");
+    expect(parsed.theme?.["--accent"]).toBe("#7a1f2b");
+  });
+
+  it("emits a single-line FDP_BRANDING env var of valid JSON", () => {
+    const line = brandingEnvValue({
+      orgName: "Acme",
+      logoUrl: "  ",
+      theme: { "--accent": "#7a1f2b", "--nope": "#000" },
+    });
+
+    expect(line.startsWith("FDP_BRANDING='")).toBe(true);
+    expect(line.endsWith("'")).toBe(true);
+    expect(line).not.toContain("\n");
+
+    const json = line.slice("FDP_BRANDING='".length, -1);
+    const parsed = JSON.parse(json) as BrandingConfig;
+    expect(parsed.orgName).toBe("Acme");
+    expect(parsed.theme?.["--accent"]).toBe("#7a1f2b");
+    expect(parsed.logoUrl).toBeUndefined(); // blank dropped
+    expect(parsed.theme?.["--nope"]).toBeUndefined(); // non-allowlisted dropped
+  });
+});
+
+describe("validateBranding", () => {
+  it("returns no issues for a clean config (and for null/empty)", () => {
+    expect(validateBranding(undefined)).toEqual([]);
+    expect(validateBranding({})).toEqual([]);
+    expect(
+      validateBranding({
+        orgName: "Acme",
+        logoUrl: "/logo.svg",
+        theme: { "--accent": "#2d5b89", "--signal": "rgb(45 91 137)" },
+      }),
+    ).toEqual([]);
+  });
+
+  it("flags a non-object branding value", () => {
+    expect(validateBranding("nope")[0]).toMatch(/must be an object/);
+    expect(validateBranding([])[0]).toMatch(/must be an object/);
+  });
+
+  it("explains an unknown top-level key (likely a typo)", () => {
+    const issues = validateBranding({ logoURL: "/logo.svg" }); // wrong case
+    expect(issues.some((i) => i.includes('Unknown branding key "logoURL"'))).toBe(true);
+  });
+
+  it("explains an unknown / non-customizable theme token", () => {
+    const issues = validateBranding({ theme: { "--accnt": "#fff" } }); // typo
+    expect(issues.some((i) => i.includes('token "--accnt"'))).toBe(true);
+  });
+
+  it("explains a color value that doesn't look like a CSS color", () => {
+    const issues = validateBranding({ theme: { "--accent": "ff0000" } }); // missing #
+    expect(issues.some((i) => i.includes("doesn't look like a CSS color"))).toBe(true);
+  });
+
+  it("flags wrong value types", () => {
+    expect(validateBranding({ orgName: 5 })[0]).toMatch(/must be a string/);
+    expect(validateBranding({ theme: "x" })[0]).toMatch(/must be an object/);
+    expect(validateBranding({ theme: { "--accent": 1 } })[0]).toMatch(/must be a string color/);
   });
 });
 
