@@ -25,6 +25,14 @@ export interface BrandingConfig {
   logoUrl?: string;
   /** Optional dark-theme logo variant; falls back to `logoUrl`. */
   logoUrlDark?: string;
+  /**
+   * Browser-tab favicon (light theme). Independent of `logoUrl` — a wide header
+   * lockup rarely reads well shrunk to a tab icon, so set a square mark here.
+   * When unset, the favicon falls back to `logoUrl`, then the built-in default.
+   */
+  faviconUrl?: string;
+  /** Optional dark-theme favicon variant; falls back to `faviconUrl`. */
+  faviconUrlDark?: string;
   /** Light-theme token overrides, e.g. `{ "--accent": "#7a1f2b" }`. */
   theme?: Record<string, string>;
   /** Dark-theme token overrides. */

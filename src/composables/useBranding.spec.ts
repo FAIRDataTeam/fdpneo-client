@@ -6,7 +6,7 @@
 
 import { describe, expect, it, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { applyBranding, useBranding } from "./useBranding";
+import { applyBranding, applyFaviconFromLogo, useBranding } from "./useBranding";
 import { useThemeStore } from "@/stores/theme";
 import type { BrandingConfig } from "@/runtimeConfig";
 
@@ -53,6 +53,65 @@ describe("applyBranding", () => {
   });
 });
 
+describe("applyFaviconFromLogo", () => {
+  function iconLink(): HTMLLinkElement {
+    let link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.setAttribute("rel", "icon");
+      link.setAttribute("type", "image/svg+xml");
+      link.setAttribute("href", "/favicon.svg");
+      document.head.appendChild(link);
+    }
+    return link;
+  }
+
+  beforeEach(() => {
+    document.querySelector('link[rel~="icon"]')?.remove();
+  });
+
+  it("points the favicon at a configured SVG logo, keeping the svg type", () => {
+    iconLink();
+    applyFaviconFromLogo("/branding/logo.svg");
+
+    const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')!;
+    expect(link.getAttribute("href")).toBe("/branding/logo.svg");
+    expect(link.getAttribute("type")).toBe("image/svg+xml");
+  });
+
+  it("drops the svg type for a non-SVG logo so it isn't mislabelled", () => {
+    iconLink();
+    applyFaviconFromLogo("/branding/logo.png");
+
+    const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')!;
+    expect(link.getAttribute("href")).toBe("/branding/logo.png");
+    expect(link.hasAttribute("type")).toBe(false);
+  });
+
+  it("keeps the svg type for a data:image/svg+xml logo", () => {
+    iconLink();
+    applyFaviconFromLogo("data:image/svg+xml,<svg/>");
+
+    const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')!;
+    expect(link.getAttribute("type")).toBe("image/svg+xml");
+  });
+
+  it("restores the built-in favicon when no logo is configured", () => {
+    iconLink();
+    applyFaviconFromLogo("/branding/logo.png");
+    applyFaviconFromLogo(null);
+
+    const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')!;
+    expect(link.getAttribute("href")).toBe("/favicon.svg");
+    expect(link.getAttribute("type")).toBe("image/svg+xml");
+  });
+
+  it("no-ops when there is no icon link to update", () => {
+    expect(() => applyFaviconFromLogo("/branding/logo.svg")).not.toThrow();
+    expect(document.querySelector('link[rel~="icon"]')).toBeNull();
+  });
+});
+
 describe("useBranding", () => {
   it("exposes the org name, or null when unset", () => {
     setBranding({ orgName: "  Erasmus MC  " });
@@ -69,5 +128,42 @@ describe("useBranding", () => {
 
     useThemeStore().setMode("dark");
     expect(logoUrl.value).toBe("/dark.svg");
+  });
+
+  it("falls back to the logo for the favicon when no favicon is configured", () => {
+    setBranding({ logoUrl: "/light.svg", logoUrlDark: "/dark.svg" });
+    const { faviconUrl } = useBranding();
+    expect(faviconUrl.value).toBe("/light.svg");
+
+    useThemeStore().setMode("dark");
+    expect(faviconUrl.value).toBe("/dark.svg");
+  });
+
+  it("uses a dedicated favicon independent of the logo, with its own dark variant", () => {
+    setBranding({
+      logoUrl: "/logo.svg",
+      faviconUrl: "/icon.svg",
+      faviconUrlDark: "/icon-dark.svg",
+    });
+    const { faviconUrl, logoUrl } = useBranding();
+    expect(faviconUrl.value).toBe("/icon.svg");
+    expect(logoUrl.value).toBe("/logo.svg");
+
+    useThemeStore().setMode("dark");
+    expect(faviconUrl.value).toBe("/icon-dark.svg");
+  });
+
+  it("applies a light-only favicon in dark mode too (no dark variant)", () => {
+    setBranding({ logoUrl: "/logo.svg", logoUrlDark: "/logo-dark.svg", faviconUrl: "/icon.svg" });
+    const { faviconUrl } = useBranding();
+
+    useThemeStore().setMode("dark");
+    // Explicit favicon wins over the logo's dark variant.
+    expect(faviconUrl.value).toBe("/icon.svg");
+  });
+
+  it("is null for the favicon when nothing is configured", () => {
+    setBranding(undefined);
+    expect(useBranding().faviconUrl.value).toBeNull();
   });
 });

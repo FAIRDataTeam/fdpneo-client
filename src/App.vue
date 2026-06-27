@@ -16,11 +16,17 @@ import AppFooter from "@/components/shared/AppFooter.vue";
 import AppErrorBoundary from "@/components/shared/AppErrorBoundary.vue";
 import { useThemeStore } from "@/stores/theme";
 import { usePrefersDark } from "@/composables/usePrefersDark";
+import { useBranding, applyFaviconFromLogo } from "@/composables/useBranding";
 
 const theme = useThemeStore();
 const prefersDark = usePrefersDark();
+const { faviconUrl } = useBranding();
 
 watchEffect(() => theme.setSystemPrefersDark(prefersDark.value));
+
+// Drive the browser-tab favicon from the (theme-aware) branding favicon, which
+// itself falls back to the logo and then the built-in /favicon.svg.
+watchEffect(() => applyFaviconFromLogo(faviconUrl.value));
 </script>
 
 <template>

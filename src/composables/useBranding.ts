@@ -43,6 +43,9 @@ export const BRANDABLE_TOKENS: readonly string[] = [
 
 const STYLE_ELEMENT_ID = "fdp-branding";
 
+/** The built-in favicon shipped in `public/`; the fallback when no logo is configured. */
+const DEFAULT_FAVICON = "/favicon.svg";
+
 /** Serialize an allowlisted token map to CSS declarations (empty string if none). */
 function declarations(overrides: Record<string, string> | undefined): string {
   if (!overrides) return "";
@@ -82,6 +85,32 @@ export function applyBranding(): void {
   if (!existing) document.head.appendChild(el);
 }
 
+/**
+ * Point the browser-tab favicon at the deployer's logo when one is configured,
+ * else restore the built-in `/favicon.svg`. Updates the existing
+ * `<link rel="icon">` in place (idempotent — no-ops when the href is unchanged).
+ *
+ * The `type` is derived from the href so a PNG/ICO logo isn't mislabelled as the
+ * SVG the default link declares: SVG (by extension or `data:` MIME) keeps
+ * `image/svg+xml`; anything else drops the attribute and lets the browser sniff.
+ *
+ * Pass the theme-aware `logoUrl` from `useBranding()` so the favicon follows the
+ * same light/dark variant as the header lockup.
+ */
+export function applyFaviconFromLogo(logoUrl: string | null): void {
+  if (typeof document === "undefined") return;
+  const link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+  if (!link) return;
+
+  const href = logoUrl || DEFAULT_FAVICON;
+  if (link.getAttribute("href") === href) return;
+  link.setAttribute("href", href);
+
+  const isSvg = /\.svg(?:[?#]|$)/i.test(href) || href.startsWith("data:image/svg+xml");
+  if (isSvg) link.setAttribute("type", "image/svg+xml");
+  else link.removeAttribute("type");
+}
+
 /** Reactive branding accessors for components. */
 export function useBranding() {
   const theme = useThemeStore();
@@ -94,5 +123,17 @@ export function useBranding() {
     return branding.logoUrl || null;
   });
 
-  return { orgName, logoUrl };
+  // The browser-tab favicon. Prefers the dedicated `favicon*` keys, then falls
+  // back to the header logo so a single configured logo still drives the tab
+  // icon (and the built-in default when nothing is set). An explicit favicon
+  // wins over the logo in both themes; a light-only favicon also applies in dark
+  // unless `faviconUrlDark` overrides it.
+  const faviconUrl = computed(() => {
+    const dark = theme.resolvedTheme === "dark";
+    if (dark && branding.faviconUrlDark) return branding.faviconUrlDark;
+    if (branding.faviconUrl) return branding.faviconUrl;
+    return logoUrl.value;
+  });
+
+  return { orgName, logoUrl, faviconUrl };
 }
