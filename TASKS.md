@@ -2466,10 +2466,13 @@ Brazilian Portuguese (`pt-BR`), Dutch (`nl`), Spanish (`es`), German (`de`), Fre
   locale first.
 
 ### 18.7 Remaining surfaces — ⬜ deferred (follow-on PRs)
-- SHACL editor, ODRL composer, admin views (users/settings/resource-defs), metrics widgets,
+- ODRL composer, admin views (users/settings/resource-defs), metrics widgets,
   profile/settings, API keys, repository edit, license editor, SPARQL playground. Same
   `useI18n()` pattern; each its own PR. App is multilingual-capable but not 100% extracted
   until these land.
+- **SHACL editor is NOT in 18.7** — it's being replaced via **Phase 19** (Contour
+  integration), which brings its own translations; translating the old editor would be
+  throwaway work.
 
 ### 18.8 Gate — ✅ (lint + typecheck + 428 unit tests green; build OK)
 - `npm run lint && npm run typecheck && npm run test:unit` green; `i18n.spec.ts` +
@@ -2481,6 +2484,94 @@ Brazilian Portuguese (`pt-BR`), Dutch (`nl`), Spanish (`es`), German (`de`), Fre
 
 **Sequencing:** 18.1–18.2 done; 18.3 unblocks the visible switcher; 18.4–18.6 are the
 this-phase extraction; 18.7 is explicitly out of this phase.
+
+---
+
+## 19. Integrate the "Contour" visual SHACL editor — planned (2026-06-30)
+
+**Motivation:** a separate, feature-rich standalone editor ("Contour", sibling repo —
+Vue 3 + n3, no Vue Flow/Pinia/router, custom i18n, builds single-file) is more complete at
+SHACL modeling than the in-client editor and is **already translated to the same 6
+languages**. Rather than translate the current editor in 18.7 (throwaway) we replace its
+engine with Contour's and graft on the FDP-specific integration. Decision: **Option A**
+(adopt Contour's engine), recorded after a feature inventory of both + a file-level design.
+
+**Sourcing:** the two repos stay **independent projects** — we **copy** the needed
+functionality from Contour into the client (vendoring) and adapt it here; **no npm package,
+submodule, or iframe link, and no changes to Contour itself.** Copied files carry a header
+crediting Contour + the source commit so a future re-sync is traceable. Contour continues to
+ship as its own standalone app.
+
+**Key facts driving the design:**
+- **Clean Turtle boundary.** [SchemaEditorView.vue](src/views/SchemaEditorView.vue) is a
+  lifecycle host whose entire server contract is Turtle strings: `getSchemaTurtle(id)` in,
+  `putSchema(id, turtle)` out, `validateSample(id, sample)` → `SchemaViolation[]`, plus the
+  schema list/slug/protected/delete logic. Contour's engine is also Turtle-in/out, so the
+  host + server wiring stay; the editor *body* is swapped underneath.
+- **Multi-shape mismatch (the crux).** FDP's model ([model.ts](src/components/shacl-editor/model.ts))
+  is genuinely multi-shape (`SchemaDocument { shapes: ShapeModel[] }`) and `parse.spec.ts`
+  exercises it; the Vue Flow canvas (inter-shape edges + resource-type ghost nodes) depends
+  on it. Contour ([../Contour/src/types.ts](../Contour/src/types.ts)) is primary-shape +
+  flat `nestedShapes[]` (with a designed-but-inactive `ShapesDoc` peer model). **Resolution:
+  keep FDP's `shapes[]` as the document wrapper; use Contour's richer per-shape `Field`
+  engine inside it.**
+- **Contour `Field` is richer:** language-tagged `sh:name`/`sh:description` (+ translations),
+  field-level `sh:or` (`orTypes`), `sh:inversePath`, `sh:message`/`sh:severity`, tagged
+  `sh:in` (literal vs IRI). These are the features we gain.
+- **i18n is compatible:** Contour's nested messages, `{name}` interpolation and `{one,other}`
+  plurals map 1:1 to vue-i18n. Work = normalize tags (`nl-NL→nl`, `es-ES→es`, `de-DE→de`,
+  `fr-FR→fr`; `en`/`pt-BR` already match), namespace under `schemaEditor.*`, swap Contour's
+  `useI18n` for vue-i18n's, and **drop its `localStorage`** (draft/recent/`contour.locale`) —
+  CLAUDE.md forbids storage; server is source of truth.
+- **Canvas:** keep FDP's Vue Flow canvas (carries resource-type ghost nodes via
+  `useResourceTypes` + server-violation badges — both FDP-only) fed from the model via
+  [graph.ts](src/components/shacl-editor/graph.ts) `buildShapeGraph`. Contour's `GraphView`
+  may return later as an optional read-only graph.
+
+### 19.1 i18n merge groundwork — ⬜
+- Fold Contour's 6 bundles into the client `vue-i18n` instance under `schemaEditor.*`;
+  normalize locale tags to the client's set. Extend `i18n.spec.ts` key-parity to the new
+  namespace. No UI wiring yet.
+
+### 19.2 Vendor Contour's engine — ⬜
+- Bring `types.ts`, `shacl.ts` (parse/generate), `rdf.ts`, `data.ts`, `validation.ts`,
+  `composables/{useSchema,useDrag}.ts` into `src/components/shacl-editor/` (subfolder).
+  Rewire imports to vue-i18n + shared client rdf utils where they overlap; drop unused deps
+  (`marked`, font packages). Port Contour's model tests (parse/generate/roundtrip/
+  preservation/useSchema/validation) — they must pass green.
+
+### 19.3 Multi-shape wrapper + canvas adapter — ⬜
+- Define the document wrapper: FDP `shapes[]` around Contour per-shape `Schema`/`NodeShape`
+  (activate Contour's `ShapesDoc` adapters or wrap). Provide Turtle↔doc for multiple peer
+  shapes. Adapt `buildShapeGraph` to the new model so the Vue Flow canvas + ghost nodes +
+  edges keep working.
+
+### 19.4 Swap the editor body + server wiring — ⬜
+- In `SchemaEditorView`, replace the SHACL/Visual/Preview tab bodies with Contour components
+  (`Canvas`/`Inspector`/`Palette`/`FormPreview`/`OrTypesEditor`/`TranslationsEditor`/…) fed
+  by the new store. Keep list/save/delete/slug/protected. Load via `getSchemaTurtle`→parse;
+  save via generate→`putSchema`. Re-add server-violation→field mapping (port the idea from
+  [violations.ts](src/components/shacl-editor/violations.ts)). Wire resource-type ghost nodes.
+  Keep Monaco for the raw-Turtle tab.
+
+### 19.5 Remove Contour's local storage + locale self-management — ⬜
+- Strip `usePersistence` (draft/recent) and Contour's `useI18n` locale detection/persistence;
+  drive locale from the client locale store. Prune now-dead deps.
+
+### 19.6 Retire old editor internals — ⬜
+- Once parity is confirmed, delete FDP's `model/parse/serialize/mutations/preview/widgets`
+  and the superseded components + their specs. Update `SchemaEditorView` imports.
+
+### 19.7 Gate + manual verify — ⬜
+- `npm run lint && npm run typecheck && npm run test:unit` + build green. Manual: round-trip
+  a known schema (import .ttl → edit → export → diff), save + sample-validate against the
+  live server (violations annotate fields/canvas), and switch all 6 languages in the editor
+  from the header switcher.
+
+**Sequencing:** 19.1 is independent (do first). 19.2→19.3→19.4 are the core swap and land
+together or as a tight series behind the existing editor until 19.4 flips it. 19.5–19.6 are
+cleanup once 19.4 is proven; 19.7 gates the phase. The editor-independent 18.7 surfaces can
+proceed in parallel since they don't touch the editor.
 
 ---
 
