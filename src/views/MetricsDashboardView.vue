@@ -14,6 +14,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useFormat } from "@/composables/useFormat";
 import { useMetricsOverview, useResourceMetrics } from "@/composables/useMetrics";
 import { apiBase } from "@/api/rdf";
 import type { TimeRange } from "@/api/metrics";
@@ -62,9 +63,9 @@ watch(
 const focusResourceRef = computed(() => focusResource.value);
 const { data: resource } = useResourceMetrics(focusResourceRef, range);
 
-const numberFmt = new Intl.NumberFormat();
+const { formatNumber } = useFormat();
 function fmt(n: number): string {
-  return numberFmt.format(n);
+  return formatNumber(n);
 }
 function latency(ms: number | null): string {
   return ms === null ? "—" : `${Math.round(ms)} ms`;

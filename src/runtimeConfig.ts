@@ -44,6 +44,12 @@ export interface FdpRuntimeConfig {
   apiUrl?: string;
   /** The origin this SPA is served from (OIDC redirect_uri base). */
   publicOrigin?: string;
+  /**
+   * Default UI language as a BCP-47 tag (e.g. `"nl"`, `"pt-BR"`). When set and
+   * supported, the app boots in this locale instead of guessing from the
+   * browser. Unknown/unsupported tags are ignored. See `src/i18n/locales.ts`.
+   */
+  defaultLocale?: string;
   /** Optional deployer white-label overrides (colors, logo, org name). */
   branding?: BrandingConfig;
 }
@@ -54,9 +60,14 @@ declare global {
   }
 }
 
-function read(key: "apiUrl" | "publicOrigin"): string | undefined {
+function read(key: "apiUrl" | "publicOrigin" | "defaultLocale"): string | undefined {
   const v = typeof window !== "undefined" ? window.__FDP_CONFIG__?.[key]?.trim() : undefined;
   return v ? v : undefined;
+}
+
+/** Deployer-configured default UI locale (BCP-47), or undefined when unset. */
+export function runtimeDefaultLocale(): string | undefined {
+  return read("defaultLocale");
 }
 
 /** Deployer white-label overrides, or an empty object when none are configured. */

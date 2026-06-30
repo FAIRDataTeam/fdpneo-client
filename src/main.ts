@@ -15,6 +15,8 @@ import PrimeVue from "primevue/config";
 
 import App from "./App.vue";
 import { router } from "./router";
+import { i18n } from "./i18n";
+import { SUPPORTED_LOCALES } from "./i18n/locales";
 import { useAuthStore } from "./stores/auth";
 import { useConfigStore } from "./stores/config";
 import { configureOidc } from "./auth/userManager";
@@ -60,7 +62,14 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 app.use(VueQueryPlugin);
+app.use(i18n);
 app.use(PrimeVue, { ripple: false });
+
+// Reflect the resolved boot locale on <html> (a11y/SEO) before mount; the locale
+// store keeps lang/dir in sync on every subsequent switch.
+const bootLocale = i18n.global.locale.value;
+document.documentElement.lang = bootLocale;
+document.documentElement.dir = SUPPORTED_LOCALES.find((l) => l.code === bootLocale)?.dir ?? "ltr";
 
 // Bootstrap sequence (order matters):
 //  1. Read `/config` so OIDC settings + feature flags come from the server, not

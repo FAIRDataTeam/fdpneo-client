@@ -8,9 +8,11 @@ import { computed } from "vue";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
 import { constraintHint, detailKey, langKey } from "@/api/entityForms";
 import { orderedLanguages, type LanguageOption } from "@/api/languages";
+import { useLocaleStore } from "@/stores/locale";
 
-// Browser language first, then English, then the rest (note #26).
-const languages = orderedLanguages();
+// Active UI language first, then English, then the rest (note #26).
+const locale = useLocaleStore();
+const languages = orderedLanguages(locale.rdfLang);
 function langOptions(current: string): LanguageOption[] {
   if (current && !languages.some((l) => l.code === current)) {
     return [{ code: current, name: current }, ...languages];

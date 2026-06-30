@@ -6,6 +6,7 @@
  * below. Reuses the same primitives as the record detail.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useCatalogs } from "@/composables/useCatalogs";
 import { useRepository } from "@/composables/useRepository";
 import { useAuthStore } from "@/stores/auth";
@@ -16,6 +17,7 @@ import MetaItem from "@/components/metadata/MetaItem.vue";
 import RdfPreviewPanel from "@/components/metadata/RdfPreviewPanel.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { data: repo } = useRepository();
 const newCatalogLink = computed(
@@ -34,24 +36,22 @@ const totalRecords = computed(() =>
   <section class="hero">
     <div class="hero__inner">
       <div class="hero__copy">
-        <div class="eyebrow mono">FAIR Data Point</div>
+        <div class="eyebrow mono">{{ t("metadata.eyebrow") }}</div>
         <h1>{{ repoTitle }}</h1>
         <p v-if="repoDescription">{{ repoDescription }}</p>
-        <p v-else>
-          Open metadata for cohort, imaging, biobank and registry data maintained by
-          Erasmus MC researchers. Browse the catalogs, search across records, or query
-          the SPARQL endpoint.
-        </p>
+        <p v-else>{{ t("metadata.defaultDescription") }}</p>
         <RouterLink v-if="auth.isSteward" to="/repository/edit" class="btn sm edit-repo">
-          <AppIcon name="edit" :size="12" /> Edit repository
+          <AppIcon name="edit" :size="12" /> {{ t("metadata.editRepository") }}
         </RouterLink>
       </div>
       <aside class="hero__card">
-        <MetaItem label="Catalogs">{{ catalogCount }} · {{ totalRecords }} records</MetaItem>
+        <MetaItem :label="t('metadata.metaCatalogs')">{{
+          t("metadata.metaCatalogsValue", { catalogs: catalogCount, records: totalRecords })
+        }}</MetaItem>
         <div class="gap" />
-        <MetaItem label="Conforms to" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
+        <MetaItem :label="t('metadata.metaConformsTo')" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
         <div class="gap" />
-        <MetaItem label="License">CC BY 4.0 · open metadata</MetaItem>
+        <MetaItem :label="t('metadata.metaLicense')">{{ t("metadata.metaLicenseValue") }}</MetaItem>
         <div class="gap" />
         <RdfPreviewPanel record-id="" />
       </aside>
@@ -61,16 +61,16 @@ const totalRecords = computed(() =>
   <section class="catalogs">
     <div class="catalogs__inner">
       <div class="catalogs__head">
-        <h2>Catalogs</h2>
+        <h2>{{ t("metadata.catalogsHeading") }}</h2>
         <RouterLink v-if="auth.isSteward" :to="newCatalogLink" class="btn sm new-catalog">
-          <AppIcon name="plus" :size="12" /> New catalog
+          <AppIcon name="plus" :size="12" /> {{ t("metadata.newCatalog") }}
         </RouterLink>
         <div class="sort">
-          <span>Sort: most recent</span>
+          <span>{{ t("metadata.sortMostRecent") }}</span>
           <AppIcon name="chevron-d" :size="12" />
         </div>
       </div>
-      <div v-if="isLoading" class="loading">Loading…</div>
+      <div v-if="isLoading" class="loading">{{ t("common.loading") }}</div>
       <div v-else class="grid">
         <CatalogCard v-for="c in catalogs" :key="c.id" :catalog="c" />
       </div>

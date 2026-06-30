@@ -18,10 +18,12 @@
  */
 import { onErrorCaptured, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import { safeHref } from "@/composables/safeUrl";
 import AppIcon from "./AppIcon.vue";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -71,18 +73,20 @@ function goHome() {
 
         <p v-if="safeHref(parsed.docsUrl)" class="docs">
           <a :href="safeHref(parsed.docsUrl)" target="_blank" rel="noopener noreferrer">
-            Read the relevant docs <AppIcon name="arrow-r" :size="12" />
+            {{ t("errorBoundary.readDocs") }} <AppIcon name="arrow-r" :size="12" />
           </a>
         </p>
 
         <div class="actions">
-          <button class="btn primary" @click="tryAgain">Try again</button>
-          <button class="btn" @click="goHome">Go to home</button>
+          <button class="btn primary" @click="tryAgain">{{ t("errorBoundary.tryAgain") }}</button>
+          <button class="btn" @click="goHome">{{ t("errorBoundary.goHome") }}</button>
         </div>
 
         <p class="meta mono">
-          <span>code: {{ parsed.code }}</span>
-          <span v-if="parsed.status !== null"> · status: {{ parsed.status }}</span>
+          <span>{{ t("errorBoundary.code", { code: parsed.code }) }}</span>
+          <span v-if="parsed.status !== null">
+            · {{ t("errorBoundary.status", { status: parsed.status }) }}</span
+          >
         </p>
       </div>
     </section>

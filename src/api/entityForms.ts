@@ -25,6 +25,7 @@ import {
   setLiterals,
   shortLabel,
 } from "./rdf";
+import { translate } from "@/i18n";
 
 /**
  * A resource type's URL prefix. Runtime-defined (ADR-0009), so this is an
@@ -953,9 +954,9 @@ export function validateConstraints(
     });
 
     if (f.minLength != null && s.length < f.minLength)
-      return fail(`must be at least ${f.minLength} characters`);
+      return fail(translate("validation.minLength", { min: f.minLength }));
     if (f.maxLength != null && s.length > f.maxLength)
-      return fail(`must be at most ${f.maxLength} characters`);
+      return fail(translate("validation.maxLength", { max: f.maxLength }));
     if (f.pattern) {
       let re: RegExp | null = null;
       try {
@@ -963,19 +964,20 @@ export function validateConstraints(
       } catch {
         re = null; // an un-compilable pattern is left to the server
       }
-      if (re && !re.test(s)) return fail(`must match the pattern ${f.pattern}`);
+      if (re && !re.test(s))
+        return fail(translate("validation.pattern", { pattern: f.pattern }));
     }
     if (f.kind === "number") {
       const n = Number(s);
       if (Number.isFinite(n)) {
         if (f.minInclusive != null && n < f.minInclusive)
-          return fail(`must be ≥ ${f.minInclusive}`);
+          return fail(translate("validation.minInclusive", { value: f.minInclusive }));
         if (f.maxInclusive != null && n > f.maxInclusive)
-          return fail(`must be ≤ ${f.maxInclusive}`);
+          return fail(translate("validation.maxInclusive", { value: f.maxInclusive }));
         if (f.minExclusive != null && n <= f.minExclusive)
-          return fail(`must be > ${f.minExclusive}`);
+          return fail(translate("validation.minExclusive", { value: f.minExclusive }));
         if (f.maxExclusive != null && n >= f.maxExclusive)
-          return fail(`must be < ${f.maxExclusive}`);
+          return fail(translate("validation.maxExclusive", { value: f.maxExclusive }));
       }
     }
   }

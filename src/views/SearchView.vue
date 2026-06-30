@@ -11,6 +11,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useSearch, DEFAULT_SEARCH_LIMIT } from "@/composables/useSearch";
 import { useSavedQueries } from "@/composables/useSavedQueries";
 import { useAuthStore } from "@/stores/auth";
@@ -28,6 +29,7 @@ import AppIcon from "@/components/shared/AppIcon.vue";
 // route instead of bouncing to /search.
 const props = withDefaults(defineProps<{ routeName?: string }>(), { routeName: "search" });
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -157,39 +159,45 @@ function runSaved(sq: SavedQueryView) {
         <AppIcon name="search" :size="18" color="var(--ink-2)" />
         <input
           v-model="query"
-          aria-label="Search query"
-          placeholder="Search records, keywords, themes…"
+          :aria-label="t('search.queryAria')"
+          :placeholder="t('search.placeholder')"
           @change="pushUrl"
         />
         <AppChip v-for="c in activeFacetChips" :key="c.group + c.value" variant="outline">
           {{ c.group }}:{{ prettyValue(c.group, c.value) }}
-          <button class="x" aria-label="Remove facet" @click.prevent="clearActiveFacet(c.group, c.value)">
+          <button
+            class="x"
+            :aria-label="t('search.removeFacet')"
+            @click.prevent="clearActiveFacet(c.group, c.value)"
+          >
             <AppIcon name="x" :size="11" />
           </button>
         </AppChip>
       </div>
-      <button class="btn primary" type="submit">Search</button>
+      <button class="btn primary" type="submit">{{ t("search.searchButton") }}</button>
     </form>
     <div class="bar__meta">
-      <span>{{ total }} result{{ total === 1 ? "" : "s" }}</span>
+      <span>{{ t("search.results", total) }}</span>
       <span v-if="total">·</span>
-      <span v-if="total">showing {{ rangeStart }}–{{ rangeEnd }}</span>
+      <span v-if="total">{{ t("search.showing", { start: rangeStart, end: rangeEnd }) }}</span>
     </div>
   </section>
 
   <section class="results">
     <div class="results__col">
-      <div v-if="isLoading" class="loading">Loading…</div>
+      <div v-if="isLoading" class="loading">{{ t("common.loading") }}</div>
       <template v-else>
-        <div v-if="results.length === 0" class="loading">No records match your search.</div>
+        <div v-if="results.length === 0" class="loading">{{ t("search.noResults") }}</div>
         <RecordCard v-for="rec in results" :key="rec.id" :record="rec" :highlight="query" />
         <div v-if="canPrev || canNext" class="pager">
           <button class="btn ghost sm" :disabled="!canPrev" @click="prevPage">
-            <AppIcon name="chevron-l" :size="13" /> Previous
+            <AppIcon name="chevron-l" :size="13" /> {{ t("search.previous") }}
           </button>
-          <span class="small muted">{{ rangeStart }}–{{ rangeEnd }} of {{ total }}</span>
+          <span class="small muted">{{
+            t("search.rangeOf", { start: rangeStart, end: rangeEnd, total })
+          }}</span>
           <button class="btn ghost sm" :disabled="!canNext" @click="nextPage">
-            Next <AppIcon name="chevron-r" :size="13" />
+            {{ t("search.next") }} <AppIcon name="chevron-r" :size="13" />
           </button>
         </div>
       </template>
@@ -205,27 +213,36 @@ function runSaved(sq: SavedQueryView) {
       />
 
       <div v-if="auth.isAuthenticated" class="saved">
-        <h3 class="saved__title">Saved searches</h3>
+        <h3 class="saved__title">{{ t("search.savedSearches") }}</h3>
         <form class="saved__new" @submit.prevent="saveCurrent">
-          <input v-model="newName" placeholder="Name this search…" aria-label="Saved search name" />
+          <input
+            v-model="newName"
+            :placeholder="t('search.nameThisSearch')"
+            :aria-label="t('search.savedSearchName')"
+          />
           <button class="btn ghost sm" type="submit" :disabled="!newName.trim() || saved.create.isPending.value">
-            Save
+            {{ t("search.save") }}
           </button>
         </form>
         <ul class="saved__list">
           <li v-for="sq in saved.queries.value" :key="sq.id">
             <button class="saved__run" @click="runSaved(sq)">{{ sq.name }}</button>
-            <AppChip v-if="sq.shared" variant="accent">shared</AppChip>
+            <AppChip v-if="sq.shared" variant="accent">{{ t("search.shared") }}</AppChip>
             <button
               v-if="auth.isAdmin"
               class="x"
-              :aria-label="sq.shared ? 'Unshare' : 'Share'"
-              :title="sq.shared ? 'Unshare' : 'Share'"
+              :aria-label="sq.shared ? t('search.unshare') : t('search.share')"
+              :title="sq.shared ? t('search.unshare') : t('search.share')"
               @click="saved.setShared.mutate({ id: sq.id, shared: !sq.shared })"
             >
               <AppIcon name="globe" :size="12" />
             </button>
-            <button v-if="sq.mine" class="x" aria-label="Delete saved search" @click="saved.remove.mutate(sq.id)">
+            <button
+              v-if="sq.mine"
+              class="x"
+              :aria-label="t('search.deleteSavedSearch')"
+              @click="saved.remove.mutate(sq.id)"
+            >
               <AppIcon name="x" :size="12" />
             </button>
           </li>

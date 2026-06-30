@@ -12,11 +12,13 @@
  * documentation links.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import ReadinessStrip from "@/components/shared/ReadinessStrip.vue";
 import { useAppInfo } from "@/composables/useAppInfo";
 import { buildLabel } from "@/api/info";
 import { servingBase } from "@/api/rdf";
 
+const { t } = useI18n();
 const { data: info } = useAppInfo();
 
 // "API" opens the server's interactive OpenAPI UI (served at /fdp-api/docs);
@@ -51,10 +53,10 @@ const serverTitle = computed(() => {
     </div>
     <div class="right">
       <ReadinessStrip />
-      <a :href="apiDocsUrl" target="_blank" rel="noopener">API</a>
-      <RouterLink to="/appearance">Appearance</RouterLink>
-      <RouterLink to="/about">About</RouterLink>
-      <a :href="SPEC_URL" target="_blank" rel="noopener">Specification</a>
+      <a :href="apiDocsUrl" target="_blank" rel="noopener">{{ t("footer.api") }}</a>
+      <RouterLink to="/appearance">{{ t("footer.appearance") }}</RouterLink>
+      <RouterLink to="/about">{{ t("footer.about") }}</RouterLink>
+      <a :href="SPEC_URL" target="_blank" rel="noopener">{{ t("footer.specification") }}</a>
     </div>
   </footer>
 </template>

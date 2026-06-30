@@ -8,6 +8,7 @@
  */
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { apiBase } from "@/api/rdf";
@@ -16,8 +17,10 @@ import { useBranding } from "@/composables/useBranding";
 import AppLogo from "./AppLogo.vue";
 import AppIcon from "./AppIcon.vue";
 import ThemeToggle from "./ThemeToggle.vue";
+import LanguageSwitcher from "./LanguageSwitcher.vue";
 import UserMenu from "./UserMenu.vue";
 
+const { t } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
 const config = useConfigStore();
@@ -31,7 +34,7 @@ const { data: repository } = useRepository();
 // Org name from deployer branding wins over the repository title.
 const { orgName } = useBranding();
 const deploymentName = computed(
-  () => orgName.value || repository.value?.title?.trim() || "FAIR Data Point",
+  () => orgName.value || repository.value?.title?.trim() || t("header.deploymentFallback"),
 );
 const deploymentHost = computed(
   () => apiBase().replace(/^https?:\/\//, "") || window.location.host,
@@ -70,20 +73,23 @@ defineProps<{ variant?: "default" | "minimal" }>();
         <AppIcon name="search" :size="15" color="var(--muted)" />
         <input
           v-model="query"
-          aria-label="Search records, keywords, themes"
-          placeholder="Search records, keywords, themes…"
+          :aria-label="t('header.searchAria')"
+          :placeholder="t('header.searchPlaceholder')"
         />
         <span class="kbd mono">⌘K</span>
       </form>
-      <RouterLink class="advanced-link" :to="{ name: 'advanced-search' }">Advanced search</RouterLink>
+      <RouterLink class="advanced-link" :to="{ name: 'advanced-search' }">{{
+        t("header.advancedSearch")
+      }}</RouterLink>
     </div>
+    <LanguageSwitcher />
     <ThemeToggle />
     <button v-if="!auth.isAuthenticated" class="btn ghost" @click="startSignIn">
-      Sign in
+      {{ t("header.signIn") }}
     </button>
     <template v-else>
       <RouterLink v-if="auth.isSteward" :to="newCatalogLink" class="btn create-btn">
-        <AppIcon name="plus" :size="14" /> Create
+        <AppIcon name="plus" :size="14" /> {{ t("header.create") }}
       </RouterLink>
       <UserMenu />
     </template>

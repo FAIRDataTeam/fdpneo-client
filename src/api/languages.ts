@@ -62,14 +62,19 @@ export function browserLanguage(): string {
   return (lang || "en").split("-")[0]!.toLowerCase();
 }
 
-/** Languages ordered: browser language first, then English, then the rest. */
-export function orderedLanguages(): LanguageOption[] {
-  const browser = browserLanguage();
+/**
+ * Languages ordered: the preferred language first, then English, then the rest.
+ * `preferred` defaults to the browser language; pass the active UI locale's
+ * subtag (locale store `rdfLang`) so the metadata language picker leads with the
+ * language the user chose for the interface.
+ */
+export function orderedLanguages(preferred: string = browserLanguage()): LanguageOption[] {
+  const lead = (preferred || browserLanguage()).split("-")[0]!.toLowerCase();
   const byCode = new Map(LANGUAGES.map((l) => [l.code, l]));
   const head: LanguageOption[] = [];
-  const browserOpt = byCode.get(browser);
-  if (browserOpt) head.push(browserOpt);
-  if (browser !== "en") {
+  const leadOpt = byCode.get(lead);
+  if (leadOpt) head.push(leadOpt);
+  if (lead !== "en") {
     const en = byCode.get("en");
     if (en) head.push(en);
   }

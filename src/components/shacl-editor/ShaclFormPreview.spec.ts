@@ -8,9 +8,10 @@
  * verifies the template wires each `previewKind` to the right control.
  */
 
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import { VueQueryPlugin } from "@tanstack/vue-query";
+import { createPinia, setActivePinia } from "pinia";
 import ShaclFormPreview from "./ShaclFormPreview.vue";
 import ReferencePicker from "@/components/metadata/ReferencePicker.vue";
 import { newField, newGroup } from "./factories";
@@ -38,6 +39,9 @@ function render(shape: ShapeModel) {
 }
 
 describe("ShaclFormPreview", () => {
+  // The preview reads the locale store for the language-picker ordering.
+  beforeEach(() => setActivePinia(createPinia()));
+
   it("renders a ReferencePicker for an instances-select editor", () => {
     const field = newField("InstancesSelectEditor");
     field.path = "dct:publisher";

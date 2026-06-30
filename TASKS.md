@@ -2406,10 +2406,88 @@ underspecified contracts" rule.
 
 ---
 
+## 18. Internationalization — multilingual UI (vue-i18n) — infra + shell done; 18.7 deferred (2026-06-30)
+
+**Motivation:** the client was English-only — every user-facing string hardcoded in
+`.vue` templates, `<script setup>` blocks, and a few `.ts` modules. This phase answers the
+long-standing "Internationalization scope for v1" open question (CLAUDE.md) and lets a user
+switch the UI language at runtime. **Launch languages:** English (`en`, baseline),
+Brazilian Portuguese (`pt-BR`), Dutch (`nl`), Spanish (`es`), German (`de`), French (`fr`).
+
+**Decisions (agreed with the maintainer):**
+- **Rollout:** build the full i18n infrastructure + all 6 locale bundles now; fully convert
+  the **app shell** + 2 flagship views this phase. The remaining ~75 views/components follow
+  in tracked sub-passes (18.7) using the identical `useI18n()` pattern.
+- **Translations:** all 5 non-English bundles are machine-authored and **flagged for
+  native-speaker review** (FAIR/RDF terms — catalog, schema, SHACL, IRI, steward).
+- **RDF labels:** the chosen UI locale also drives RDF-literal language preference
+  (`useLabels` / `api/languages.ts`) — one coherent language choice.
+- **No browser storage** (CLAUDE.md): locale is in-memory, defaulted from
+  `navigator.language` each load (mirrors the `theme` store). A deployer can pin a default
+  via `/config.js` (`defaultLocale`). Server-profile persistence is a future option.
+
+**New dependency:** `vue-i18n@^11` — the standard Vue 3 i18n library; clears the CLAUDE.md
+"don't add a dep casually" bar (no existing primitive solves UI translation).
+
+### 18.1 i18n core + locale catalog — ✅
+- `src/i18n/index.ts` (`createI18n`, `legacy: false`, `en` fallback; `translate`/`hasMessage`
+  helpers for non-component `.ts` modules), `src/i18n/locales.ts` (`SUPPORTED_LOCALES`
+  endonyms, `matchSupportedLocale`, `resolveInitialLocale`), `runtimeConfig.ts`
+  `defaultLocale` + `runtimeDefaultLocale()`.
+
+### 18.2 Locale message bundles — ✅
+- `src/i18n/messages/{en,pt-BR,nl,es,de,fr}.ts`. `en.ts` is the source of truth and exports
+  the `Messages` type; the other five are typed `: Messages` (compile-time key parity) and
+  flagged machine-authored. Named interpolation + plural (`a | b`) forms.
+
+### 18.3 Locale store + switcher — ✅
+- `src/stores/locale.ts` (in-memory; `setLocale` updates i18n locale, `<html lang/dir>`, and
+  exposes `rdfLang`). `src/components/shared/LanguageSwitcher.vue` in `AppHeader` beside
+  `ThemeToggle` (endonym menu, globe trigger, keyboard-navigable, i18n `aria-label`).
+- Wire `app.use(i18n)` in `main.ts` (sets `<html lang/dir>` on boot); add `defaultLocale`
+  to `public/config.js`. PrimeVue locale dictionary is **deferred** — no locale-bearing
+  PrimeVue widgets (Calendar/Paginator/Dialog) are in use, so it would be dead code today;
+  add it when one lands. **Test** `LanguageSwitcher.spec.ts`.
+
+### 18.4 Convert the app shell — ✅
+- `App.vue`, `AppHeader`, `AppFooter`, `UserMenu`, `ThemeToggle` (computed switch → keyed),
+  `AppErrorBoundary`, `NotFoundView`, `AuthCallbackView`.
+
+### 18.5 Centralized errors + validation — ✅
+- `api/errorMessages.ts` (21 codes → `errors.*` keys via `translate`/`hasMessage`, keeping
+  the server-message fallback) and the parameterized `validateConstraints` messages in
+  `api/entityForms.ts` (`validation.*`).
+
+### 18.6 Flagship views + locale-aware formatting + RDF coordination — ✅
+- Convert `MetadataBrowseView` and `SearchView` (incl. plural results count). Route
+  `MetricsDashboardView` number formatting and `TimeSeriesChart` date/time formatting through
+  the active locale. `useLabels` passes `rdfLang` into `fetchLabels` + the `queryKeys.labels`
+  key (`api/queries.ts`); `orderedLanguages()` (`api/languages.ts`) orders by the active UI
+  locale first.
+
+### 18.7 Remaining surfaces — ⬜ deferred (follow-on PRs)
+- SHACL editor, ODRL composer, admin views (users/settings/resource-defs), metrics widgets,
+  profile/settings, API keys, repository edit, license editor, SPARQL playground. Same
+  `useI18n()` pattern; each its own PR. App is multilingual-capable but not 100% extracted
+  until these land.
+
+### 18.8 Gate — ✅ (lint + typecheck + 428 unit tests green; build OK)
+- `npm run lint && npm run typecheck && npm run test:unit` green; `i18n.spec.ts` +
+  `locales.spec.ts` + `locale.spec.ts` + `LanguageSwitcher.spec.ts` (26 new tests) assert
+  key parity, resolution precedence, and switching. Still **TODO** (manual): switch each of the 6
+  languages → shell/footer/menu/404/error states change, `<html lang>` updates, reload
+  reverts to browser language, `defaultLocale` in `/config.js` boots in that locale, and a
+  German UI issues `GET /labels?...&lang=de`.
+
+**Sequencing:** 18.1–18.2 done; 18.3 unblocks the visible switcher; 18.4–18.6 are the
+this-phase extraction; 18.7 is explicitly out of this phase.
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13
   (`design/proposal-specimen-archive.html` + tokens.css extraction).
 - Accessibility audit pass once visual surfaces stabilize.
-- Internationalization — not in scope for v1 but the messaging layer should
-  not block it.
+- ~~Internationalization — not in scope for v1~~ — now in progress as **Phase 18**
+  (vue-i18n; en + pt-BR/nl/es/de/fr). Infra + shell first; remaining surfaces in 18.7.

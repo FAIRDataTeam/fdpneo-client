@@ -25,4 +25,10 @@
 // --accent-soft, --accent-line, --signal, --signal-soft, --paper, --paper-deep,
 // --surface, --ink. Unknown keys are ignored. Serve logos same-origin (or as a
 // data: URI) to satisfy the img-src CSP (see index.html).
+//
+// Default UI language (optional) — pin the language the app boots in instead of
+// guessing from the browser. BCP-47 tag; must be a supported locale, else ignored
+// (see src/i18n/locales.ts: en, pt-BR, nl, es, de, fr). Users can still switch.
+//
+//   window.__FDP_CONFIG__ = { defaultLocale: "nl" };
 window.__FDP_CONFIG__ = {};

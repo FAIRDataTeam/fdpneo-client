@@ -12,11 +12,13 @@ import { isRequired, missingRequired, previewKind, refWidget, type PreviewValues
 import { orderedLanguages } from "@/api/languages";
 import { expandPath } from "./violations";
 import { type PrefixDecl } from "@/rdf/namespaces";
+import { useLocaleStore } from "@/stores/locale";
 import ReferencePicker from "@/components/metadata/ReferencePicker.vue";
 
 // Language-tagged literals (rdf:langString / dash:*WithLangEditor) get a
-// language selector in the preview (note #26 ordering: browser first, then en).
-const languages = orderedLanguages();
+// language selector in the preview (note #26 ordering: UI language first, then en).
+const locale = useLocaleStore();
+const languages = orderedLanguages(locale.rdfLang);
 const langValues = ref<Record<string, string>>({});
 function isLang(f: Field): boolean {
   return f.datatype === "rdf:langString" || (f.editor?.endsWith("WithLangEditor") ?? false);

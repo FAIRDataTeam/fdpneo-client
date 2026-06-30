@@ -8,9 +8,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { registerCharts } from "@/charts/register";
+import { useFormat } from "@/composables/useFormat";
 import type { MetricsPoint } from "@/api/metrics";
 
 registerCharts();
+
+const { formatDate, locale } = useFormat();
 
 const props = defineProps<{
   points: MetricsPoint[];
@@ -60,14 +63,16 @@ const series = {
   visitors: { label: "Unique visitors", color: () => tokens.value.ok },
 } as const;
 
-const labels = computed(() =>
-  props.points.map((p) => {
+const labels = computed(() => {
+  // Reference the active locale so labels re-format when the language switches.
+  void locale.value;
+  return props.points.map((p) => {
     const d = new Date(p.t);
     return p.t.length === 10
-      ? d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      : d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  }),
-);
+      ? formatDate(d, { month: "short", day: "numeric" })
+      : formatDate(d, { hour: "2-digit", minute: "2-digit" });
+  });
+});
 
 const chartData = computed<ChartData<"line">>(() => ({
   labels: labels.value,
