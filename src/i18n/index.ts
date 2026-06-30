@@ -19,6 +19,7 @@ import nl from "./messages/nl";
 import es from "./messages/es";
 import de from "./messages/de";
 import fr from "./messages/fr";
+import { editorMessages } from "./messages/schema-editor";
 import { DEFAULT_LOCALE, resolveInitialLocale } from "./locales";
 
 export const i18n = createI18n({
@@ -28,13 +29,15 @@ export const i18n = createI18n({
   // Fall back silently: a gap in a translation should show English, not warn.
   missingWarn: false,
   fallbackWarn: false,
+  // Each locale carries the app shell's keys plus the vendored schema-editor
+  // (Contour) strings under `schemaEditor.*` — one instance, one active locale.
   messages: {
-    en,
-    "pt-BR": ptBR,
-    nl,
-    es,
-    de,
-    fr,
+    en: { ...en, schemaEditor: editorMessages.en },
+    "pt-BR": { ...ptBR, schemaEditor: editorMessages["pt-BR"] },
+    nl: { ...nl, schemaEditor: editorMessages.nl },
+    es: { ...es, schemaEditor: editorMessages.es },
+    de: { ...de, schemaEditor: editorMessages.de },
+    fr: { ...fr, schemaEditor: editorMessages.fr },
   },
 });
 

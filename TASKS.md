@@ -2528,10 +2528,20 @@ ship as its own standalone app.
   [graph.ts](src/components/shacl-editor/graph.ts) `buildShapeGraph`. Contour's `GraphView`
   may return later as an optional read-only graph.
 
-### 19.1 i18n merge groundwork — ⬜
-- Fold Contour's 6 bundles into the client `vue-i18n` instance under `schemaEditor.*`;
-  normalize locale tags to the client's set. Extend `i18n.spec.ts` key-parity to the new
-  namespace. No UI wiring yet.
+### 19.1 i18n merge groundwork — ✅ (2026-06-30)
+- Vendored Contour's 6 bundles to `src/i18n/messages/schema-editor/` (tag-normalized
+  `nl-NL→nl`/`es-ES→es`/`de-DE→de`/`fr-FR→fr`; provenance header @ Contour `4117ff2`),
+  composed into the one `vue-i18n` instance under `schemaEditor.*`
+  ([src/i18n/index.ts](src/i18n/index.ts)). Compile-time parity via a typed
+  `Record<EditorLocale, EditorMessages>` (typecheck confirmed Contour's translations are
+  complete) + runtime parity/empty/plural-shape spec.
+- **Refinement vs plan:** rather than rewrite ~300 component call sites, added a thin
+  `useI18n` **shim** at
+  [src/components/shacl-editor/contour/composables/useI18n.ts](src/components/shacl-editor/contour/composables/useI18n.ts)
+  presenting Contour's API (`t`/`plural`/`locale`) but backed by the single instance +
+  locale store (auto-prefixes `schemaEditor.`, resolves `{one,other}` plurals via `tm`).
+  Vendored components (19.2) keep their `../composables/useI18n` import unchanged.
+- Gate green: lint + typecheck + 444 unit tests (16 new). No UI wired yet.
 
 ### 19.2 Vendor Contour's engine — ⬜
 - Bring `types.ts`, `shacl.ts` (parse/generate), `rdf.ts`, `data.ts`, `validation.ts`,
