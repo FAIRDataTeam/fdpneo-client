@@ -1,9 +1,12 @@
 /**
  * Spanish UI messages.
  *
- * Machine-authored — pending native-speaker review, especially FAIR/RDF terms
- * (catálogo, esquema, SHACL, IRI, responsable). Typed `: Messages` so it must
- * stay structurally in step with `en.ts`.
+ * Term policy: traduce los términos corrientes (esquema, catálogo, repositorio,
+ * registro, metadatos, licencia) y mantiene los anglicismos asentados (token,
+ * endpoint, steward); las siglas se dejan igual (API, SPARQL, IRI, SHACL, RDF).
+ *
+ * Machine-authored — pending native-speaker review (esp. registro de "tú" vs
+ * "usted"). Typed `: Messages` so it must stay structurally in step with `en.ts`.
  */
 
 import type { Messages } from "./en";
@@ -90,7 +93,7 @@ const es: Messages = {
     fdp: {
       access: {
         denied:
-          "No tienes acceso a este registro. Si crees que esto es un error, contacta con el responsable indicado en la página del registro.",
+          "No tienes acceso a este registro. Si crees que esto es un error, contacta con el steward indicado en la página del registro.",
         unauthenticated: "Inicia sesión para ver este registro.",
       },
       validation: {

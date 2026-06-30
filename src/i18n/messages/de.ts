@@ -1,9 +1,13 @@
 /**
  * German UI messages.
  *
- * Machine-authored — pending native-speaker review, especially FAIR/RDF terms
- * (Katalog, Schema, SHACL, IRI, Verwalter). Typed `: Messages` so it must stay
- * structurally in step with `en.ts`.
+ * Term policy: keep the established IT anglicisms (Repository, Token, Schema/
+ * Schemas, Steward, Endpoint — though we use the German "Endpunkt"); translate
+ * the rest (Datensatz for "record", Metadaten, Katalog, Lizenz, Richtlinien).
+ * Acronyms (API, SPARQL, IRI, SHACL, RDF) stay as-is. Formal register ("Sie").
+ *
+ * Machine-authored — pending native-speaker review. Typed `: Messages` so it
+ * must stay structurally in step with `en.ts`.
  */
 
 import type { Messages } from "./en";
@@ -31,7 +35,7 @@ const de: Messages = {
     signedIn: "Angemeldet",
     myMetadata: "Meine Metadaten",
     metrics: "Metriken",
-    schemas: "Schemata",
+    schemas: "Schemas",
     policies: "Richtlinien",
     licenses: "Lizenzen",
     resourceTypes: "Ressourcentypen",
@@ -90,7 +94,7 @@ const de: Messages = {
     fdp: {
       access: {
         denied:
-          "Sie haben keinen Zugriff auf diesen Datensatz. Wenn Sie meinen, dass das falsch ist, wenden Sie sich an den auf der Datensatzseite genannten Verwalter.",
+          "Sie haben keinen Zugriff auf diesen Datensatz. Wenn Sie meinen, dass das falsch ist, wenden Sie sich an den auf der Datensatzseite genannten Steward.",
         unauthenticated: "Melden Sie sich an, um diesen Datensatz zu sehen.",
       },
       validation: {

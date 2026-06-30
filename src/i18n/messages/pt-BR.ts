@@ -1,9 +1,13 @@
 /**
  * Brazilian Portuguese UI messages.
  *
- * Machine-authored — pending native-speaker review, especially FAIR/RDF terms
- * (catálogo, esquema, SHACL, IRI, curador). Typed `: Messages` so it must stay
- * structurally in step with `en.ts`.
+ * Term policy: traduz os termos correntes (esquema, catálogo, repositório,
+ * registro, metadados, licença) e mantém os anglicismos consagrados na área
+ * (token, endpoint, steward); siglas ficam como estão (API, SPARQL, IRI, SHACL,
+ * RDF).
+ *
+ * Machine-authored — pending native-speaker review. Typed `: Messages` so it
+ * must stay structurally in step with `en.ts`.
  */
 
 import type { Messages } from "./en";
@@ -90,7 +94,7 @@ const ptBR: Messages = {
     fdp: {
       access: {
         denied:
-          "Você não tem acesso a este registro. Se achar que isto está errado, fale com o curador indicado na página do registro.",
+          "Você não tem acesso a este registro. Se achar que isto está errado, fale com o steward indicado na página do registro.",
         unauthenticated: "Entre para ver este registro.",
       },
       validation: {

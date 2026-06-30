@@ -1,9 +1,14 @@
 /**
  * French UI messages.
  *
- * Machine-authored — pending native-speaker review, especially FAIR/RDF terms
- * (catalogue, schéma, SHACL, IRI, gestionnaire). Typed `: Messages` so it must
- * stay structurally in step with `en.ts`.
+ * Term policy: French institutional usage francise les termes techniques —
+ * dépôt (repository), jeton (token), point de terminaison (endpoint), schéma,
+ * enregistrement (record), catalogue, métadonnées ; on conserve les sigles
+ * (API, SPARQL, IRI, SHACL, RDF) et "steward" (terme FAIR). Registre formel
+ * ("vous").
+ *
+ * Machine-authored — pending native-speaker review. Typed `: Messages` so it
+ * must stay structurally in step with `en.ts`.
  */
 
 import type { Messages } from "./en";
@@ -90,7 +95,7 @@ const fr: Messages = {
     fdp: {
       access: {
         denied:
-          "Vous n'avez pas accès à cet enregistrement. Si vous pensez que c'est une erreur, contactez le gestionnaire indiqué sur la page de l'enregistrement.",
+          "Vous n'avez pas accès à cet enregistrement. Si vous pensez que c'est une erreur, contactez le steward indiqué sur la page de l'enregistrement.",
         unauthenticated: "Connectez-vous pour voir cet enregistrement.",
       },
       validation: {

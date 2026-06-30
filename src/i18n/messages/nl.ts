@@ -1,9 +1,13 @@
 /**
  * Dutch UI messages.
  *
- * Machine-authored — pending native-speaker review, especially FAIR/RDF terms
- * (catalogus, schema, SHACL, IRI, beheerder). Typed `: Messages` so it must stay
- * structurally in step with `en.ts`.
+ * Term policy: Dutch IT borrows English heavily, so we KEEP record, metadata,
+ * repository, endpoint, token, schema (schema's) and steward in English; we
+ * translate the rest (catalogus, licentie, instellingen, statistieken). Acronyms
+ * (API, SPARQL, IRI, SHACL, RDF) stay as-is.
+ *
+ * Machine-authored — pending native-speaker review. Typed `: Messages` so it
+ * must stay structurally in step with `en.ts`.
  */
 
 import type { Messages } from "./en";
@@ -32,7 +36,7 @@ const nl: Messages = {
     myMetadata: "Mijn metadata",
     metrics: "Statistieken",
     schemas: "Schema's",
-    policies: "Beleidsregels",
+    policies: "Beleid",
     licenses: "Licenties",
     resourceTypes: "Resourcetypen",
     settings: "Instellingen",
@@ -90,7 +94,7 @@ const nl: Messages = {
     fdp: {
       access: {
         denied:
-          "Je hebt geen toegang tot dit record. Als je denkt dat dit onjuist is, neem dan contact op met de beheerder die op de recordpagina staat.",
+          "Je hebt geen toegang tot dit record. Als je denkt dat dit onjuist is, neem dan contact op met de steward die op de recordpagina staat.",
         unauthenticated: "Log in om dit record te bekijken.",
       },
       validation: {
