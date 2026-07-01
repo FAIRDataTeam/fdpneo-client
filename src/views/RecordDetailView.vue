@@ -24,6 +24,7 @@ import RecordHero from "@/components/metadata/RecordHero.vue";
 import StatStrip from "@/components/metadata/StatStrip.vue";
 import SectionTitle from "@/components/shared/SectionTitle.vue";
 import PropList from "@/components/metadata/PropList.vue";
+import RecordSummaryCard from "@/components/metadata/RecordSummaryCard.vue";
 import DistributionList from "@/components/metadata/DistributionList.vue";
 import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
@@ -126,14 +127,9 @@ function changeState(to: MetadataState) {
         <PropList :record="record" />
         <template v-if="childRecords.length">
           <SectionTitle>{{ t("recordDetail.sectionContents") }}</SectionTitle>
-          <ul class="contents">
-            <li v-for="c in childRecords" :key="c.id">
-              <RouterLink :to="`/records/${c.id}`" class="content-link">
-                <span class="content-label">{{ c.label }}</span>
-                <span class="content-type mono">{{ c.typeLabel }}</span>
-              </RouterLink>
-            </li>
-          </ul>
+          <div class="contents">
+            <RecordSummaryCard v-for="c in childRecords" :key="c.id" :record="c" />
+          </div>
         </template>
         <template v-if="record.distributions.length">
           <SectionTitle>{{ t("recordDetail.sectionDistributions") }}</SectionTitle>
@@ -159,37 +155,15 @@ function changeState(to: MetadataState) {
   min-width: 0;
 }
 .contents {
-  list-style: none;
-  margin: 0 0 8px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 8px;
 }
-.content-link {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
-  text-decoration: none;
-  color: var(--ink);
-}
-.content-link:hover {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
-}
-.content-label {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 14px;
-}
-.content-type {
-  font-size: 11px;
-  color: var(--muted);
+@media (max-width: 640px) {
+  .contents {
+    grid-template-columns: 1fr;
+  }
 }
 .state-row {
   display: flex;

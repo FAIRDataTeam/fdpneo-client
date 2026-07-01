@@ -34,7 +34,7 @@ defineProps<{ record: FdpRecord }>();
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 .version {
@@ -42,21 +42,21 @@ defineProps<{ record: FdpRecord }>();
   color: var(--muted);
 }
 h1 {
-  margin: 0 0 18px;
+  margin: 0 0 10px;
   font-family: var(--font-serif);
   font-weight: 500;
   font-optical-sizing: auto;
-  font-size: 44px;
-  line-height: 1.08;
-  letter-spacing: -0.012em;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.008em;
   color: var(--ink);
 }
 .lede {
-  margin: 0 0 36px;
+  margin: 0 0 24px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 17px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--ink-2);
   letter-spacing: 0.005em;
 }
