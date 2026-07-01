@@ -1,18 +1,15 @@
 <script setup lang="ts">
 /**
- * Schema manager (client TASKS 9.5; server Phase 10.1).
+ * Schema manager (client TASKS 9.5; server Phase 10.1; editor: Phase 19).
  *
- * Lists published SHACL shapes and lets an admin author them as Turtle, save
- * (`PUT /schemas/{id}`), test a sample record against a saved shape
- * (`POST /schemas/{id}/validate`), and delete. This is the lifecycle surface
- * that makes the two-step flow guided: publish a shape here, then point a
- * resource definition at it in the type admin.
- *
- * Intentionally a text-first editor — the visual node-based SHACL canvas
- * (Phase 4) is separate, still future work. Turtle is the source of truth
- * either way, so this stays compatible with a later visual layer.
+ * Lists published SHACL shapes and hosts the visual schema editor (adopted from
+ * the standalone "Contour" editor, Phase 19) for authoring them. Keeps the FDP
+ * lifecycle: load a shape (`GET /schemas/{id}`), save (`PUT /schemas/{id}`),
+ * test a sample record against the saved shape (`POST /schemas/{id}/validate`),
+ * and delete. Turtle is the source of truth; `ContourEditor` round-trips it via
+ * `loadTurtle`/`getTurtle`.
  */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/auth";
 import {
@@ -26,15 +23,7 @@ import { useSchemas, useInvalidateSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import { slugify } from "@/utils/slug";
 import AppIcon from "@/components/shared/AppIcon.vue";
-import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
-import ShaclCanvas from "@/components/shacl-editor/ShaclCanvas.vue";
-import FormDesigner from "@/components/shacl-editor/FormDesigner.vue";
-import ShaclFormPreview from "@/components/shacl-editor/ShaclFormPreview.vue";
-import { shaclStatus, tidyTurtle } from "@/components/shacl-editor/status";
-import { parseSchema } from "@/components/shacl-editor/parse";
-import { serializeSchema } from "@/components/shacl-editor/serialize";
-import type { SchemaDocument } from "@/components/shacl-editor/model";
-import { useShaclEditorStore } from "@/stores/shaclEditor";
+import ContourEditor from "@/components/shacl-editor/contour/ContourEditor.vue";
 
 const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
@@ -51,8 +40,14 @@ const auth = useAuthStore();
 const { schemas, isLoading } = useSchemas();
 const invalidate = useInvalidateSchemas();
 
+// The embedded editor owns the working model; the view drives it through the
+// exposed loadTurtle/getTurtle and keeps the server lifecycle around it.
+// (Typed explicitly: the component instance type widens to `any`, which would
+// lose type-safety on these calls.)
+type EditorHandle = { loadTurtle: (turtle: string) => string | null; getTurtle: () => string };
+const editorRef = ref<EditorHandle | null>(null);
+
 const slug = ref("");
-const turtle = ref("");
 const sample = ref("");
 const savedId = ref<string | null>(null); // the id currently persisted (enables validate/delete)
 const error = ref<ParsedError | null>(null);
@@ -61,126 +56,38 @@ const loadingShape = ref(false);
 
 const slugLocked = computed(() => savedId.value !== null);
 
-// The id the schema is actually created under: the user types freely, but we
-// normalise to a URL-safe slug so ids stay consistent regardless of input. The
-// help text under the field previews this, so what-you-see is what's stored.
+// The id the schema is created under: the user types freely, but we normalise
+// to a URL-safe slug so ids stay consistent regardless of input.
 const effectiveSlug = computed(() => slugify(slug.value));
 
-// Protected shapes (the FDP root schema) report `deletable: false` from the
-// list: editing is allowed, deletion is not. Resolve the flag for the schema
-// currently loaded so the Delete action can be suppressed.
+// Protected shapes (the FDP root schema) report `deletable: false`: editing is
+// allowed, deletion is not.
 const currentSchema = computed(() => schemas.value.find((s) => s.id === savedId.value) ?? null);
 const canDelete = computed(() => currentSchema.value?.deletable !== false);
 
-// Live, non-destructive parse status for the Turtle source (does not reserialise).
-const status = computed(() => shaclStatus(turtle.value));
-
-const editorStore = useShaclEditorStore();
-const tab = ref<"shacl" | "visual" | "preview">("shacl");
-const previewShapeIri = ref<string | null>(null);
-
-// Working model for the Visual Editor: parsed once when the tab opens, then
-// mutated in place (client ids stay stable, so field selection survives edits)
-// and serialised straight back to the Turtle — never reparsed per keystroke.
-const model = ref<SchemaDocument | null>(null);
-
-function safeParse(t: string): SchemaDocument | null {
-  try {
-    return parseSchema(t);
-  } catch {
-    return null;
-  }
-}
-
-watch(tab, (t) => {
-  // Both visual surfaces read a freshly-parsed model from the Turtle.
-  if (t === "visual" || t === "preview") model.value = safeParse(turtle.value);
-  if (t === "visual") {
-    editorStore.select(null); // start on the shape graph, not a drill-in
-    editorStore.resetHistory(); // undo/redo is per editing session
-  }
-});
-
-function onDocChange(next: SchemaDocument) {
-  if (model.value) editorStore.record(model.value); // snapshot the pre-edit doc
-  model.value = next;
-  turtle.value = serializeSchema(next);
-}
-
-function undo() {
-  if (!model.value) return;
-  const prev = editorStore.undo(model.value);
-  if (prev) {
-    model.value = prev;
-    turtle.value = serializeSchema(prev);
-  }
-}
-function redo() {
-  if (!model.value) return;
-  const next = editorStore.redo(model.value);
-  if (next) {
-    model.value = next;
-    turtle.value = serializeSchema(next);
-  }
-}
-
-// Cmd/Ctrl+Z / +Shift+Z drive undo/redo while on the Visual Editor tab (the
-// SHACL tab has Monaco's own undo, so we stay out of its way).
-function onKeydown(e: KeyboardEvent) {
-  if (tab.value !== "visual" || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
-  e.preventDefault();
-  if (e.shiftKey) redo();
-  else undo();
-}
-onMounted(() => window.addEventListener("keydown", onKeydown));
-onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
-
-// Any edit to the Turtle invalidates a prior sample-validation run.
-watch(turtle, () => editorStore.clearViolations());
-
-// Drill-in target: the shape selected in the graph, by stable shapeIri.
-const selectedShape = computed(
-  () => model.value?.shapes.find((s) => s.shapeIri === editorStore.selectedIri) ?? null,
-);
-
-// The shape rendered in Form Preview (a picker when there are several).
-const previewShape = computed(() => {
-  const shapes = model.value?.shapes ?? [];
-  return shapes.find((s) => s.shapeIri === previewShapeIri.value) ?? shapes[0] ?? null;
-});
-
-async function copyTurtle() {
-  try {
-    await navigator.clipboard.writeText(turtle.value);
-  } catch {
-    /* clipboard unavailable (e.g. insecure context) — no-op */
-  }
-}
-
-// Tidy: lossless pretty-print of the current Turtle (preserves every triple).
-const tidying = ref(false);
-async function tidy() {
-  tidying.value = true;
-  try {
-    turtle.value = await tidyTurtle(turtle.value);
-  } catch {
-    /* invalid Turtle — the status pill already flags it */
-  } finally {
-    tidying.value = false;
-  }
+function currentTurtle(): string {
+  return editorRef.value?.getTurtle() ?? "";
 }
 
 function clientError(title: string, message: string): ParsedError {
-  return { title, message, code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
+  return {
+    title,
+    message,
+    code: "client.validation",
+    status: null,
+    docsUrl: null,
+    violations: [],
+    fromServer: false,
+  };
 }
 
 function startNew() {
   slug.value = "";
-  turtle.value = STARTER;
   sample.value = "";
   savedId.value = null;
   error.value = null;
   result.value = null;
+  editorRef.value?.loadTurtle(STARTER);
 }
 
 async function load(id: string) {
@@ -188,7 +95,9 @@ async function load(id: string) {
   result.value = null;
   loadingShape.value = true;
   try {
-    turtle.value = await getSchemaTurtle(id);
+    const ttl = await getSchemaTurtle(id);
+    const parseErr = editorRef.value?.loadTurtle(ttl);
+    if (parseErr) error.value = clientError("Couldn't parse shape", parseErr);
     slug.value = id;
     savedId.value = id;
   } catch (e) {
@@ -200,9 +109,8 @@ async function load(id: string) {
 
 const save = useMutation({
   // Create: write under the normalised slug. Re-save of an existing schema:
-  // write back to its persisted id (never re-slugify a saved id, which could
-  // fork a legacy non-slug id into a new resource).
-  mutationFn: () => putSchema(savedId.value ?? effectiveSlug.value, turtle.value),
+  // write back to its persisted id (never re-slugify a saved id).
+  mutationFn: () => putSchema(savedId.value ?? effectiveSlug.value, currentTurtle()),
   onSuccess: async (info) => {
     savedId.value = info.id;
     error.value = null;
@@ -229,8 +137,6 @@ const preview = useMutation({
   onSuccess: (r) => {
     result.value = r;
     error.value = null;
-    // Surface violations as canvas annotations in the Visual Editor (4.4).
-    editorStore.setViolations(r.violations);
   },
   onError: (e) => {
     error.value = parseFdpError(e);
@@ -245,7 +151,7 @@ function onSave() {
     error.value = clientError("Missing id", "Give the schema an ID (name).");
     return;
   }
-  if (!turtle.value.trim()) {
+  if (!currentTurtle().trim()) {
     error.value = clientError("Empty shape", "The shape body can't be empty.");
     return;
   }
@@ -257,6 +163,9 @@ function onDelete() {
     remove.mutate(savedId.value);
   }
 }
+
+// Seed a starter shape once the editor is mounted.
+onMounted(() => startNew());
 </script>
 
 <template>
@@ -320,70 +229,8 @@ function onDelete() {
           <span class="help mono">/schemas/{{ effectiveSlug || "…" }}</span>
         </label>
 
-        <div class="tabs" role="tablist">
-          <button
-            class="tab"
-            :class="{ active: tab === 'shacl' }"
-            role="tab"
-            :aria-selected="tab === 'shacl'"
-            @click="tab = 'shacl'"
-          >
-            <AppIcon name="code" :size="13" /> SHACL
-            <span v-if="!status.ok" class="dot" title="The Turtle doesn't parse" aria-label="parse error"></span>
-          </button>
-          <button
-            class="tab"
-            :class="{ active: tab === 'visual' }"
-            role="tab"
-            :aria-selected="tab === 'visual'"
-            @click="tab = 'visual'"
-          >
-            <AppIcon name="tree" :size="13" /> Visual Editor
-            <span class="new-pill">NEW</span>
-          </button>
-          <button
-            class="tab"
-            :class="{ active: tab === 'preview' }"
-            role="tab"
-            :aria-selected="tab === 'preview'"
-            @click="tab = 'preview'"
-          >
-            <AppIcon name="eye" :size="13" /> Form Preview
-          </button>
-        </div>
-
-        <div v-show="tab === 'shacl'" class="tabpanel">
-        <div class="field">
-          <div class="field__head">
-            <span class="label">Shape (Turtle)</span>
-            <div class="srcactions">
-              <span class="pill" :class="status.ok ? 'ok' : 'bad'" role="status">
-                <template v-if="status.ok">
-                  ✓ {{ status.shapes }} shape{{ status.shapes === 1 ? "" : "s" }} ·
-                  {{ status.properties }} propert{{ status.properties === 1 ? "y" : "ies" }}
-                </template>
-                <template v-else>✕ Invalid SHACL</template>
-              </span>
-              <button
-                type="button"
-                class="btn sm"
-                :disabled="!status.ok || tidying"
-                title="Reformat the Turtle (lossless)"
-                @click="tidy"
-              >
-                {{ tidying ? "Tidying…" : "Tidy" }}
-              </button>
-              <button type="button" class="btn sm" @click="copyTurtle">
-                <AppIcon name="code" :size="12" /> Copy
-              </button>
-            </div>
-          </div>
-          <TurtleEditor v-model="turtle" aria-label="Shape (Turtle)" class="srceditor" />
-          <p v-if="loadingShape" class="help">Loading…</p>
-          <p v-else-if="!status.ok && status.error" class="srcerror mono">
-            {{ status.error }} — the last valid version is kept until this is fixed.
-          </p>
-        </div>
+        <p v-if="loadingShape" class="help">Loading…</p>
+        <ContourEditor ref="editorRef" />
 
         <div class="actions">
           <button
@@ -438,56 +285,6 @@ function onDelete() {
             </ul>
           </div>
         </div>
-        </div>
-
-        <div v-show="tab === 'visual'" class="tabpanel">
-          <div class="vtoolbar">
-            <button class="btn sm" :disabled="!editorStore.canUndo" title="Undo (Cmd/Ctrl+Z)" @click="undo">
-              ↶ Undo
-            </button>
-            <button class="btn sm" :disabled="!editorStore.canRedo" title="Redo (Cmd/Ctrl+Shift+Z)" @click="redo">
-              ↷ Redo
-            </button>
-          </div>
-          <template v-if="model">
-            <FormDesigner
-              v-if="selectedShape"
-              :doc="model"
-              :shape-id="selectedShape.id"
-              @update:doc="onDocChange"
-              @back="editorStore.select(null)"
-            />
-            <template v-else>
-              <p class="help">
-                Shapes in this schema and how they link
-                (<span class="mono">sh:node</span>/<span class="mono">sh:class</span>).
-                Click a shape to edit its form; drag to arrange.
-              </p>
-              <ShaclCanvas :doc="model" />
-            </template>
-          </template>
-          <p v-else class="srcerror mono">Fix the SHACL to see the shape graph.</p>
-        </div>
-
-        <div v-show="tab === 'preview'" class="tabpanel">
-          <template v-if="previewShape">
-            <p class="help">
-              Data-entry form a curator would use to populate a record of type
-              <span class="mono">{{ previewShape.targetClass || "(no target class)" }}</span>.
-              Generated live from the schema; test values are throwaway.
-            </p>
-            <label v-if="(model?.shapes.length ?? 0) > 1" class="field">
-              <span class="label">Preview shape</span>
-              <select v-model="previewShapeIri">
-                <option v-for="s in model?.shapes ?? []" :key="s.id" :value="s.shapeIri">
-                  {{ s.label || s.shapeIri }}
-                </option>
-              </select>
-            </label>
-            <ShaclFormPreview :shape="previewShape" :prefixes="model?.prefixes ?? []" />
-          </template>
-          <p v-else class="srcerror mono">Fix the SHACL to preview the form.</p>
-        </div>
       </div>
     </div>
   </section>
@@ -497,9 +294,8 @@ function onDelete() {
 .page {
   flex: 1;
   padding: 36px 80px 48px;
-  /* The authoring workbench (schema list + Monaco + visual canvas) needs room;
-     use the browser width up to a generous cap rather than the narrow reading
-     measure used elsewhere. */
+  /* The authoring workbench (schema list + editor) needs room; use the browser
+     width up to a generous cap rather than the narrow reading measure. */
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
@@ -628,94 +424,6 @@ textarea:disabled {
 .help {
   font-size: 11px;
   color: var(--muted);
-}
-.tabs {
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-}
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  white-space: nowrap;
-}
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-.dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--signal);
-}
-.new-pill {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--warn);
-  background: var(--warn-soft);
-  padding: 1px 5px;
-  border-radius: var(--r-3);
-}
-.tabpanel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.vtoolbar {
-  display: flex;
-  gap: 8px;
-}
-.field__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.srcactions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--r-1);
-  white-space: nowrap;
-}
-.pill.ok {
-  color: var(--ok);
-  background: var(--ok-soft);
-}
-.pill.bad {
-  color: var(--signal);
-  background: var(--signal-soft);
-}
-.srceditor {
-  height: 380px;
-}
-.srcerror {
-  font-size: 12px;
-  color: var(--signal);
-  background: var(--signal-soft);
-  border-radius: var(--r-1);
-  padding: 8px 10px;
-  margin: 0;
 }
 .actions {
   display: flex;

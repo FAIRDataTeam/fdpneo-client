@@ -2604,11 +2604,20 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
   the host can open a different server schema. Exposes `loadTurtle(ttl)` / `getTurtle()`.
 - Standalone + green (typecheck + lint + 575 tests); not yet wired into `SchemaEditorView`.
 
-### 19.4b Wire into `SchemaEditorView` + server — ⬜ (next)
-- Replace `SchemaEditorView`'s three tab bodies with `<ContourEditor>`. Keep the schema
-  list/save/delete/slug/protected lifecycle. On select → `getSchemaTurtle` → `editor.loadTurtle`;
-  on save → `editor.getTurtle()` → `putSchema`. Re-add server-validation → surface violations
-  (idea from [violations.ts](src/components/shacl-editor/violations.ts)).
+### 19.4b Wire into `SchemaEditorView` + server — ✅ code-complete (2026-07-01)
+- [SchemaEditorView.vue](src/views/SchemaEditorView.vue) rewritten: the three old tab bodies
+  (ShaclCanvas/FormDesigner/ShaclFormPreview + Monaco + tidy) are replaced by a single
+  `<ContourEditor ref>`. Kept the FDP lifecycle: schema list, id/slug, save/delete, protected
+  handling, and the server sample-validation testbed. `load(id)` → `getSchemaTurtle` →
+  `editorRef.loadTurtle`; `onSave` → `editorRef.getTurtle()` → `putSchema`. Editor handle typed
+  explicitly (the component instance type widens to `any`). Old editor imports/undo/tidy/parse
+  state removed; dead tab CSS dropped.
+- Gate green: lint + typecheck + 575 tests + build (the SchemaEditorView chunk now bundles the
+  editor + its scoped CSS). **⚠ Not yet exercised in a browser** — there are no component/E2E
+  tests that mount the editor in the view, so rendering, styling, drag-drop, and the live
+  server save/validate round-trip are **unverified** until 19.7 (manual/dev-server check).
+- Deferred to 19.8: mapping the testbed's server violations back onto editor fields (the old
+  canvas badge behaviour) — for now they show in the result panel as before.
 
 ### 19.5 Remove Contour's local storage + locale self-management — ⬜
 - We already skipped `usePersistence`/Contour's `useI18n` locale machinery when porting (the
