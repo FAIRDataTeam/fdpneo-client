@@ -4,8 +4,11 @@
  * base link through to the record view; everything else renders as text, with
  * the language tag / datatype shown for typed literals.
  */
+import { useI18n } from "vue-i18n";
 import { iriToId, apiBase } from "@/api/rdf";
 import type { SparqlBinding, SparqlValue } from "@/api/sparql";
+
+const { t } = useI18n();
 
 defineProps<{ vars: string[]; rows: SparqlBinding[] }>();
 
@@ -49,7 +52,7 @@ function suffix(value: SparqlValue): string {
           </td>
         </tr>
         <tr v-if="rows.length === 0">
-          <td :colspan="vars.length || 1" class="empty">No results.</td>
+          <td :colspan="vars.length || 1" class="empty">{{ t("sparql.noResults") }}</td>
         </tr>
       </tbody>
     </table>

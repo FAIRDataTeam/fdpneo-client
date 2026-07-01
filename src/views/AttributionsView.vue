@@ -11,8 +11,10 @@
  * attribution.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAppInfo } from "@/composables/useAppInfo";
 
+const { t } = useI18n();
 const { data: info } = useAppInfo();
 
 const clientVersion = __APP_VERSION__;
@@ -30,40 +32,39 @@ interface Attribution {
 }
 
 // Third-party data sources whose licenses require visible attribution.
-const dataSources: Attribution[] = [
+const dataSources = computed<Attribution[]>(() => [
   {
     name: "DB-IP IP-to-City Lite",
     url: "https://db-ip.com",
     license: "CC BY 4.0",
     licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
-    use: "IP geolocation for the anonymous geographic metrics (country distribution) shown on the metrics dashboard.",
+    use: t("attributions.dbipUse"),
   },
-];
+]);
 </script>
 
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · About</div>
-      <h1>About &amp; attributions</h1>
+      <div class="eyebrow mono">{{ t("attributions.eyebrow") }}</div>
+      <h1>{{ t("attributions.heading") }}</h1>
       <p class="lede">
-        Build information for this deployment and credit for the third-party data
-        sources it relies on.
+        {{ t("attributions.lede") }}
       </p>
     </header>
 
     <section class="block">
-      <h2 class="block__title">This client</h2>
+      <h2 class="block__title">{{ t("attributions.thisClient") }}</h2>
       <dl class="facts">
         <div class="fact">
-          <dt>Client</dt>
+          <dt>{{ t("attributions.client") }}</dt>
           <dd class="mono">v{{ clientVersion }}</dd>
         </div>
         <div class="fact">
-          <dt>Server</dt>
+          <dt>{{ t("attributions.server") }}</dt>
           <dd class="mono">
             <template v-if="serverLabel">{{ serverLabel }}</template>
-            <span v-else class="muted">unavailable</span>
+            <span v-else class="muted">{{ t("attributions.unavailable") }}</span>
           </dd>
         </div>
       </dl>
@@ -71,10 +72,9 @@ const dataSources: Attribution[] = [
     </section>
 
     <section class="block">
-      <h2 class="block__title">Data sources</h2>
+      <h2 class="block__title">{{ t("attributions.dataSources") }}</h2>
       <p class="block__lede">
-        These sources are licensed for reuse on the condition that they are
-        credited wherever their data — or results derived from it — is shown.
+        {{ t("attributions.dataSourcesLede") }}
       </p>
       <ul class="sources">
         <li v-for="s in dataSources" :key="s.name" class="source">

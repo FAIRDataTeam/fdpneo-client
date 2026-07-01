@@ -6,6 +6,7 @@
  * description, SHACL-validated server-side on save.
  */
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useMutation } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
@@ -16,6 +17,7 @@ import { parseFdpError, type ParsedError } from "@/api/errors";
 import TurtleEditor from "@/components/shacl-editor/TurtleEditor.vue";
 import { parseLicense, serializeLicense, type LicenseFields } from "@/components/license-editor/licenseDoc";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { licenses, isLoading } = useLicenses();
 const invalidate = useInvalidateLicenses();
@@ -90,8 +92,8 @@ function onSave() {
   error.value = null;
   if (!slug.value.trim() || !fields.value.title.trim()) {
     error.value = {
-      title: "Missing field",
-      message: "A license needs an id (slug) and a title.",
+      title: t("licenses.errMissingFieldTitle"),
+      message: t("licenses.errMissingFieldMsg"),
       code: "client.validation",
       status: null,
       docsUrl: null,
@@ -104,7 +106,7 @@ function onSave() {
 }
 
 function onDelete() {
-  if (savedId.value && window.confirm(`Delete license "${savedId.value}"?`)) remove.mutate(savedId.value);
+  if (savedId.value && window.confirm(t("licenses.deleteConfirm", { id: savedId.value }))) remove.mutate(savedId.value);
 }
 async function copyTurtle() {
   try {
@@ -118,16 +120,15 @@ async function copyTurtle() {
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · Admin</div>
-      <h1>Licenses</h1>
-      <p class="lede">
-        Curate reusable license documents that records reference via
-        <code class="mono">dct:license</code>. Descriptive only — not access policy (that's
-        <RouterLink to="/policies">Policies</RouterLink>).
-      </p>
+      <div class="eyebrow mono">{{ t("licenses.eyebrow") }}</div>
+      <h1>{{ t("licenses.heading") }}</h1>
+      <i18n-t keypath="licenses.lede" tag="p" class="lede" scope="global">
+        <template #dctLicense><code class="mono">dct:license</code></template>
+        <template #policiesLink><RouterLink to="/policies">{{ t("licenses.ledePolicies") }}</RouterLink></template>
+      </i18n-t>
     </header>
 
-    <div v-if="!auth.isAdmin" class="notice"><p>Saving or deleting licenses requires the admin role.</p></div>
+    <div v-if="!auth.isAdmin" class="notice"><p>{{ t("licenses.adminNotice") }}</p></div>
 
     <div v-if="error" class="error">
       <strong>{{ error.title }}</strong>
@@ -137,10 +138,10 @@ async function copyTurtle() {
     <div class="layout">
       <aside class="list">
         <div class="list__head">
-          <span class="label">Managed</span>
-          <button class="btn sm" @click="startNew">+ New</button>
+          <span class="label">{{ t("licenses.managed") }}</span>
+          <button class="btn sm" @click="startNew">{{ t("licenses.new") }}</button>
         </div>
-        <div v-if="isLoading" class="muted">Loading…</div>
+        <div v-if="isLoading" class="muted">{{ t("licenses.loading") }}</div>
         <ul v-else class="items">
           <li v-for="l in licenses" :key="l.id">
             <button class="item" :class="{ active: l.id === savedId }" @click="load(l.id)">
@@ -148,43 +149,43 @@ async function copyTurtle() {
               <span class="item__meta mono">{{ l.id }}{{ l.state ? ` · ${l.state}` : "" }}</span>
             </button>
           </li>
-          <li v-if="!licenses.length" class="muted">No licenses yet.</li>
+          <li v-if="!licenses.length" class="muted">{{ t("licenses.noLicenses") }}</li>
         </ul>
       </aside>
 
       <div class="editor">
         <div class="form">
           <label class="field">
-            <span class="label">Id (slug)</span>
-            <input :value="slug" :disabled="slugLocked" placeholder="cc-by-4" @input="slug = ($event.target as HTMLInputElement).value" />
+            <span class="label">{{ t("licenses.idSlugLabel") }}</span>
+            <input :value="slug" :disabled="slugLocked" :placeholder="t('licenses.idSlugPlaceholder')" @input="slug = ($event.target as HTMLInputElement).value" />
             <span class="help mono">/licenses/{{ slug || "…" }}</span>
           </label>
           <label class="field">
-            <span class="label">Title <em class="mono">dct:title</em></span>
-            <input :value="fields.title" placeholder="CC BY 4.0" @input="setField('title', ($event.target as HTMLInputElement).value)" />
+            <span class="label">{{ t("licenses.titleLabel") }} <em class="mono">dct:title</em></span>
+            <input :value="fields.title" :placeholder="t('licenses.titlePlaceholder')" @input="setField('title', ($event.target as HTMLInputElement).value)" />
           </label>
           <label class="field">
-            <span class="label">Canonical IRI <em class="mono">dct:source</em></span>
-            <input class="mono" :value="fields.source" placeholder="https://creativecommons.org/licenses/by/4.0/" @input="setField('source', ($event.target as HTMLInputElement).value)" />
+            <span class="label">{{ t("licenses.canonicalIriLabel") }} <em class="mono">dct:source</em></span>
+            <input class="mono" :value="fields.source" :placeholder="t('licenses.canonicalIriPlaceholder')" @input="setField('source', ($event.target as HTMLInputElement).value)" />
           </label>
           <label class="field">
-            <span class="label">Description <em class="mono">dct:description</em></span>
+            <span class="label">{{ t("licenses.descriptionLabel") }} <em class="mono">dct:description</em></span>
             <textarea rows="3" :value="fields.description" @input="setField('description', ($event.target as HTMLTextAreaElement).value)" />
           </label>
 
           <div class="actions">
             <button class="btn primary" :disabled="!auth.isAdmin || save.isPending.value" @click="onSave">
-              {{ save.isPending.value ? "Saving…" : savedId ? "Save new version" : "Publish license" }}
+              {{ save.isPending.value ? t("licenses.saving") : savedId ? t("licenses.saveNewVersion") : t("licenses.publish") }}
             </button>
             <button class="btn sm" :disabled="check.isPending.value" @click="check.mutate()">
-              {{ check.isPending.value ? "Validating…" : "Validate" }}
+              {{ check.isPending.value ? t("licenses.validating") : t("licenses.validate") }}
             </button>
-            <button class="btn sm" @click="copyTurtle">Copy</button>
-            <button v-if="savedId" class="btn ghost danger" :disabled="!auth.isAdmin || remove.isPending.value" @click="onDelete">Delete</button>
+            <button class="btn sm" @click="copyTurtle">{{ t("licenses.copy") }}</button>
+            <button v-if="savedId" class="btn ghost danger" :disabled="!auth.isAdmin || remove.isPending.value" @click="onDelete">{{ t("licenses.delete") }}</button>
           </div>
 
           <div v-if="validation" class="result" :class="validation.conforms ? 'ok' : 'bad'">
-            <strong>{{ validation.conforms ? "Valid ✓" : "Does not conform" }}</strong>
+            <strong>{{ validation.conforms ? t("licenses.valid") : t("licenses.doesNotConform") }}</strong>
             <ul v-if="validation.violations.length" class="violations">
               <li v-for="(v, i) in validation.violations" :key="i">
                 {{ v.message }}<span v-if="v.detail" class="mono muted"> ({{ v.detail }})</span>
@@ -193,7 +194,7 @@ async function copyTurtle() {
           </div>
         </div>
 
-        <TurtleEditor :model-value="turtle" readonly aria-label="License Turtle preview" class="preview" />
+        <TurtleEditor :model-value="turtle" readonly :aria-label="t('licenses.previewAria')" class="preview" />
       </div>
     </div>
   </section>

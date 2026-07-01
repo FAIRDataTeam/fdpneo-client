@@ -2406,7 +2406,7 @@ underspecified contracts" rule.
 
 ---
 
-## 18. Internationalization — multilingual UI (vue-i18n) — infra + shell done; 18.7 deferred (2026-06-30)
+## 18. Internationalization — multilingual UI (vue-i18n) — ✅ COMPLETE (infra + shell 2026-06-30; full 18.7 extraction 2026-07-01)
 
 **Motivation:** the client was English-only — every user-facing string hardcoded in
 `.vue` templates, `<script setup>` blocks, and a few `.ts` modules. This phase answers the
@@ -2520,9 +2520,14 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   and `CatalogCard`'s TypeTag. Dropped `.toLowerCase()` on `newChild`. Renamed two `v-for="t"`
   loop vars (PropList/RecordDetail) to avoid shadowing the i18n `t`. German disambiguates
   Records→"Datensätze" vs Datasets→"Datasets". steward kept. Gate green (494 tests).
-- ⬜ Batch 8 — SPARQL (`SparqlPlaygroundView`, `SparqlEditor`, `SparqlResultsTable`) + Licenses
-  (`LicensesView`) + `AttributionsView`.
-- App is multilingual-capable throughout the shell + editor; these batches extend it to the rest.
+- ✅ **Batch 8 — SPARQL + Licenses + Attributions** (`SparqlPlaygroundView`, `SparqlEditor`,
+  `SparqlResultsTable`, `LicensesView`, `AttributionsView`, 2026-07-01): `sparql.*` (~21),
+  `licenses.*` (~28), `attributions.*` (~10) across all 6 bundles. Example-query labels made
+  reactive (EXAMPLES → computed); `<i18n-t>` for the licenses lede (`dct:license` code +
+  Policies link). DB-IP attribution `use` text localised (name/license/URL kept). SPARQL/RDF/
+  Turtle/ASK/dct:*/CC BY/Apache-2.0 kept. steward kept. Gate green (494 tests).
+- **18.7 COMPLETE** — all 8 batches landed; every editor-independent surface is now
+  multilingual across en + pt-BR/nl/es/de/fr. Phase 18 i18n is fully rolled out.
 
 ### 18.8 Gate — ✅ (lint + typecheck + 428 unit tests green; build OK)
 - `npm run lint && npm run typecheck && npm run test:unit` green; `i18n.spec.ts` +
