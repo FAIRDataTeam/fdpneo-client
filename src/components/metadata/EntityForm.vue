@@ -5,10 +5,13 @@
  * model. A config-driven stand-in for SHACL-rendered forms (TASKS 7.5).
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
 import { constraintHint, detailKey, langKey } from "@/api/entityForms";
 import { orderedLanguages, type LanguageOption } from "@/api/languages";
 import { useLocaleStore } from "@/stores/locale";
+
+const { t } = useI18n();
 
 // Active UI language first, then English, then the rest (note #26).
 const locale = useLocaleStore();
@@ -74,7 +77,7 @@ function orLabels(keys: string[]): string {
     <label v-for="f in fields" :key="f.key" class="field">
       <span v-if="f.kind !== 'details'" class="label">
         {{ f.label }}<span v-if="f.required" class="req"> *</span>
-        <span v-if="showOrigins && f.origin" class="origin" :title="`Inherited from ${f.origin}`">{{
+        <span v-if="showOrigins && f.origin" class="origin" :title="t('entityForm.inheritedFrom', { origin: f.origin })">{{
           f.origin
         }}</span>
       </span>
@@ -109,7 +112,7 @@ function orLabels(keys: string[]): string {
         <select
           class="lang-tag"
           :value="asText(langKey(f.key))"
-          :aria-label="`${f.label} language`"
+          :aria-label="t('entityForm.langAria', { label: f.label })"
           @change="model[langKey(f.key)] = ($event.target as HTMLSelectElement).value"
         >
           <option value="">—</option>
@@ -132,7 +135,7 @@ function orLabels(keys: string[]): string {
         :type="f.kind === 'iris' ? 'url' : 'text'"
         :model-value="asArray(f.key)"
         :label="f.label"
-        :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'an IRI' : 'a value')"
+        :placeholder="f.placeholder ?? (f.kind === 'iris' ? t('entityForm.placeholderIri') : t('entityForm.placeholderValue'))"
         :min-count="f.minCount"
         :max-count="f.maxCount"
         @update:model-value="model[f.key] = $event"
@@ -154,7 +157,7 @@ function orLabels(keys: string[]): string {
           :list="`ref-${f.key}`"
           type="url"
           :value="asText(f.key)"
-          :placeholder="f.placeholder ?? 'select or paste an IRI'"
+          :placeholder="f.placeholder ?? t('entityForm.refPlaceholder')"
           :aria-label="f.label"
           @input="model[f.key] = ($event.target as HTMLInputElement).value"
         />
@@ -249,7 +252,7 @@ function orLabels(keys: string[]): string {
     </label>
 
     <p v-for="(g, i) in orGroups" :key="`or-${i}`" class="or-req">
-      At least one required: <strong>{{ orLabels(g.keys) }}</strong>
+      {{ t("entityForm.atLeastOneRequired") }} <strong>{{ orLabels(g.keys) }}</strong>
     </p>
   </div>
 </template>

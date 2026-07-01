@@ -8,6 +8,7 @@
  * enforces steward-modify so this gate is UX only.
  */
 import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
@@ -26,6 +27,7 @@ import { useUpdateRecord, useDeleteRecord } from "@/composables/useRecordMutatio
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import EntityForm from "@/components/metadata/EntityForm.vue";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -95,7 +97,7 @@ watch(
 async function save() {
   if (!spec.value || saving.value) return;
   if (!String(model.value.title ?? "").trim()) {
-    error.value = clientError("Title is required", "The record must keep a title.");
+    error.value = clientError(t("entityAuthor.errTitleRequired"), t("entityAuthor.errTitleRequiredEdit"));
     return;
   }
   const missing = missingOrGroups(spec.value, model.value);
@@ -103,12 +105,12 @@ async function save() {
     const labels = missing[0]!.keys.map(
       (k) => spec.value!.fields.find((f) => f.key === k)?.label ?? k,
     );
-    error.value = clientError("At least one required", `Provide at least one of: ${labels.join(", ")}.`);
+    error.value = clientError(t("entityAuthor.errAtLeastOneTitle"), t("entityAuthor.errAtLeastOneMsg", { labels: labels.join(", ") }));
     return;
   }
   const bad = validateConstraints(spec.value, model.value);
   if (bad) {
-    error.value = clientError(`${bad.label} is invalid`, `${bad.label} ${bad.message}.`);
+    error.value = clientError(t("entityAuthor.errInvalidTitle", { label: bad.label }), t("entityAuthor.errInvalidMsg", { label: bad.label, message: bad.message }));
     return;
   }
   saving.value = true;
@@ -127,7 +129,7 @@ async function save() {
 }
 
 async function del() {
-  if (!confirm(`Delete ${spec.value?.label.toLowerCase()} "${String(model.value.title ?? id.value)}"? This cannot be undone.`)) {
+  if (!confirm(t("entityAuthor.deleteConfirm", { type: spec.value?.label ?? "", title: String(model.value.title ?? id.value) }))) {
     return;
   }
   error.value = null;
@@ -147,22 +149,24 @@ function clientError(title: string, message: string): ParsedError {
 <template>
   <section class="page">
     <div v-if="!auth.isSteward" class="notice">
-      <h2>Not allowed</h2>
-      <p>Editing metadata requires the steward role.</p>
-      <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
+      <h2>{{ t("entityAuthor.notAllowedTitle") }}</h2>
+      <p>{{ t("entityAuthor.editNotAllowedMsg") }}</p>
+      <RouterLink to="/" class="btn ghost">{{ t("entityAuthor.backToBrowse") }}</RouterLink>
     </div>
 
     <div v-else-if="!spec" class="notice">
-      <h2>Unknown type</h2>
-      <p><span class="mono">{{ id }}</span> is not an editable resource type.</p>
+      <h2>{{ t("entityAuthor.unknownTypeTitle") }}</h2>
+      <i18n-t keypath="entityAuthor.editUnknownTypeMsg" tag="p" scope="global">
+        <template #id><span class="mono">{{ id }}</span></template>
+      </i18n-t>
     </div>
 
-    <div v-else-if="loading" class="notice">Loading…</div>
+    <div v-else-if="loading" class="notice">{{ t("entityAuthor.loading") }}</div>
 
     <template v-else>
       <header class="head">
-        <div class="eyebrow mono">FDP Neo · Edit {{ spec.label }}</div>
-        <h1>Edit {{ spec.label.toLowerCase() }}</h1>
+        <div class="eyebrow mono">{{ t("entityAuthor.editEyebrow", { type: spec.label }) }}</div>
+        <h1>{{ t("entityAuthor.editHeading", { type: spec.label }) }}</h1>
         <RouterLink :to="`/records/${id}`" class="lede mono">{{ iri }}</RouterLink>
       </header>
 
@@ -178,19 +182,19 @@ function clientError(title: string, message: string): ParsedError {
             </li>
           </ul>
           <p v-if="error.status === 412" class="hint">
-            This record changed since you opened it — reload and re-apply your edits.
+            {{ t("entityAuthor.conflictHintRecord") }}
           </p>
         </div>
 
-        <p v-if="saved" class="ok">Saved.</p>
+        <p v-if="saved" class="ok">{{ t("entityAuthor.saved") }}</p>
 
         <div class="actions">
           <button class="btn primary" type="submit" :disabled="saving">
-            {{ saving ? "Saving…" : "Save" }}
+            {{ saving ? t("entityAuthor.saving") : t("entityAuthor.save") }}
           </button>
-          <RouterLink :to="`/records/${id}`" class="btn ghost">View</RouterLink>
+          <RouterLink :to="`/records/${id}`" class="btn ghost">{{ t("entityAuthor.view") }}</RouterLink>
           <div class="spacer" />
-          <button class="btn danger" type="button" @click="del">Delete</button>
+          <button class="btn danger" type="button" @click="del">{{ t("entityAuthor.delete") }}</button>
         </div>
       </form>
     </template>

@@ -10,8 +10,11 @@
  * serializers (`setLiterals` / `setIris`) trim and drop blanks on save.
  */
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import { parseKeywords } from "@/api/entityForms";
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -98,7 +101,7 @@ function onPaste(e: ClipboardEvent, i: number) {
         :type="type === 'url' ? 'url' : 'text'"
         :value="val"
         :placeholder="placeholder"
-        :aria-label="`${label} (value ${i + 1})`"
+        :aria-label="t('repeatableInput.valueAria', { label, n: i + 1 })"
         @input="setAt(i, ($event.target as HTMLInputElement).value)"
         @paste="onPaste($event, i)"
       />
@@ -106,16 +109,16 @@ function onPaste(e: ClipboardEvent, i: number) {
         v-if="canRemove"
         type="button"
         class="remove"
-        :aria-label="`Remove ${label} value ${i + 1}`"
+        :aria-label="t('repeatableInput.removeAria', { label, n: i + 1 })"
         @click="removeAt(i)"
       >
         <AppIcon name="x" :size="14" />
       </button>
     </div>
 
-    <button v-if="canAdd" type="button" class="add" :aria-label="`Add ${label}`" @click="add">
+    <button v-if="canAdd" type="button" class="add" :aria-label="t('repeatableInput.addAria', { label })" @click="add">
       <AppIcon name="plus" :size="14" />
-      <span>{{ modelValue.length ? "Add another" : "Add" }}</span>
+      <span>{{ modelValue.length ? t("repeatableInput.addAnother") : t("repeatableInput.add") }}</span>
     </button>
   </div>
 </template>

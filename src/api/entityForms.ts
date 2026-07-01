@@ -989,14 +989,14 @@ export function constraintHint(f: FieldSpec): string {
   const parts: string[] = [];
   if (f.minLength != null || f.maxLength != null) {
     if (f.minLength != null && f.maxLength != null)
-      parts.push(`${f.minLength}–${f.maxLength} chars`);
-    else if (f.minLength != null) parts.push(`min ${f.minLength} chars`);
-    else parts.push(`max ${f.maxLength} chars`);
+      parts.push(translate("validation.hintCharsRange", { min: f.minLength, max: f.maxLength }));
+    else if (f.minLength != null) parts.push(translate("validation.hintCharsMin", { min: f.minLength }));
+    else parts.push(translate("validation.hintCharsMax", { max: f.maxLength }));
   }
   if (f.minInclusive != null) parts.push(`≥ ${f.minInclusive}`);
   if (f.maxInclusive != null) parts.push(`≤ ${f.maxInclusive}`);
   if (f.minExclusive != null) parts.push(`> ${f.minExclusive}`);
   if (f.maxExclusive != null) parts.push(`< ${f.maxExclusive}`);
-  if (f.pattern) parts.push(`pattern ${f.pattern}`);
+  if (f.pattern) parts.push(translate("validation.hintPattern", { pattern: f.pattern }));
   return parts.join(" · ");
 }
