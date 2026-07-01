@@ -99,9 +99,24 @@ export function useSchemaStore() {
     syncFlags();
   }
 
+  /**
+   * Replace the whole schema (e.g. when the FDP host opens a different schema
+   * from the server) and clear undo/redo — the freshly-loaded document is the
+   * new baseline, not an edit. Starts from a blank schema so keys the loaded
+   * document omits don't linger from a previous one.
+   */
+  function load(next: Schema) {
+    _undo.length = 0;
+    _redo.length = 0;
+    lastCoalesceKey = null;
+    Object.assign(_schema, blankSchema(), deepClone(next));
+    syncFlags();
+  }
+
   return {
     schema: readonly(_schema) as unknown as Schema,
     mutate,
+    load,
     undo,
     redo,
     canUndo: readonly(canUndo),

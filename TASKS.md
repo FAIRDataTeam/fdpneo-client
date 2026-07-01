@@ -2592,14 +2592,23 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
   already parses/round-trips multiple peer shapes (primary + `nestedShapes[]`), verified by
   the ported round-trip/adapter specs. The editor renders through Contour's own surfaces.
 
-### 19.4 Swap the editor body + server wiring — ⬜ (next)
-- Replace `SchemaEditorView`'s editor body with a Contour-based editor rendered under a
-  `.contour-editor` root importing `editor.css`, driven by Contour's `useSchema`. Use
-  Contour's `Canvas`/`Inspector`/`Palette`/`FormPreview`/`GraphView`. Keep the schema
-  list/save/delete/slug/protected lifecycle. Load via `getSchemaTurtle`→`parseShacl`; save via
-  `generateShacl`→`putSchema`. Re-add server-violation→field mapping (idea from
-  [violations.ts](src/components/shacl-editor/violations.ts)). Keep Monaco for a raw-Turtle
-  tab if desired (Contour uses a textarea; Monaco is the client-idiomatic choice).
+### 19.4a Encapsulated `ContourEditor.vue` — ✅ (2026-07-01)
+- Built [contour/ContourEditor.vue](src/components/shacl-editor/contour/ContourEditor.vue):
+  Contour's editor body (visual workbench Palette·Canvas·Inspector / SHACL-code tab / form
+  preview + RDF `GraphView` overlay + issues strip + undo/redo), under a `.contour-editor`
+  root that imports `editor.css`, driven by Contour's `useSchema`. Contour's app chrome
+  (file I/O, examples, recent, draft autosave, language menu) is intentionally omitted.
+- **Code tab uses the client's Monaco `TurtleEditor`** (client-idiomatic) instead of porting
+  Contour's ~200-line textarea autocomplete; edits parse → `load` back into the store.
+- Added `load(schema)` to the ported `useSchema` store (replaces the doc + resets history) so
+  the host can open a different server schema. Exposes `loadTurtle(ttl)` / `getTurtle()`.
+- Standalone + green (typecheck + lint + 575 tests); not yet wired into `SchemaEditorView`.
+
+### 19.4b Wire into `SchemaEditorView` + server — ⬜ (next)
+- Replace `SchemaEditorView`'s three tab bodies with `<ContourEditor>`. Keep the schema
+  list/save/delete/slug/protected lifecycle. On select → `getSchemaTurtle` → `editor.loadTurtle`;
+  on save → `editor.getTurtle()` → `putSchema`. Re-add server-validation → surface violations
+  (idea from [violations.ts](src/components/shacl-editor/violations.ts)).
 
 ### 19.5 Remove Contour's local storage + locale self-management — ⬜
 - We already skipped `usePersistence`/Contour's `useI18n` locale machinery when porting (the
