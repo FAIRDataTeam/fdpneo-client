@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { FdpRecord } from "@/data/sampleRecord";
 import PropRow from "./PropRow.vue";
 import AppChip from "@/components/shared/AppChip.vue";
 import { useLabels } from "@/composables/useLabels";
 import { safeHref } from "@/composables/safeUrl";
+
+const { t } = useI18n();
 
 const props = defineProps<{ record: FdpRecord }>();
 
@@ -45,7 +48,7 @@ const themeChips = computed(() =>
 
 <template>
   <dl class="list">
-    <PropRow label="Publisher">
+    <PropRow :label="t('propList.publisher')">
       <a
         v-if="publisherHref"
         :href="publisherHref"
@@ -55,19 +58,19 @@ const themeChips = computed(() =>
       >
       <span v-else>{{ publisherText }}</span>
     </PropRow>
-    <PropRow label="License">
+    <PropRow :label="t('propList.license')">
       <a v-if="licenseHref" :href="licenseHref" class="accent" rel="noopener noreferrer">{{
         licenseText
       }}</a>
       <span v-else>{{ licenseText }}</span>
     </PropRow>
-    <PropRow label="Themes">
+    <PropRow :label="t('propList.themes')">
       <div class="themes">
-        <AppChip v-for="t in themeChips" :key="t.key" variant="accent">{{ t.text }}</AppChip>
+        <AppChip v-for="chip in themeChips" :key="chip.key" variant="accent">{{ chip.text }}</AppChip>
       </div>
     </PropRow>
-    <PropRow label="Conforms to" mono>{{ record.conformsTo }}</PropRow>
-    <PropRow label="Identifier" mono>
+    <PropRow :label="t('propList.conformsTo')" mono>{{ record.conformsTo }}</PropRow>
+    <PropRow :label="t('propList.identifier')" mono>
       <span class="muted">{{ record.identifier }}</span>
     </PropRow>
   </dl>

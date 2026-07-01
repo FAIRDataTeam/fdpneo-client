@@ -16,10 +16,13 @@
  * `graphModel.ts`; this component owns layout + interaction.
  */
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { iriToId } from "@/api/rdf";
 import { useRecordTurtle } from "@/composables/useRecord";
 import { neighbourhood, type GraphAttr, type GraphEdge, type GraphRecordNode } from "./graphModel";
 import AppIcon from "@/components/shared/AppIcon.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{ recordId: string; subjectIri: string }>();
 const emit = defineEmits<{ (e: "close"): void }>();
@@ -246,30 +249,30 @@ const viewBox = computed(() => `${view.x} ${view.y} ${view.w} ${view.h}`);
   <div class="graph-shell">
     <header class="gbar">
       <div class="ftitle-wrap">
-        <div class="eyebrow mono">Metadata graph · live</div>
-        <div class="ftitle">{{ focusNode?.label ?? (isFetching ? "Loading…" : "Graph") }}</div>
+        <div class="eyebrow mono">{{ t("rdfGraph.eyebrow") }}</div>
+        <div class="ftitle">{{ focusNode?.label ?? (isFetching ? t("rdfGraph.loading") : t("rdfGraph.graphFallback")) }}</div>
         <div class="firi mono">{{ focus }}</div>
       </div>
       <div class="spacer" />
       <div class="layers">
         <button class="toggle rel" :class="{ on: showRel }" :aria-pressed="showRel" @click="showRel = !showRel">
-          <span class="dotk" /> Relations <span class="sw" />
+          <span class="dotk" /> {{ t("rdfGraph.relations") }} <span class="sw" />
         </button>
         <button class="toggle attr" :class="{ on: showAttr }" :aria-pressed="showAttr" @click="showAttr = !showAttr">
-          <span class="dotk" /> Attributes <span class="sw" />
+          <span class="dotk" /> {{ t("rdfGraph.attributes") }} <span class="sw" />
         </button>
       </div>
-      <button v-if="history.length" class="btn sm" @click="back"><AppIcon name="arrow-r" :size="12" style="transform:rotate(180deg)" /> Back</button>
-      <button class="btn sm iconbtn" aria-label="Zoom in" @click="zoom(0.8)">+</button>
-      <button class="btn sm iconbtn" aria-label="Zoom out" @click="zoom(1.25)">−</button>
-      <button class="btn sm" @click="fit">Fit</button>
-      <button class="btn sm iconbtn" aria-label="Close graph" @click="emit('close')"><AppIcon name="x" :size="14" /></button>
+      <button v-if="history.length" class="btn sm" @click="back"><AppIcon name="arrow-r" :size="12" style="transform:rotate(180deg)" /> {{ t("rdfGraph.back") }}</button>
+      <button class="btn sm iconbtn" :aria-label="t('rdfGraph.zoomIn')" @click="zoom(0.8)">+</button>
+      <button class="btn sm iconbtn" :aria-label="t('rdfGraph.zoomOut')" @click="zoom(1.25)">−</button>
+      <button class="btn sm" @click="fit">{{ t("rdfGraph.fit") }}</button>
+      <button class="btn sm iconbtn" :aria-label="t('rdfGraph.closeGraph')" @click="emit('close')"><AppIcon name="x" :size="14" /></button>
     </header>
 
     <div class="canvas-wrap">
-      <p v-if="isError" class="empty">Couldn't load this record's RDF.</p>
+      <p v-if="isError" class="empty">{{ t("rdfGraph.loadError") }}</p>
       <svg
-        ref="svgRef" class="canvas" :viewBox="viewBox" role="group" aria-label="Record graph"
+        ref="svgRef" class="canvas" :viewBox="viewBox" role="group" :aria-label="t('rdfGraph.recordGraphAria')"
         @pointerdown="onCanvasDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp" @wheel="onWheel"
       >
         <defs>
@@ -320,13 +323,13 @@ const viewBox = computed(() => `${view.x} ${view.y} ${view.w} ${view.h}`);
       </svg>
 
       <div class="legend">
-        <h4>Records</h4>
+        <h4>{{ t("rdfGraph.legendRecords") }}</h4>
         <div class="lrow"><span class="sw-rec" style="color:var(--t-fdp)" /> Repository</div>
         <div class="lrow"><span class="sw-rec" style="color:var(--t-catalog)" /> Catalog</div>
         <div class="lrow"><span class="sw-rec" style="color:var(--t-dataset)" /> Dataset</div>
         <div class="lrow"><span class="sw-rec" style="color:var(--t-distribution)" /> Distribution</div>
-        <h4>Attributes</h4>
-        <div class="lrow"><span class="sw-tag" /> property → value</div>
+        <h4>{{ t("rdfGraph.legendAttributes") }}</h4>
+        <div class="lrow"><span class="sw-tag" /> {{ t("rdfGraph.legendPropertyValue") }}</div>
       </div>
     </div>
   </div>

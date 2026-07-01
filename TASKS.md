@@ -2509,8 +2509,17 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   Spec-derived field labels/placeholders and constraint messages stay dynamic (already localised
   via `validation.*`). Type names (`spec.label`) interpolated as-is — dropped the English-only
   `.toLowerCase()` since casing rules differ per language. steward kept. Gate green (494 tests).
-- ⬜ Batch 7 — Metadata display (`RecordDetailView`, `PropList`, `RdfGraphView`,
-  `ContainerBrowser`, `StewardDashboardView`, misc cards).
+- ✅ **Batch 7 — Metadata display** (`RecordDetailView`, `StewardDashboardView`, `PropList`,
+  `RdfGraphView`, `RdfGraphOverlay`, `RdfPreviewPanel`, `ContainerBrowser`, `SecondaryNav`,
+  `RecordHero`, `LineageRail`, `CatalogCard`, `StateBadge`, 2026-07-01): 11 namespaces
+  (`state`, `stewardDashboard`, `recordDetail`, `rdfGraph`, `containerBrowser`, `secondaryNav`,
+  `rdfPreview`, `propList`, `recordHero`, `lineageRail`, `catalogCard`) across all 6 bundles.
+  Also routed `state.ts` `allowedTransitions()` labels + `StateBadge` through i18n (`state.*`).
+  Kept in English (server/canonical vocabulary): RDF format names (Turtle/JSON-LD/…), the graph
+  legend's four class names (Repository/Catalog/Dataset/Distribution — mirror server typeLabels),
+  and `CatalogCard`'s TypeTag. Dropped `.toLowerCase()` on `newChild`. Renamed two `v-for="t"`
+  loop vars (PropList/RecordDetail) to avoid shadowing the i18n `t`. German disambiguates
+  Records→"Datensätze" vs Datasets→"Datasets". steward kept. Gate green (494 tests).
 - ⬜ Batch 8 — SPARQL (`SparqlPlaygroundView`, `SparqlEditor`, `SparqlResultsTable`) + Licenses
   (`LicensesView`) + `AttributionsView`.
 - App is multilingual-capable throughout the shell + editor; these batches extend it to the rest.

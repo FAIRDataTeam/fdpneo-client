@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import type { FdpRecord } from "@/data/sampleRecord";
 import TypeTag from "@/components/shared/TypeTag.vue";
 import AppChip from "@/components/shared/AppChip.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
+
+const { t } = useI18n();
 
 defineProps<{ record: FdpRecord }>();
 </script>
@@ -11,9 +14,9 @@ defineProps<{ record: FdpRecord }>();
   <header class="hero">
     <div class="chips">
       <TypeTag :kind="record.type">{{ record.typeLabel }}</TypeTag>
-      <AppChip variant="ok" dot>Open metadata</AppChip>
+      <AppChip variant="ok" dot>{{ t("recordHero.openMetadata") }}</AppChip>
       <AppChip>
-        <AppIcon name="shield" :size="11" /> Files: DUA required
+        <AppIcon name="shield" :size="11" /> {{ t("recordHero.filesDua") }}
       </AppChip>
       <span class="version mono">v{{ record.version }}</span>
     </div>

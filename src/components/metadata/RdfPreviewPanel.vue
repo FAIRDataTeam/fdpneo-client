@@ -18,11 +18,14 @@
  * `recordId` is the record's path id ("" for the repository root).
  */
 import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { http } from "@/api/http";
 import { apiBase } from "@/api/rdf";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import RdfGraphOverlay from "./RdfGraphOverlay.vue";
 import { highlightTurtle } from "./rdfHighlight";
+
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<{ recordId?: string; autoOpen?: boolean }>(), {
   recordId: "",
@@ -150,12 +153,12 @@ onMounted(() => {
       aria-controls="rdf-body"
       @click="open = !open"
     >
-      <span class="label">Metadata source · RDF</span>
+      <span class="label">{{ t("rdfPreview.heading") }}</span>
       <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="14" color="var(--muted)" />
     </button>
 
     <div v-if="open" id="rdf-body" class="body">
-      <div class="chips" role="tablist" aria-label="RDF views">
+      <div class="chips" role="tablist" :aria-label="t('rdfPreview.viewsAria')">
         <button
           v-for="f in FORMATS"
           :key="f.key"
@@ -171,27 +174,27 @@ onMounted(() => {
         </button>
         <button type="button" class="chip graph-chip" @click="graphOpen = true">
           <AppIcon name="graph" :size="13" />
-          Graph
+          {{ t("rdfPreview.graph") }}
           <AppIcon name="arrow-up" :size="11" style="transform: rotate(45deg)" />
         </button>
       </div>
 
-      <p v-if="busy" class="hint">Loading…</p>
-      <p v-else-if="errored" class="hint err">Couldn't fetch the record.</p>
+      <p v-if="busy" class="hint">{{ t("rdfPreview.loading") }}</p>
+      <p v-else-if="errored" class="hint err">{{ t("rdfPreview.fetchError") }}</p>
 
       <!-- Inline reveal: the chosen serialization stretches out below the chips. -->
       <div v-if="activeFormat" class="panel">
         <div class="bar">
           <button type="button" class="mini" @click="copy">
-            {{ copied ? "Copied" : "Copy" }}
+            {{ copied ? t("rdfPreview.copied") : t("rdfPreview.copy") }}
           </button>
           <button type="button" class="mini" @click="download">
             <AppIcon name="download" :size="13" />
-            Save
+            {{ t("rdfPreview.save") }}
           </button>
           <button type="button" class="mini" @click="openTab">
             <AppIcon name="link" :size="13" />
-            Open
+            {{ t("rdfPreview.open") }}
           </button>
         </div>
         <pre class="code"><code v-if="tinted"><span

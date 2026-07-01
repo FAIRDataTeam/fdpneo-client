@@ -6,7 +6,10 @@
  * lock. The graph's own toolbar carries the close button (emits `close`).
  */
 import { onMounted, onUnmounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import RdfGraphView from "./RdfGraphView.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{ open: boolean; recordId: string; subjectIri: string }>();
 const emit = defineEmits<{ (e: "close"): void }>();
@@ -51,7 +54,7 @@ onUnmounted(() => {
       class="overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Record metadata graph"
+      :aria-label="t('rdfGraph.overlayAria')"
       @click="onBackdrop"
     >
       <section ref="panelRef" class="panel" tabindex="-1">

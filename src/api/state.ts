@@ -19,6 +19,7 @@ import { normaliseError } from "./errors";
 import { http } from "./http";
 import { anyObject, parseTurtle } from "./rdf";
 import type { components } from "./schema";
+import { translate } from "@/i18n";
 
 export type MetadataState = components["schemas"]["MetadataState"];
 export type StateTransitionResponse = components["schemas"]["StateTransitionResponse"];
@@ -35,14 +36,14 @@ export interface Transition {
 export function allowedTransitions(current: MetadataState, isAdmin: boolean): Transition[] {
   switch (current) {
     case "DRAFT":
-      return [{ to: "PUBLISHED", label: "Publish" }];
+      return [{ to: "PUBLISHED", label: translate("state.publish") }];
     case "PUBLISHED":
       return [
-        { to: "DRAFT", label: "Unpublish" },
-        { to: "ARCHIVED", label: "Archive" },
+        { to: "DRAFT", label: translate("state.unpublish") },
+        { to: "ARCHIVED", label: translate("state.archive") },
       ];
     case "ARCHIVED":
-      return isAdmin ? [{ to: "DRAFT", label: "Restore to draft" }] : [];
+      return isAdmin ? [{ to: "DRAFT", label: translate("state.restoreToDraft") }] : [];
     default:
       return [];
   }

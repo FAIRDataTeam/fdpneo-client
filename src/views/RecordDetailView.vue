@@ -8,6 +8,7 @@
  * lives in EntityEditView.vue.
  */
 import { computed, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
 import { useAncestors } from "@/composables/useAncestors";
@@ -28,6 +29,7 @@ import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import { useChildRecords } from "@/composables/useChildRecords";
 
+const { t } = useI18n();
 const route = useRoute();
 const auth = useAuthStore();
 const { typeForId, childSpecs } = useResourceTypes();
@@ -84,12 +86,11 @@ function changeState(to: MetadataState) {
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">Loading record…</div>
+  <div v-if="isLoading" class="loading">{{ t("recordDetail.loading") }}</div>
   <div v-else-if="isError || !record" class="error">
-    <h2>This record isn't available.</h2>
+    <h2>{{ t("recordDetail.unavailableTitle") }}</h2>
     <p>
-      It may not exist — or it may be unpublished. Draft and archived records are
-      only visible to their owner or an admin; signing in may reveal it.
+      {{ t("recordDetail.unavailableBody") }}
     </p>
   </div>
   <template v-else>
@@ -100,31 +101,31 @@ function changeState(to: MetadataState) {
           <StateBadge :state="state" />
           <template v-if="auth.isSteward">
             <button
-              v-for="t in transitions"
-              :key="t.to"
+              v-for="tr in transitions"
+              :key="tr.to"
               class="btn sm"
               :disabled="transition.isPending.value"
-              @click="changeState(t.to)"
+              @click="changeState(tr.to)"
             >
-              {{ t.label }}
+              {{ tr.label }}
             </button>
           </template>
         </div>
         <p v-if="transitionError" class="state-error" role="alert">{{ transitionError.message }}</p>
         <div v-if="auth.isSteward && entityType" class="steward-actions">
           <RouterLink :to="`/records/${id}/edit`" class="btn sm">
-            <AppIcon name="edit" :size="12" /> Edit
+            <AppIcon name="edit" :size="12" /> {{ t("recordDetail.edit") }}
           </RouterLink>
           <RouterLink v-for="c in childCreateLinks" :key="c.to" :to="c.to" class="btn sm">
-            <AppIcon name="plus" :size="12" /> New {{ c.label.toLowerCase() }}
+            <AppIcon name="plus" :size="12" /> {{ t("recordDetail.newChild", { label: c.label }) }}
           </RouterLink>
         </div>
         <RecordHero :record="record" />
         <StatStrip :record="record" />
-        <SectionTitle>Properties</SectionTitle>
+        <SectionTitle>{{ t("recordDetail.sectionProperties") }}</SectionTitle>
         <PropList :record="record" />
         <template v-if="childRecords.length">
-          <SectionTitle>Contents</SectionTitle>
+          <SectionTitle>{{ t("recordDetail.sectionContents") }}</SectionTitle>
           <ul class="contents">
             <li v-for="c in childRecords" :key="c.id">
               <RouterLink :to="`/records/${c.id}`" class="content-link">
@@ -135,7 +136,7 @@ function changeState(to: MetadataState) {
           </ul>
         </template>
         <template v-if="record.distributions.length">
-          <SectionTitle>Distributions</SectionTitle>
+          <SectionTitle>{{ t("recordDetail.sectionDistributions") }}</SectionTitle>
           <DistributionList :distributions="record.distributions" />
         </template>
       </div>
