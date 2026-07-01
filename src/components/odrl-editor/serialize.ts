@@ -1,7 +1,7 @@
 /**
  * Serializer: ODRL Offer model → Turtle (Phase 5, task 5.0).
  *
- * Hand-rolled and deterministic (like `shacl-editor/serialize.ts`) so the
+ * Hand-rolled and deterministic so the
  * round-trip is stable. Emits the FDP ODRL profile shape: an `odrl:Offer` with
  * `odrl:permission`/`odrl:prohibition` blank nodes, each an `odrl:action` and
  * inline `odrl:constraint [ … ]` nodes. Always declares the profile prefixes so

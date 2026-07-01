@@ -2487,7 +2487,7 @@ this-phase extraction; 18.7 is explicitly out of this phase.
 
 ---
 
-## 19. Integrate the "Contour" visual SHACL editor — planned (2026-06-30)
+## 19. Integrate the "Contour" visual SHACL editor — core done; 19.8 follow-ups remain (2026-07-01)
 
 **Motivation:** a separate, feature-rich standalone editor ("Contour", sibling repo —
 Vue 3 + n3, no Vue Flow/Pinia/router, custom i18n, builds single-file) is more complete at
@@ -2619,14 +2619,27 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
 - Deferred to 19.8: mapping the testbed's server violations back onto editor fields (the old
   canvas badge behaviour) — for now they show in the result panel as before.
 
-### 19.5 Remove Contour's local storage + locale self-management — ⬜
-- We already skipped `usePersistence`/Contour's `useI18n` locale machinery when porting (the
-  shim + client store own locale; nothing stores drafts). This step just confirms none crept
-  in and prunes any now-dead deps (`marked`, `@fontsource/*`).
+### 19.5 No storage / locale self-management — ✅ confirmed clean (2026-07-01)
+- Audited the vendored `contour/` tree: **no `localStorage`/`sessionStorage`** (the only match
+  is a comment in the `useI18n` shim noting what we left out), **no** Contour locale
+  self-management (`detectInitial`/`navigator.language`/`contour.locale` — the shim + client
+  locale store own it), and `usePersistence`/Contour's `App.vue` (draft autosave, recent) were
+  never copied in. CLAUDE.md's no-browser-storage rule holds.
+- No dead deps to prune: nothing imports `marked`/`@fontsource/*` and neither is in the client
+  `package.json` — the port added only `vue-i18n`. Nothing to change.
 
-### 19.6 Retire old editor internals — ⬜
-- Once parity is confirmed, delete FDP's `model/parse/serialize/mutations/preview/widgets`
-  and the superseded components + their specs. Update `SchemaEditorView` imports.
+### 19.6 Retire old editor internals — ✅ (2026-07-01)
+- Deleted the orphaned old editor (nothing live imported it after 19.4b): components
+  `ShaclCanvas`/`ShapeNodeCard` (Vue Flow), `FormDesigner`/`FieldCard`/`FieldInspector`/
+  `GroupInspector`/`SchemaInspector`/`WidgetPalette`/`ShaclFormPreview`; engine
+  `model`/`parse`/`serialize`/`mutations`/`graph`/`widgets`/`preview`/`violations`/`status`/
+  `factories`/`dragImage`; the `shaclEditor` Pinia store; and all their specs (~81 tests).
+- **Kept** `TurtleEditor.vue` (shared Monaco wrapper — used by the new editor, ODRL preview,
+  and Licenses). Removed the now-unused `@vue-flow/{core,background,controls}` deps + the
+  vite `vendor-flow` chunk rule; fixed two stale ODRL doc comments that referenced deleted
+  files.
+- Gate green: lint + typecheck + build + 494 tests. Editor surface is now solely the vendored
+  Contour editor.
 
 ### 19.7 Gate + live verify — ✅ PASS (2026-07-01)
 - Gate green (lint + typecheck + 575 tests + build). **Live-verified** against the running

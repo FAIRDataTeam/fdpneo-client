@@ -49,7 +49,6 @@ export default defineConfig(() => {
           // `manualChunks` as a function, not the object map Rollup accepted.
           manualChunks(id: string) {
             if (!id.includes("node_modules")) return;
-            if (id.includes("@vue-flow")) return "vendor-flow";
             if (id.includes("monaco-editor")) return "vendor-monaco";
             if (id.includes("chart.js") || id.includes("vue-chartjs")) return "vendor-charts";
             if (/node_modules\/n3\//.test(id)) return "vendor-rdf";

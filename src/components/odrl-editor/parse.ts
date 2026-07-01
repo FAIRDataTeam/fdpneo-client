@@ -1,6 +1,6 @@
 /**
  * Parser: Turtle → ODRL Offer model (Phase 5, task 5.0) — the inverse of
- * `serialize.ts`. n3-based; mirrors `shacl-editor/parse.ts`. Reads the single
+ * `serialize.ts`. n3-based. Reads the single
  * `odrl:Offer`, its assigner/conflict, and its permission/prohibition rules
  * with constraints, re-compacting IRIs to prefixed names. Lossless for the FDP
  * profile (the only shape `/policies` accepts).
