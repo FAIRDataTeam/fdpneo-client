@@ -2499,8 +2499,16 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   because `t` is its brandable-token loop variable. `BRANDABLE_TOKEN_LABELS` (from `useBranding.ts`)
   left as-is — vocab-style token names, same deferral as ODRL vocab labels. `token`/`jeton` follows
   each locale's existing choice (fr uses *jeton*; pt/es/de/nl keep *token*). Gate green (494 tests).
-- ⬜ Batch 6 — Metadata authoring (`EntityForm`, `EntityCreate/EditView`, `RepositoryEditView`,
-  `RepeatableInput`, `AboutSidecar`).
+- ✅ **Batch 6 — Metadata authoring** (`EntityForm`, `RepeatableInput`, `AboutSidecar`,
+  `EntityCreateView`, `EntityEditView`, `RepositoryEditView`, 2026-07-01): `entityForm.*` (6),
+  `repeatableInput.*` (5), `aboutSidecar.*` (10) and a shared `entityAuthor.*` (~45) across all 6
+  bundles — the three authoring views share validation/notice/save strings via one namespace.
+  `<i18n-t>` for the draft-hint `<strong>`, the edit-view `<span class="mono">{id}</span>`. Also
+  extended `validation.*` with 4 constraint-hint keys and routed `constraintHint()` in
+  `entityForms.ts` through the existing `translate()` helper (was raw "chars"/"pattern").
+  Spec-derived field labels/placeholders and constraint messages stay dynamic (already localised
+  via `validation.*`). Type names (`spec.label`) interpolated as-is — dropped the English-only
+  `.toLowerCase()` since casing rules differ per language. steward kept. Gate green (494 tests).
 - ⬜ Batch 7 — Metadata display (`RecordDetailView`, `PropList`, `RdfGraphView`,
   `ContainerBrowser`, `StewardDashboardView`, misc cards).
 - ⬜ Batch 8 — SPARQL (`SparqlPlaygroundView`, `SparqlEditor`, `SparqlResultsTable`) + Licenses
