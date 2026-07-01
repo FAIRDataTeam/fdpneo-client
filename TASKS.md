@@ -2465,14 +2465,25 @@ Brazilian Portuguese (`pt-BR`), Dutch (`nl`), Spanish (`es`), German (`de`), Fre
   key (`api/queries.ts`); `orderedLanguages()` (`api/languages.ts`) orders by the active UI
   locale first.
 
-### 18.7 Remaining surfaces — ⬜ deferred (follow-on PRs)
-- ODRL composer, admin views (users/settings/resource-defs), metrics widgets,
-  profile/settings, API keys, repository edit, license editor, SPARQL playground. Same
-  `useI18n()` pattern; each its own PR. App is multilingual-capable but not 100% extracted
-  until these land.
-- **SHACL editor is NOT in 18.7** — it's being replaced via **Phase 19** (Contour
-  integration), which brings its own translations; translating the old editor would be
-  throwaway work.
+### 18.7 Remaining surfaces — 🔄 in progress, batched (each its own commit)
+Same `useI18n()` + namespaced-keys pattern as the shell (18.4–18.6); ~50 surfaces, worked in
+coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its own translations).
+- ✅ **Batch 1 — Schema-admin chrome** (`SchemaEditorView`, 2026-07-01): `schemaAdmin.*`
+  namespace across all 6 bundles; list/id/actions/testbed/errors converted (lede + test-help
+  use `<i18n-t>` for embedded markup). Gate green (494 tests, parity holds).
+- ⬜ Batch 2 — ODRL editor (`OdrlComposer`, `PolicyEditorView`, `OdrlPreview`).
+- ⬜ Batch 3 — Admin (`UsersAdminView`, `ResourceDefinitionAdminView`, `SettingsView`,
+  `SettingEditor`, `ResetPanel`, `AutocompleteSourcesEditor`, `SearchFiltersEditor`).
+- ⬜ Batch 4 — Metrics (`MetricsDashboardView`, `PrivacyDisclosure`, `TimeRangePicker`,
+  `TimeSeriesChart` series labels).
+- ⬜ Batch 5 — Account (`ProfileView`, `ApiKeysView`) + Appearance (`AppearanceView`).
+- ⬜ Batch 6 — Metadata authoring (`EntityForm`, `EntityCreate/EditView`, `RepositoryEditView`,
+  `RepeatableInput`, `AboutSidecar`).
+- ⬜ Batch 7 — Metadata display (`RecordDetailView`, `PropList`, `RdfGraphView`,
+  `ContainerBrowser`, `StewardDashboardView`, misc cards).
+- ⬜ Batch 8 — SPARQL (`SparqlPlaygroundView`, `SparqlEditor`, `SparqlResultsTable`) + Licenses
+  (`LicensesView`) + `AttributionsView`.
+- App is multilingual-capable throughout the shell + editor; these batches extend it to the rest.
 
 ### 18.8 Gate — ✅ (lint + typecheck + 428 unit tests green; build OK)
 - `npm run lint && npm run typecheck && npm run test:unit` green; `i18n.spec.ts` +

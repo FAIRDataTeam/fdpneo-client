@@ -11,6 +11,7 @@
  */
 import { computed, onMounted, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import {
   deleteSchema,
@@ -37,6 +38,7 @@ const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
    sh:property [ sh:path dct:title ; sh:minCount 1 ; sh:datatype xsd:string ] .
 `;
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { schemas, isLoading } = useSchemas();
 const invalidate = useInvalidateSchemas();
@@ -108,7 +110,7 @@ async function load(id: string) {
   try {
     const ttl = await getSchemaTurtle(id);
     const parseErr = editorRef.value?.loadTurtle(ttl);
-    if (parseErr) error.value = clientError("Couldn't parse shape", parseErr);
+    if (parseErr) error.value = clientError(t("schemaAdmin.errParseTitle"), parseErr);
     slug.value = id;
     savedId.value = id;
   } catch (e) {
@@ -159,18 +161,18 @@ function onSave() {
   error.value = null;
   result.value = null;
   if (!effectiveSlug.value) {
-    error.value = clientError("Missing id", "Give the schema an ID (name).");
+    error.value = clientError(t("schemaAdmin.errMissingIdTitle"), t("schemaAdmin.errMissingIdMsg"));
     return;
   }
   if (!currentTurtle().trim()) {
-    error.value = clientError("Empty shape", "The shape body can't be empty.");
+    error.value = clientError(t("schemaAdmin.errEmptyTitle"), t("schemaAdmin.errEmptyMsg"));
     return;
   }
   save.mutate();
 }
 
 function onDelete() {
-  if (savedId.value && window.confirm(`Delete schema "${savedId.value}"?`)) {
+  if (savedId.value && window.confirm(t("schemaAdmin.deleteConfirm", { id: savedId.value }))) {
     remove.mutate(savedId.value);
   }
 }
@@ -182,17 +184,19 @@ onMounted(() => startNew());
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · Admin</div>
-      <h1>Schemas</h1>
-      <p class="lede">
-        Publish the SHACL shapes that validate records. Save a shape here, then
-        point a resource type at it in
-        <RouterLink to="/admin/resource-definitions">resource types</RouterLink>.
-      </p>
+      <div class="eyebrow mono">{{ t("schemaAdmin.eyebrow") }}</div>
+      <h1>{{ t("schemaAdmin.heading") }}</h1>
+      <i18n-t keypath="schemaAdmin.lede" tag="p" class="lede" scope="global">
+        <template #resourceTypes>
+          <RouterLink to="/admin/resource-definitions">{{
+            t("schemaAdmin.ledeResourceTypes")
+          }}</RouterLink>
+        </template>
+      </i18n-t>
     </header>
 
     <div v-if="!auth.isAdmin" class="notice">
-      <p>Viewing is open; publishing or deleting schemas requires the admin role.</p>
+      <p>{{ t("schemaAdmin.adminOnlyNotice") }}</p>
     </div>
 
     <div v-if="error" class="error">
@@ -208,10 +212,10 @@ onMounted(() => startNew());
     <div class="layout">
       <aside class="list">
         <div class="list__head">
-          <span class="label">Published</span>
-          <button class="btn sm" @click="startNew"><AppIcon name="plus" :size="12" /> New</button>
+          <span class="label">{{ t("schemaAdmin.published") }}</span>
+          <button class="btn sm" @click="startNew"><AppIcon name="plus" :size="12" /> {{ t("schemaAdmin.new") }}</button>
         </div>
-        <div v-if="isLoading" class="muted">Loading…</div>
+        <div v-if="isLoading" class="muted">{{ t("schemaAdmin.loading") }}</div>
         <ul v-else class="schemas">
           <li v-for="s in schemas" :key="s.id">
             <button class="schema" :class="{ active: s.id === savedId }" @click="load(s.id)">
@@ -222,25 +226,25 @@ onMounted(() => startNew());
                   name="lock"
                   :size="11"
                   class="schema__lock"
-                  aria-label="Protected — can't be deleted"
+                  :aria-label="t('schemaAdmin.protectedShort')"
                 />
               </span>
               <span v-if="s.targetClass" class="schema__tc mono">{{ s.targetClass }}</span>
               <span v-if="s.version != null" class="schema__v mono">v{{ s.version }}</span>
             </button>
           </li>
-          <li v-if="!schemas.length" class="muted">No schemas yet.</li>
+          <li v-if="!schemas.length" class="muted">{{ t("schemaAdmin.noSchemas") }}</li>
         </ul>
       </aside>
 
       <div class="editor">
         <label class="field">
-          <span class="label">Schema ID (name)</span>
+          <span class="label">{{ t("schemaAdmin.idLabel") }}</span>
           <input v-model="slug" :disabled="slugLocked" placeholder="ontology" />
           <span class="help mono">/schemas/{{ effectiveSlug || "…" }}</span>
         </label>
 
-        <p v-if="loadingShape" class="help">Loading…</p>
+        <p v-if="loadingShape" class="help">{{ t("schemaAdmin.loading") }}</p>
         <ContourEditor ref="editorRef" :violations="result?.violations ?? []" :ghost-types="ghostTypes" />
 
         <div class="actions">
@@ -249,7 +253,7 @@ onMounted(() => startNew());
             :disabled="!auth.isAdmin || save.isPending.value"
             @click="onSave"
           >
-            {{ save.isPending.value ? "Saving…" : savedId ? "Save new version" : "Publish schema" }}
+            {{ save.isPending.value ? t("schemaAdmin.saving") : savedId ? t("schemaAdmin.saveNewVersion") : t("schemaAdmin.publish") }}
           </button>
           <button
             v-if="savedId && canDelete"
@@ -257,17 +261,19 @@ onMounted(() => startNew());
             :disabled="!auth.isAdmin || remove.isPending.value"
             @click="onDelete"
           >
-            Delete
+            {{ t("schemaAdmin.delete") }}
           </button>
           <span v-else-if="savedId && !canDelete" class="protected">
             <AppIcon name="lock" :size="13" />
-            Protected — the FDP root schema can't be deleted (editing is allowed).
+            {{ t("schemaAdmin.protectedNote") }}
           </span>
         </div>
 
         <div class="testbed">
-          <span class="label">Test a sample record</span>
-          <p class="help">Validate a sample (Turtle) against the <em>saved</em> shape.</p>
+          <span class="label">{{ t("schemaAdmin.testHeading") }}</span>
+          <i18n-t keypath="schemaAdmin.testHelp" tag="p" class="help" scope="global">
+            <template #saved><em>{{ t("schemaAdmin.testHelpSaved") }}</em></template>
+          </i18n-t>
           <textarea
             v-model="sample"
             spellcheck="false"
@@ -281,12 +287,12 @@ onMounted(() => startNew());
               :disabled="!savedId || !sample.trim() || preview.isPending.value"
               @click="preview.mutate()"
             >
-              {{ preview.isPending.value ? "Validating…" : "Validate sample" }}
+              {{ preview.isPending.value ? t("schemaAdmin.validating") : t("schemaAdmin.validateSample") }}
             </button>
-            <span v-if="!savedId" class="help">Save the shape first.</span>
+            <span v-if="!savedId" class="help">{{ t("schemaAdmin.saveFirst") }}</span>
           </div>
           <div v-if="result" class="result" :class="result.conforms ? 'ok' : 'bad'">
-            <strong>{{ result.conforms ? "Conforms ✓" : "Does not conform" }}</strong>
+            <strong>{{ result.conforms ? t("schemaAdmin.conforms") : t("schemaAdmin.doesNotConform") }}</strong>
             <ul v-if="result.violations.length" class="violations">
               <li v-for="(v, i) in result.violations" :key="i">
                 <span v-if="v.resultPath" class="mono">{{ v.resultPath }}</span>
