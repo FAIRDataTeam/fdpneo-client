@@ -9,8 +9,11 @@
  * write. The whole value is written back through `v-model` on every change.
  */
 import { reactive, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { SettingValue } from "@/api/settings";
 import AppIcon from "@/components/shared/AppIcon.vue";
+
+const { t } = useI18n();
 
 type Kind = "inline" | "sparql";
 
@@ -106,16 +109,16 @@ function removeItem(s: SourceEdit, i: number) {
 
 <template>
   <div class="sources">
-    <p v-if="!sources.length" class="empty">No sources configured.</p>
+    <p v-if="!sources.length" class="empty">{{ t("settingsAdmin.sourcesEmpty") }}</p>
 
     <section v-for="(s, si) in sources" :key="s._id" class="source">
       <header class="source__head">
         <label class="field grow">
-          <span class="lbl">Name</span>
-          <input v-model="s.name" :disabled="!canEdit" placeholder="license" />
+          <span class="lbl">{{ t("settingsAdmin.sourceName") }}</span>
+          <input v-model="s.name" :disabled="!canEdit" :placeholder="t('settingsAdmin.sourceNamePlaceholder')" />
         </label>
         <label class="field">
-          <span class="lbl">Kind</span>
+          <span class="lbl">{{ t("settingsAdmin.sourceKind") }}</span>
           <select v-model="s.kind" :disabled="!canEdit">
             <option value="inline">inline</option>
             <option value="sparql">sparql</option>
@@ -125,7 +128,7 @@ function removeItem(s: SourceEdit, i: number) {
           v-if="canEdit"
           type="button"
           class="btn ghost sm remove"
-          aria-label="Remove source"
+          :aria-label="t('settingsAdmin.sourceRemoveAria')"
           @click="removeSource(si)"
         >
           <AppIcon name="x" :size="12" />
@@ -133,55 +136,55 @@ function removeItem(s: SourceEdit, i: number) {
       </header>
 
       <label class="field">
-        <span class="lbl">Description <span class="opt">(optional)</span></span>
-        <input v-model="s.description" :disabled="!canEdit" placeholder="Common open licenses" />
+        <span class="lbl">{{ t("settingsAdmin.sourceDescription") }} <span class="opt">{{ t("settingsAdmin.optional") }}</span></span>
+        <input v-model="s.description" :disabled="!canEdit" :placeholder="t('settingsAdmin.sourceDescriptionPlaceholder')" />
       </label>
 
       <!-- inline: an items table -->
       <div v-if="s.kind === 'inline'" class="items">
         <div v-for="(it, ii) in s.items" :key="it._id" class="item">
           <label class="field grow">
-            <span class="lbl">IRI</span>
-            <input v-model="it.iri" :disabled="!canEdit" class="mono" placeholder="https://…" />
+            <span class="lbl">{{ t("settingsAdmin.itemIri") }}</span>
+            <input v-model="it.iri" :disabled="!canEdit" class="mono" :placeholder="t('settingsAdmin.itemIriPlaceholder')" />
           </label>
           <label class="field grow">
-            <span class="lbl">Label</span>
-            <input v-model="it.label" :disabled="!canEdit" placeholder="CC BY 4.0" />
+            <span class="lbl">{{ t("settingsAdmin.itemLabel") }}</span>
+            <input v-model="it.label" :disabled="!canEdit" :placeholder="t('settingsAdmin.itemLabelPlaceholder')" />
           </label>
           <label class="field grow">
-            <span class="lbl">Aliases <span class="opt">(comma-separated)</span></span>
-            <input v-model="it.aliasesText" :disabled="!canEdit" placeholder="CC BY, CC-BY-4.0" />
+            <span class="lbl">{{ t("settingsAdmin.itemAliases") }} <span class="opt">{{ t("settingsAdmin.itemAliasesHint") }}</span></span>
+            <input v-model="it.aliasesText" :disabled="!canEdit" :placeholder="t('settingsAdmin.itemAliasesPlaceholder')" />
           </label>
           <button
             v-if="canEdit"
             type="button"
             class="btn ghost sm remove"
-            aria-label="Remove item"
+            :aria-label="t('settingsAdmin.itemRemoveAria')"
             @click="removeItem(s, ii)"
           >
             <AppIcon name="x" :size="12" />
           </button>
         </div>
         <button v-if="canEdit" type="button" class="btn sm add" @click="addItem(s)">
-          <AppIcon name="plus" :size="12" /> Add item
+          <AppIcon name="plus" :size="12" /> {{ t("settingsAdmin.itemAdd") }}
         </button>
       </div>
 
       <!-- sparql: a query field -->
       <label v-else class="field">
-        <span class="lbl">SPARQL (must project ?iri and ?label)</span>
+        <span class="lbl">{{ t("settingsAdmin.sourceSparqlLabel") }}</span>
         <textarea
           v-model="s.sparql"
           :disabled="!canEdit"
           class="mono"
           rows="4"
-          placeholder="SELECT ?iri ?label WHERE { … }"
+          :placeholder="t('settingsAdmin.sourceSparqlPlaceholder')"
         />
       </label>
     </section>
 
     <button v-if="canEdit" type="button" class="btn sm add" @click="addSource">
-      <AppIcon name="plus" :size="12" /> Add source
+      <AppIcon name="plus" :size="12" /> {{ t("settingsAdmin.sourceAdd") }}
     </button>
   </div>
 </template>

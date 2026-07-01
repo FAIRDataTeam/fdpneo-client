@@ -9,6 +9,7 @@
  * Non-admins see the value read-only.
  */
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useMutation } from "@tanstack/vue-query";
 import { putSetting, resetSetting, type SettingValue } from "@/api/settings";
 import { useInvalidateSettings } from "@/composables/useSettings";
@@ -18,17 +19,19 @@ import AutocompleteSourcesEditor from "./AutocompleteSourcesEditor.vue";
 
 const props = defineProps<{ settingKey: string; value: SettingValue; canEdit: boolean }>();
 
+const { t } = useI18n();
+
 // Human-readable title + help for known keys; unknown keys fall back to the raw
 // dotted key with no help line. (The value is still edited as JSON below — a
 // per-key structured form editor is a planned follow-up, see TASKS 12.7.)
-const SETTING_META: Record<string, { title: string; help: string }> = {
+const SETTING_META: Record<string, { titleKey: string; helpKey: string }> = {
   "search.filters": {
-    title: "Search facets",
-    help: "The facet dimensions shown on the search page — each maps a label to the metadata property it filters on.",
+    titleKey: "settingsAdmin.metaFiltersTitle",
+    helpKey: "settingsAdmin.metaFiltersHelp",
   },
   "forms.autocomplete-sources": {
-    title: "Form autocomplete sources",
-    help: "Suggestion lists offered in authoring forms (e.g. licenses, media types) — either an inline set of IRI/label entries or a SPARQL-backed source.",
+    titleKey: "settingsAdmin.metaAutocompleteTitle",
+    helpKey: "settingsAdmin.metaAutocompleteHelp",
   },
 };
 const meta = computed(() => SETTING_META[props.settingKey] ?? null);
@@ -105,11 +108,11 @@ function parseDraft(): SettingValue | null {
   try {
     parsed = JSON.parse(draft.value);
   } catch {
-    error.value = clientError("Invalid JSON", "This value isn't valid JSON — fix the syntax and try again.");
+    error.value = clientError(t("settingsAdmin.errInvalidJsonTitle"), t("settingsAdmin.errInvalidJsonMsg"));
     return null;
   }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    error.value = clientError("Must be a JSON object", "A setting value must be a JSON object, e.g. { … }.");
+    error.value = clientError(t("settingsAdmin.errMustBeObjectTitle"), t("settingsAdmin.errMustBeObjectMsg"));
     return null;
   }
   return parsed as SettingValue;
@@ -146,7 +149,7 @@ function toggleRaw() {
   <section class="setting">
     <header class="head">
       <div class="titles">
-        <span class="title">{{ meta?.title ?? settingKey }}</span>
+        <span class="title">{{ meta ? t(meta.titleKey) : settingKey }}</span>
         <code v-if="meta" class="key">{{ settingKey }}</code>
       </div>
       <div v-if="canEdit" class="actions">
@@ -156,13 +159,13 @@ function toggleRaw() {
           class="btn ghost sm"
           @click="toggleRaw"
         >
-          {{ useRaw ? "Use form" : "Edit as JSON" }}
+          {{ useRaw ? t("settingsAdmin.useForm") : t("settingsAdmin.editAsJson") }}
         </button>
-        <button class="btn ghost sm" :disabled="busy" @click="reset.mutate()">Reset to default</button>
-        <button class="btn primary sm" :disabled="!dirty || busy" @click="onSave">Save</button>
+        <button class="btn ghost sm" :disabled="busy" @click="reset.mutate()">{{ t("settingsAdmin.resetToDefault") }}</button>
+        <button class="btn primary sm" :disabled="!dirty || busy" @click="onSave">{{ t("settingsAdmin.save") }}</button>
       </div>
     </header>
-    <p v-if="meta" class="help">{{ meta.help }}</p>
+    <p v-if="meta" class="help">{{ t(meta.helpKey) }}</p>
 
     <SearchFiltersEditor
       v-if="structuredKind === 'filters' && !useRaw"
@@ -181,7 +184,7 @@ function toggleRaw() {
       spellcheck="false"
       rows="8"
       :readonly="!canEdit"
-      :aria-label="`${settingKey} value (JSON)`"
+      :aria-label="t('settingsAdmin.valueAriaJson', { key: settingKey })"
     />
 
     <div v-if="error" class="error" role="alert">

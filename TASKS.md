@@ -2476,8 +2476,14 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   labels/placeholders/buttons, preview banners (plural + `<i18n-t>` for the lede's
   `Offers`/`dct:rights` markup). Vocab-derived labels (actions/operators/operands from
   `vocab.ts`) left as a separate concern. Gate green (494 tests).
-- ⬜ Batch 3 — Admin (`UsersAdminView`, `ResourceDefinitionAdminView`, `SettingsView`,
-  `SettingEditor`, `ResetPanel`, `AutocompleteSourcesEditor`, `SearchFiltersEditor`).
+- ✅ **Batch 3 — Admin** (`UsersAdminView`, `ResourceDefinitionAdminView`, `SettingsView`,
+  `SettingEditor`, `ResetPanel`, `AutocompleteSourcesEditor`, `SearchFiltersEditor`, 2026-07-01):
+  three namespaces added across all 6 bundles — `usersAdmin.*` (~38 keys), `resourceDefsAdmin.*`
+  (~44 keys), `settingsAdmin.*` (~55 keys, spans the settings view + all four editor components).
+  Client-side validation error titles/messages, confirm dialogs, table/pager, and structured
+  facet/autocomplete editors converted; `ResetPanel` danger-zone uses `<i18n-t>` for the
+  `cannot be undone`/token markup. Literal `{ … }` in JSON/SPARQL hint strings escaped as
+  `{'{'} … {'}'}` for the vue-i18n compiler. Gate green (494 tests, parity holds).
 - ⬜ Batch 4 — Metrics (`MetricsDashboardView`, `PrivacyDisclosure`, `TimeRangePicker`,
   `TimeSeriesChart` series labels).
 - ⬜ Batch 5 — Account (`ProfileView`, `ApiKeysView`) + Appearance (`AppearanceView`).

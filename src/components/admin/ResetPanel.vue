@@ -9,10 +9,12 @@
  * query cache (the whole app's server state just changed) and report the counts.
  */
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { resetToFactoryDefaults, RESET_CONFIRMATION_TOKEN, type ResetResponse } from "@/api/admin";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 
+const { t } = useI18n();
 const client = useQueryClient();
 const typed = ref("");
 const result = ref<ResetResponse | null>(null);
@@ -43,33 +45,37 @@ function run() {
 
 <template>
   <section class="danger">
-    <h2>Factory reset</h2>
-    <p class="desc">
-      Truncates runtime settings and re-applies the bundled profile (schemas,
-      offers, resource types, seed records). This <strong>cannot be undone</strong>.
-    </p>
-    <p class="desc">
-      To confirm, type <code class="token">{{ RESET_CONFIRMATION_TOKEN }}</code> below.
-    </p>
+    <h2>{{ t("settingsAdmin.resetHeading") }}</h2>
+    <i18n-t keypath="settingsAdmin.resetDesc1" tag="p" class="desc" scope="global">
+      <template #cannotBeUndone><strong>{{ t("settingsAdmin.resetCannotBeUndone") }}</strong></template>
+    </i18n-t>
+    <i18n-t keypath="settingsAdmin.resetConfirmPrompt" tag="p" class="desc" scope="global">
+      <template #token><code class="token">{{ RESET_CONFIRMATION_TOKEN }}</code></template>
+    </i18n-t>
     <form class="row" @submit.prevent="run">
       <input
         v-model="typed"
         :placeholder="RESET_CONFIRMATION_TOKEN"
-        aria-label="Type the confirmation phrase"
+        :aria-label="t('settingsAdmin.resetConfirmAria')"
         autocomplete="off"
         spellcheck="false"
       />
       <button class="btn danger" type="submit" :disabled="!confirmed || reset.isPending.value">
-        Reset to factory defaults
+        {{ t("settingsAdmin.resetButton") }}
       </button>
     </form>
 
     <p v-if="error" class="error" role="alert">{{ error.message }}</p>
     <p v-if="result" class="ok" role="status">
-      Re-applied profile {{ result.profileName }} v{{ result.profileVersion }} —
-      cleared {{ result.settingsCleared }} settings; {{ result.schemas }} schemas,
-      {{ result.offers }} offers, {{ result.resourceDefinitions }} types,
-      {{ result.seedRecords }} seed records.
+      {{ t("settingsAdmin.resetOk", {
+        name: result.profileName,
+        version: result.profileVersion,
+        settings: result.settingsCleared,
+        schemas: result.schemas,
+        offers: result.offers,
+        types: result.resourceDefinitions,
+        seed: result.seedRecords,
+      }) }}
     </p>
   </section>
 </template>
