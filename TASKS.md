@@ -2543,12 +2543,30 @@ ship as its own standalone app.
   Vendored components (19.2) keep their `../composables/useI18n` import unchanged.
 - Gate green: lint + typecheck + 444 unit tests (16 new). No UI wired yet.
 
-### 19.2 Vendor Contour's engine — ⬜
-- Bring `types.ts`, `shacl.ts` (parse/generate), `rdf.ts`, `data.ts`, `validation.ts`,
-  `composables/{useSchema,useDrag}.ts` into `src/components/shacl-editor/` (subfolder).
-  Rewire imports to vue-i18n + shared client rdf utils where they overlap; drop unused deps
-  (`marked`, font packages). Port Contour's model tests (parse/generate/roundtrip/
-  preservation/useSchema/validation) — they must pass green.
+**Port style (decided):** adopt Contour's behaviours as **first-class FDP code held to the
+full strict config** — no tsconfig carve-out. **Hybrid:** copy-then-adapt the intricate RDF
+engine faithfully (keep its logic + tests, satisfy the strict flags); re-port UI/state/
+styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedIndexedAccess`,
+`exactOptionalPropertyTypes`) that Contour didn't use are satisfied with behavior-preserving
+`!` at checked index sites + `?: T | undefined` on the model's optional props.
+
+### 19.2a Port the engine — ✅ (2026-07-01)
+- Vendored `types.ts`, `shacl.ts` (parse/generate + F4 adapters), `rdf.ts`, `data.ts`,
+  `validation.ts`, `jsonld.ts`, `composables/{useSchema,useDrag}.ts` into
+  `src/components/shacl-editor/contour/` (provenance header @ `4117ff2`); conformed to the
+  full strict config. The i18n shim (19.1) stays importing `@/i18n` (no cycle under one
+  program). Contour's 9 model specs ported and passing (parse/generate/roundtrip/
+  preservation/useSchema/validation/shapes.adapter/jsonld) — 133 engine tests.
+- Gate green: lint + typecheck + 573 unit tests. No components/CSS yet (19.2b), nothing wired
+  into the live editor (19.4).
+
+### 19.2b Re-port the editor components idiomatically — ⬜
+- Bring the components (`Canvas`/`Inspector`/`Palette`/`FieldCard`/`FieldInput`/`FormPreview`/
+  `PreviewField`/`OrTypesEditor`/`TranslationsEditor`/`InValuesEditor`/`PrefixEditor`) but
+  re-skin to client idioms: `AppIcon` instead of Contour's `Icon`/`WidgetIcon`, and port
+  Contour's single 1845-line `style.css` as **scoped per-component styles** with its tokens
+  (`--color-*`, `--radius-*`, `--font-mono`) mapped to the client's design tokens. Components
+  keep the `useI18n` shim import. Drop the `marked`/font deps (not needed).
 
 ### 19.3 Multi-shape wrapper + canvas adapter — ⬜
 - Define the document wrapper: FDP `shapes[]` around Contour per-shape `Schema`/`NodeShape`
