@@ -9,6 +9,7 @@
  */
 import { computed, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
 import { deletePolicy, getPolicyTurtle, putPolicy, validatePolicy, type PolicyValidation } from "@/api/policies";
@@ -21,6 +22,7 @@ import { parseOffer } from "@/components/odrl-editor/parse";
 import { serializeOffer } from "@/components/odrl-editor/serialize";
 import type { OfferModel } from "@/components/odrl-editor/model";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { policies, isLoading } = usePolicies();
 const invalidate = useInvalidatePolicies();
@@ -111,8 +113,8 @@ function onSave() {
   validation.value = null;
   if (!slug.value.trim()) {
     error.value = {
-      title: "Missing id",
-      message: "Give the policy an id (slug).",
+      title: t("odrl.errMissingIdTitle"),
+      message: t("odrl.errMissingIdMsg"),
       code: "client.validation",
       status: null,
       docsUrl: null,
@@ -125,7 +127,7 @@ function onSave() {
 }
 
 function onDelete() {
-  if (savedId.value && window.confirm(`Delete policy "${savedId.value}"?`)) {
+  if (savedId.value && window.confirm(t("odrl.deleteConfirm", { id: savedId.value }))) {
     remove.mutate(savedId.value);
   }
 }
@@ -142,17 +144,16 @@ async function copyTurtle() {
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · Admin</div>
-      <h1>Policies</h1>
-      <p class="lede">
-        Compose the ODRL <strong>Offers</strong> that govern access. A record opts into one via
-        <code class="mono">dct:rights</code>. The editor only offers constructs the FDP profile accepts;
-        the server validates again on save.
-      </p>
+      <div class="eyebrow mono">{{ t("odrl.eyebrow") }}</div>
+      <h1>{{ t("odrl.heading") }}</h1>
+      <i18n-t keypath="odrl.lede" tag="p" class="lede" scope="global">
+        <template #offers><strong>{{ t("odrl.ledeOffers") }}</strong></template>
+        <template #rights><code class="mono">dct:rights</code></template>
+      </i18n-t>
     </header>
 
     <div v-if="!auth.isAdmin" class="notice">
-      <p>Viewing is open; saving or deleting policies requires the admin role.</p>
+      <p>{{ t("odrl.adminOnlyNotice") }}</p>
     </div>
 
     <div v-if="error" class="error">
@@ -168,10 +169,10 @@ async function copyTurtle() {
     <div class="layout">
       <aside class="list">
         <div class="list__head">
-          <span class="label">Managed</span>
-          <button class="btn sm" @click="startNew">+ New</button>
+          <span class="label">{{ t("odrl.managed") }}</span>
+          <button class="btn sm" @click="startNew">{{ t("odrl.new") }}</button>
         </div>
-        <div v-if="isLoading" class="muted">Loading…</div>
+        <div v-if="isLoading" class="muted">{{ t("odrl.loading") }}</div>
         <ul v-else class="policies">
           <li v-for="p in policies" :key="p.id">
             <button class="policy" :class="{ active: p.id === savedId }" @click="load(p.id)">
@@ -179,33 +180,33 @@ async function copyTurtle() {
               <span class="policy__meta mono">{{ p.permissions }}P · {{ p.prohibitions }}X{{ p.state ? ` · ${p.state}` : "" }}</span>
             </button>
           </li>
-          <li v-if="!policies.length" class="muted">No policies yet.</li>
+          <li v-if="!policies.length" class="muted">{{ t("odrl.noPolicies") }}</li>
         </ul>
       </aside>
 
       <div class="editor">
         <label class="field">
-          <span class="label">Id (slug)</span>
+          <span class="label">{{ t("odrl.idLabel") }}</span>
           <input :value="slug" :disabled="slugLocked" placeholder="my-policy" @input="onSlug(($event.target as HTMLInputElement).value)" />
           <span class="help mono">/policies/{{ slug || "…" }}</span>
         </label>
 
         <div class="actions">
           <button class="btn primary" :disabled="!auth.isAdmin || save.isPending.value" @click="onSave">
-            {{ save.isPending.value ? "Saving…" : savedId ? "Save new version" : "Publish policy" }}
+            {{ save.isPending.value ? t("odrl.saving") : savedId ? t("odrl.saveNewVersion") : t("odrl.publish") }}
           </button>
           <button class="btn sm" :disabled="check.isPending.value" @click="check.mutate()">
-            {{ check.isPending.value ? "Validating…" : "Validate" }}
+            {{ check.isPending.value ? t("odrl.validating") : t("odrl.validate") }}
           </button>
-          <button class="btn sm" @click="copyTurtle">Copy</button>
+          <button class="btn sm" @click="copyTurtle">{{ t("odrl.copy") }}</button>
           <button v-if="savedId" class="btn ghost danger" :disabled="!auth.isAdmin || remove.isPending.value" @click="onDelete">
-            Delete
+            {{ t("odrl.delete") }}
           </button>
-          <span v-if="loadingPolicy" class="help">Loading…</span>
+          <span v-if="loadingPolicy" class="help">{{ t("odrl.loading") }}</span>
         </div>
 
         <div v-if="validation" class="result" :class="validation.conforms ? 'ok' : 'bad'">
-          <strong>{{ validation.conforms ? "Conforms to the FDP profile ✓" : "Does not conform" }}</strong>
+          <strong>{{ validation.conforms ? t("odrl.conforms") : t("odrl.doesNotConform") }}</strong>
           <ul v-if="validation.violations.length" class="violations">
             <li v-for="(v, i) in validation.violations" :key="i">
               {{ v.message }}<span v-if="v.detail" class="mono muted"> ({{ v.detail }})</span>

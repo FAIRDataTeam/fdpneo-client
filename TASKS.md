@@ -2471,7 +2471,11 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
 - ✅ **Batch 1 — Schema-admin chrome** (`SchemaEditorView`, 2026-07-01): `schemaAdmin.*`
   namespace across all 6 bundles; list/id/actions/testbed/errors converted (lede + test-help
   use `<i18n-t>` for embedded markup). Gate green (494 tests, parity holds).
-- ⬜ Batch 2 — ODRL editor (`OdrlComposer`, `PolicyEditorView`, `OdrlPreview`).
+- ✅ **Batch 2 — ODRL editor** (`OdrlComposer`, `PolicyEditorView`, `OdrlPreview`, 2026-07-01):
+  `odrl.*` namespace (~42 keys) across all 6 bundles — policy-view chrome, composer field
+  labels/placeholders/buttons, preview banners (plural + `<i18n-t>` for the lede's
+  `Offers`/`dct:rights` markup). Vocab-derived labels (actions/operators/operands from
+  `vocab.ts`) left as a separate concern. Gate green (494 tests).
 - ⬜ Batch 3 — Admin (`UsersAdminView`, `ResourceDefinitionAdminView`, `SettingsView`,
   `SettingEditor`, `ResetPanel`, `AutocompleteSourcesEditor`, `SearchFiltersEditor`).
 - ⬜ Batch 4 — Metrics (`MetricsDashboardView`, `PrivacyDisclosure`, `TimeRangePicker`,

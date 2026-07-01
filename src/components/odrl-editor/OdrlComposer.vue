@@ -9,6 +9,7 @@
  * `mutations`. Inline errors come from `validate.ts`; the server is the authority.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import type { OfferModel } from "./model";
 import {
@@ -21,6 +22,7 @@ import { validateOffer } from "./validate";
 
 const props = withDefaults(defineProps<{ offer: OfferModel; showId?: boolean }>(), { showId: true });
 const emit = defineEmits<{ (e: "update:offer", offer: OfferModel): void }>();
+const { t } = useI18n();
 
 const issues = computed(() => validateOffer(props.offer));
 const constraintError = (cid: string) =>
@@ -44,30 +46,32 @@ function onLeftOperand(ruleId: string, cid: string, lo: string) {
 }
 const valueType = (lo: string) => (LEFT_OPERAND_BY_ID[lo]?.rightKind === "datetime" ? "datetime-local" : "text");
 const valuePlaceholder = (lo: string) =>
-  LEFT_OPERAND_BY_ID[lo]?.rightKind === "iri" ? "an IRI, e.g. :alice" : "value";
+  LEFT_OPERAND_BY_ID[lo]?.rightKind === "iri"
+    ? t("odrl.valueIriPlaceholder")
+    : t("odrl.valuePlaceholder");
 </script>
 
 <template>
   <div class="composer">
     <section class="panel">
-      <h3>Policy</h3>
+      <h3>{{ t("odrl.composerPolicy") }}</h3>
       <label v-if="showId" class="f">
-        <span>Id <em>the Offer IRI</em></span>
+        <span>{{ t("odrl.id") }} <em>{{ t("odrl.idHint") }}</em></span>
         <input class="mono" :value="offer.iri" @input="apply((o) => updateOffer(o, { iri: val($event) }))" />
       </label>
       <label class="f">
-        <span>Assigner <em>odrl:assigner</em> (optional)</span>
+        <span>{{ t("odrl.assigner") }} <em>odrl:assigner</em> {{ t("odrl.optional") }}</span>
         <input
           class="mono"
           :value="offer.assigner ?? ''"
-          placeholder="the granting party IRI"
+          :placeholder="t('odrl.assignerPlaceholder')"
           @input="apply((o) => updateOffer(o, { assigner: val($event) || null }))"
         />
       </label>
       <label class="f">
-        <span>Conflict strategy <em>odrl:conflict</em></span>
+        <span>{{ t("odrl.conflictStrategy") }} <em>odrl:conflict</em></span>
         <select :value="offer.conflict ?? ''" @change="apply((o) => updateOffer(o, { conflict: val($event) || null }))">
-          <option value="">Profile default (deny wins)</option>
+          <option value="">{{ t("odrl.profileDefault") }}</option>
           <option v-for="cs in CONFLICT_STRATEGIES" :key="cs.id" :value="cs.id">{{ cs.label }}</option>
         </select>
       </label>
@@ -75,18 +79,18 @@ const valuePlaceholder = (lo: string) =>
 
     <section class="panel">
       <div class="panel__head">
-        <h3>Rules</h3>
+        <h3>{{ t("odrl.rules") }}</h3>
         <div class="addrules">
-          <button class="btn sm" @click="apply((o) => addRule(o, 'permission'))">+ Permission</button>
-          <button class="btn sm" @click="apply((o) => addRule(o, 'prohibition'))">+ Prohibition</button>
+          <button class="btn sm" @click="apply((o) => addRule(o, 'permission'))">{{ t("odrl.addPermission") }}</button>
+          <button class="btn sm" @click="apply((o) => addRule(o, 'prohibition'))">{{ t("odrl.addProhibition") }}</button>
         </div>
       </div>
 
-      <p v-if="!offer.rules.length" class="hint">No rules yet — add a permission or prohibition.</p>
+      <p v-if="!offer.rules.length" class="hint">{{ t("odrl.noRules") }}</p>
 
       <div v-for="rule in offer.rules" :key="rule.id" class="rule" :class="rule.kind">
         <div class="rule__head">
-          <span class="kind">{{ rule.kind === "permission" ? "Permit" : "Prohibit" }}</span>
+          <span class="kind">{{ rule.kind === "permission" ? t("odrl.permit") : t("odrl.prohibit") }}</span>
           <select
             class="action"
             :value="rule.action"
@@ -94,7 +98,7 @@ const valuePlaceholder = (lo: string) =>
           >
             <option v-for="a in ACTIONS" :key="a" :value="a">{{ ACTION_LABELS[a] }}</option>
           </select>
-          <button class="icon" title="Delete rule" @click="apply((o) => deleteRule(o, rule.id))">
+          <button class="icon" :title="t('odrl.deleteRule')" @click="apply((o) => deleteRule(o, rule.id))">
             <AppIcon name="x" :size="13" />
           </button>
         </div>
@@ -119,13 +123,13 @@ const valuePlaceholder = (lo: string) =>
                 :placeholder="valuePlaceholder(c.leftOperand)"
                 @input="apply((o) => updateConstraint(o, rule.id, c.id, { rightOperand: val($event) }))"
               />
-              <button class="icon" title="Delete constraint" @click="apply((o) => deleteConstraint(o, rule.id, c.id))">
+              <button class="icon" :title="t('odrl.deleteConstraint')" @click="apply((o) => deleteConstraint(o, rule.id, c.id))">
                 <AppIcon name="x" :size="12" />
               </button>
             </div>
             <span v-if="constraintError(c.id)" class="cerror">{{ constraintError(c.id) }}</span>
           </div>
-          <button class="btn sm ghost addc" @click="apply((o) => addConstraint(o, rule.id))">+ Constraint</button>
+          <button class="btn sm ghost addc" @click="apply((o) => addConstraint(o, rule.id))">{{ t("odrl.addConstraint") }}</button>
         </div>
       </div>
     </section>
