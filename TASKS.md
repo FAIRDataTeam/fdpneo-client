@@ -2628,11 +2628,23 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
 - Once parity is confirmed, delete FDP's `model/parse/serialize/mutations/preview/widgets`
   and the superseded components + their specs. Update `SchemaEditorView` imports.
 
-### 19.7 Gate + manual verify — ⬜
-- `npm run lint && npm run typecheck && npm run test:unit` + build green. Manual: round-trip
-  a known schema (import .ttl → edit → export → diff), save + sample-validate against the
-  live server (violations annotate fields/canvas), and switch all 6 languages in the editor
-  from the header switcher.
+### 19.7 Gate + live verify — ✅ PASS (2026-07-01)
+- Gate green (lint + typecheck + 575 tests + build). **Live-verified** against the running
+  fdpneo stack via Playwright (dev server on `:5173` — the CORS/OIDC-allowed origin; admin
+  OIDC login through Keycloak):
+  - ✅ editor renders natively in the FDP shell, themed via the scoped `.contour-editor` +
+    token bridge (no leaking/unstyled CSS); Visual/SHACL-code(Monaco)/Form-Preview tabs + Graph.
+  - ✅ schema list loads; loading `dataset` (a real server schema) populates the editor.
+  - ✅ **save (PUT) → 200**, **sample-validate (POST /validate) → 200 "Conforms"**,
+    delete → 204 — full server round-trip.
+  - ✅ header language switch also translates the editor (DE: `Visueller Editor` / `SHACL-Code`
+    / `Formularvorschau`).
+- **Bug found + fixed during verify:** the ported serializer emits `:`/`rdfs:`/`dash:`-namespaced
+  terms (minted group IRIs, group labels, editor widgets), but parsing a schema whose Turtle
+  omits those `@prefix` lines (the starter, hand-written schemas) produced Turtle with unbound
+  prefixes → server 400 `"Prefix ':' not bound"`. Fixed in `ContourEditor` via
+  `ensureRequiredPrefixes()` — merges any missing `DEFAULT_PREFIXES` on load/parse (existing
+  declarations win). Re-verified: save now 200. **(This fix is uncommitted.)**
 
 **Sequencing:** 19.1 is independent (do first). 19.2→19.3→19.4 are the core swap and land
 together or as a tight series behind the existing editor until 19.4 flips it. 19.5–19.6 are

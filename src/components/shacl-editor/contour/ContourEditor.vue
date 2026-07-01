@@ -19,8 +19,8 @@ import { useSchemaStore, fieldFromWidget } from "./composables/useSchema";
 import { serializeSchema, parseShacl } from "./shacl";
 import { parseRdf } from "./rdf";
 import { validateSchema } from "./validation";
-import { newId } from "./data";
-import type { Prefix, SelectedKind, Widget } from "./types";
+import { newId, DEFAULT_PREFIXES } from "./data";
+import type { Prefix, Schema, SelectedKind, Widget } from "./types";
 import { useI18n } from "./composables/useI18n";
 import Palette from "./components/Palette.vue";
 import Canvas from "./components/Canvas.vue";
@@ -33,6 +33,19 @@ import "./editor.css";
 
 const { t } = useI18n();
 const { schema, mutate, load, undo, redo, canUndo, canRedo } = useSchemaStore();
+
+// The serializer emits terms in several namespaces the source may not have
+// declared — the empty prefix `:` (minted group/shape IRIs), plus `rdfs:` (group
+// labels), `dash:` (editor widgets), `sh:`/`xsd:` etc. A hand-written schema (or
+// the FDP starter) that omits any of these would serialize to Turtle with an
+// unbound prefix, which the server rejects ("Prefix '…' not bound"). Merge in any
+// missing default prefix bindings on the way in (existing declarations win).
+function ensureRequiredPrefixes(s: Schema): Schema {
+  const have = new Set(s.prefixes.map((p) => p.prefix));
+  const missing = DEFAULT_PREFIXES.filter((p) => !have.has(p.prefix)).map((p) => ({ ...p }));
+  if (missing.length) s.prefixes = [...missing, ...s.prefixes];
+  return s;
+}
 
 type Tab = "visual" | "definition" | "preview";
 const tab = ref<Tab>("visual");
@@ -127,7 +140,7 @@ function onDraftChange(v: string) {
   const { schema: parsed, error } = parseShacl(v);
   if (parsed) {
     shaclError.value = null;
-    load(parsed);
+    load(ensureRequiredPrefixes(parsed));
   } else {
     shaclError.value = error ?? "Could not parse the Turtle.";
   }
@@ -154,7 +167,7 @@ function openGraph() {
 function loadTurtle(turtle: string): string | null {
   const { schema: parsed, error } = parseShacl(turtle);
   if (parsed) {
-    load(parsed);
+    load(ensureRequiredPrefixes(parsed));
     selectSchemaTarget();
     if (tab.value === "definition") draft.value = serializeSchema(schema, "turtle");
     return null;
