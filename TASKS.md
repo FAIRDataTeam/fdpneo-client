@@ -2487,7 +2487,7 @@ this-phase extraction; 18.7 is explicitly out of this phase.
 
 ---
 
-## 19. Integrate the "Contour" visual SHACL editor — core done; 19.8 follow-ups remain (2026-07-01)
+## 19. Integrate the "Contour" visual SHACL editor — ✅ complete (2026-07-01)
 
 **Motivation:** a separate, feature-rich standalone editor ("Contour", sibling repo —
 Vue 3 + n3, no Vue Flow/Pinia/router, custom i18n, builds single-file) is more complete at
@@ -2659,10 +2659,30 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
   `ensureRequiredPrefixes()` — merges any missing `DEFAULT_PREFIXES` on load/parse (existing
   declarations win). Re-verified: save now 200. **(This fix is uncommitted.)**
 
+### 19.8 Deferred FDP-only editor features — ✅ (2026-07-01)
+The two features the old Vue Flow canvas had, re-added onto Contour's surfaces.
+- **Server-validation → field annotation.** `ContourEditor` takes a `violations` prop (from the
+  testbed's `POST /validate`), maps each `resultPath` to the matching field by CURIE, and passes
+  a per-field map through `Canvas` → `FieldCard`, which renders an inline warning + red border.
+  Live-verified: a sample missing `dct:title` flags the `dct:title` field with "Less than 1
+  values on …".
+- **Resource-type ghost nodes.** `SchemaEditorView` derives `{classIri,label}` from
+  `useResourceTypes` (`specFor`) → `ContourEditor` → `GraphView`, which renders dashed/italic
+  ghost nodes for registered types no shape here targets (CURIE-normalized match). Live-verified:
+  the graph shows Catalog/Dataset/DataService/Distribution/FAIRDataPoint as ghosts.
+- **Bug caught by the thorough test + fixed:** `GraphView` uses `<Teleport to="body">`, which
+  moved the overlay outside the `.contour-editor` root so the scoped `editor.css` never reached
+  it (overlay rendered unstyled/collapsed — a latent 19.2b defect). Fixed by wrapping the
+  teleported content in a `.contour-editor` div.
+- **Thorough live test** (Playwright, admin OIDC, against the running stack): add-widget (via
+  palette) ✅, undo ✅, publish (PUT 200) ✅, failing-sample validate → field badge ✅, graph
+  overlay + ghost nodes ✅, language→DE translates editor ✅, delete (204) ✅. Gate: lint +
+  typecheck + 494 tests + build green. **(19.8 changes uncommitted.)**
+
 **Sequencing:** 19.1 is independent (do first). 19.2→19.3→19.4 are the core swap and land
 together or as a tight series behind the existing editor until 19.4 flips it. 19.5–19.6 are
-cleanup once 19.4 is proven; 19.7 gates the phase. The editor-independent 18.7 surfaces can
-proceed in parallel since they don't touch the editor.
+cleanup once 19.4 is proven; 19.7 gates the phase (**done**). 19.8 is optional polish. The
+editor-independent 18.7 surfaces can proceed in parallel since they don't touch the editor.
 
 ---
 

@@ -25,6 +25,8 @@ interface Props {
   selectedId: string | null;
   selectedNestedShapeId: string | null;
   mutate: (m: Mutator) => void;
+  /** fieldId → server sample-validation messages matched to that field (19.8a). */
+  fieldViolations?: Record<string, string[]>;
 }
 const props = defineProps<Props>();
 
@@ -397,6 +399,7 @@ function onCanvasClick() {
               <div @dragover="onDragOverField($event, g.id, f.id)" @drop="onDrop($event, g.id)">
                 <FieldCard
                   :field="f"
+                  :violations="fieldViolations?.[f.id]"
                   :is-selected="selectedKind === 'field' && selectedId === f.id"
                   :is-dragging="isFieldDragging(f.id)"
                   @select="emit('selectField', f.id)"
@@ -457,6 +460,7 @@ function onCanvasClick() {
               <div @dragover="onDragOverNestedField($event, ns.id, f.id)" @drop="onDropToNested($event, ns.id)">
                 <FieldCard
                   :field="f"
+                  :violations="fieldViolations?.[f.id]"
                   :is-selected="selectedKind === 'nested-field' && selectedId === f.id && selectedNestedShapeId === ns.id"
                   :is-dragging="isNestedFieldDragging(ns.id, f.id)"
                   @select="emit('selectNestedField', ns.id, f.id)"

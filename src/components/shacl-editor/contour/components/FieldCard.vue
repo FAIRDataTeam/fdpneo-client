@@ -12,8 +12,11 @@ interface Props {
   field: Field;
   isSelected: boolean;
   isDragging: boolean;
+  /** Server sample-validation messages whose path matched this field (19.8a). */
+  violations?: string[] | undefined;
 }
 const props = defineProps<Props>();
+const hasViolations = computed(() => (props.violations?.length ?? 0) > 0);
 
 const emit = defineEmits<{
   select: [];
@@ -51,7 +54,7 @@ function handleClick(e: MouseEvent) {
 <template>
   <div
     class="field"
-    :class="{ 'is-selected': isSelected, 'is-dragging': isDragging }"
+    :class="{ 'is-selected': isSelected, 'is-dragging': isDragging, 'has-violation': hasViolations }"
     draggable="true"
     @click="handleClick"
     @dragstart="emit('dragstart', $event)"
@@ -73,6 +76,10 @@ function handleClick(e: MouseEvent) {
         <span v-if="field.orTypes && field.orTypes.length">sh:or</span>
         <span v-else>{{ typeLabel }}</span>
       </div>
+      <div v-if="hasViolations" class="field__violation" :title="violations!.join('\n')">
+        <Icon name="warning" :size="12" />
+        <span>{{ violations![0] }}</span>
+      </div>
     </div>
     <div class="field__actions">
       <button
@@ -92,3 +99,24 @@ function handleClick(e: MouseEvent) {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Sample-validation annotation (19.8a). Base `.field` styling lives in editor.css. */
+.field.has-violation {
+  border-color: var(--color-danger);
+  box-shadow: inset 3px 0 0 var(--color-danger);
+}
+.field__violation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  color: var(--color-danger);
+  font-size: 11px;
+}
+.field__violation span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

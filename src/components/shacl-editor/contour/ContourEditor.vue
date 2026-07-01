@@ -17,7 +17,7 @@
 import { computed, ref, watch } from "vue";
 import { useSchemaStore, fieldFromWidget } from "./composables/useSchema";
 import { serializeSchema, parseShacl } from "./shacl";
-import { parseRdf } from "./rdf";
+import { parseRdf, shorten } from "./rdf";
 import { validateSchema } from "./validation";
 import { newId, DEFAULT_PREFIXES } from "./data";
 import type { Prefix, Schema, SelectedKind, Widget } from "./types";
@@ -33,6 +33,33 @@ import "./editor.css";
 
 const { t } = useI18n();
 const { schema, mutate, load, undo, redo, canUndo, canRedo } = useSchemaStore();
+
+/** Server sample-validation violations, surfaced onto the matching fields (19.8a). */
+type ServerViolation = { resultPath?: string | null; focusNode?: string | null; message: string | null };
+const props = defineProps<{
+  violations?: ServerViolation[];
+  /** Registered resource types → ghost nodes in the graph overlay (19.8b). */
+  ghostTypes?: { classIri: string; label: string }[];
+}>();
+
+// Map each violation's `resultPath` (a full IRI) to the field(s) whose SHACL path
+// it matches (by comparing the CURIE form), so the canvas can badge them.
+const fieldViolations = computed<Record<string, string[]>>(() => {
+  const out: Record<string, string[]> = {};
+  const vs = props.violations ?? [];
+  if (!vs.length) return out;
+  const fields: { id: string; path: string }[] = [];
+  for (const g of schema.groups) for (const f of g.fields) fields.push({ id: f.id, path: f.path });
+  for (const ns of schema.nestedShapes ?? []) for (const f of ns.fields) fields.push({ id: f.id, path: f.path });
+  for (const v of vs) {
+    if (!v.resultPath || !v.message) continue;
+    const curie = shorten(v.resultPath, schema.prefixes);
+    for (const f of fields) {
+      if (f.path && (f.path === curie || f.path === v.resultPath)) (out[f.id] ??= []).push(v.message);
+    }
+  }
+  return out;
+});
 
 // The serializer emits terms in several namespaces the source may not have
 // declared — the empty prefix `:` (minted group/shape IRIs), plus `rdfs:` (group
@@ -230,6 +257,7 @@ defineExpose({ loadTurtle, getTurtle });
         <Canvas
           :schema="schema"
           :mutate="mutate"
+          :field-violations="fieldViolations"
           :selected-kind="selectedKind"
           :selected-id="selectedId"
           :selected-nested-shape-id="selectedNestedShapeId"
@@ -268,7 +296,13 @@ defineExpose({ loadTurtle, getTurtle });
       </div>
     </template>
 
-    <GraphView v-if="showGraph" :quads="graphQuads" :prefixes="graphPrefixes" @close="showGraph = false" />
+    <GraphView
+      v-if="showGraph"
+      :quads="graphQuads"
+      :prefixes="graphPrefixes"
+      :ghost-types="props.ghostTypes ?? []"
+      @close="showGraph = false"
+    />
 
     <div v-if="errorCount > 0 || warningCount > 0" class="ce-issues" role="status">
       <Icon name="warning" :size="12" />

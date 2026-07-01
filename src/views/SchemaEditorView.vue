@@ -20,6 +20,7 @@ import {
   type SchemaValidation,
 } from "@/api/schemas";
 import { useSchemas, useInvalidateSchemas } from "@/composables/useSchemas";
+import { useResourceTypes } from "@/composables/useResourceTypes";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import { slugify } from "@/utils/slug";
 import AppIcon from "@/components/shared/AppIcon.vue";
@@ -39,6 +40,16 @@ const STARTER = `@prefix sh:   <http://www.w3.org/ns/shacl#> .
 const auth = useAuthStore();
 const { schemas, isLoading } = useSchemas();
 const invalidate = useInvalidateSchemas();
+
+// Registered resource types → ghost nodes in the editor's graph overlay (19.8b):
+// a hint that a type exists in the deployment even when no shape here targets it.
+const { defs, specFor } = useResourceTypes();
+const ghostTypes = computed(() =>
+  defs.value.flatMap((d) => {
+    const spec = specFor(d.urlPrefix);
+    return spec && spec.classIri ? [{ classIri: spec.classIri, label: spec.label }] : [];
+  }),
+);
 
 // The embedded editor owns the working model; the view drives it through the
 // exposed loadTurtle/getTurtle and keeps the server lifecycle around it.
@@ -230,7 +241,7 @@ onMounted(() => startNew());
         </label>
 
         <p v-if="loadingShape" class="help">Loading…</p>
-        <ContourEditor ref="editorRef" />
+        <ContourEditor ref="editorRef" :violations="result?.violations ?? []" :ghost-types="ghostTypes" />
 
         <div class="actions">
           <button

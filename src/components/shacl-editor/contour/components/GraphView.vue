@@ -10,7 +10,12 @@ import type { Prefix } from '../types';
 import { useI18n } from '../composables/useI18n';
 import Icon from './Icon.vue';
 
-const props = defineProps<{ quads: Quad[]; prefixes: Prefix[] }>();
+const props = defineProps<{
+  quads: Quad[];
+  prefixes: Prefix[];
+  /** Registered resource types (19.8b) — shown as ghost nodes when no shape here targets them. */
+  ghostTypes?: { classIri: string; label: string }[];
+}>();
 const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 
@@ -35,7 +40,7 @@ const hideAnnotations = ref(true);
 const short = (iri: string) => shorten(iri, props.prefixes);
 const truncate = (s: string, n = 26) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
-type NodeKind = 'shape' | 'group' | 'bnode' | 'iri' | 'literal' | 'list';
+type NodeKind = 'shape' | 'group' | 'bnode' | 'iri' | 'literal' | 'list' | 'ghost';
 interface GNode { id: string; label: string; kind: NodeKind; x: number; y: number; vx: number; vy: number; w: number; fx: number | null; fy: number | null; }
 interface GLink { s: string; tg: string; label: string; }
 
@@ -128,6 +133,30 @@ function build() {
   ls.forEach((l) => { used.add(l.s); used.add(l.tg); });
   const kept = ns.filter((n) => used.has(n.id) || n.kind === 'shape');
   byId = new Map(kept.map((n) => [n.id, n]));
+
+  // Ghost nodes (19.8b): registered resource types whose class no shape in this
+  // document targets — a hint that the type exists but isn't shaped here. Compare
+  // in CURIE form so IRI-vs-prefixed mismatches don't matter.
+  const covered = new Set<string>();
+  for (const q of props.quads) {
+    if (q.predicate.value === SH + 'targetClass') covered.add(short(q.object.value));
+  }
+  (props.ghostTypes ?? []).forEach((gt, i) => {
+    if (!gt.classIri) return;
+    const curie = short(gt.classIri);
+    if (covered.has(curie)) return;
+    const id = 'ghost:' + gt.classIri;
+    if (byId.has(id)) return;
+    const label = gt.label || curie;
+    const s = seed(kept.length + i);
+    const g: GNode = {
+      id, kind: 'ghost', label, x: s.x, y: s.y, vx: 0, vy: 0,
+      w: Math.max(46, label.length * 7 + 18), fx: null, fy: null,
+    };
+    kept.push(g);
+    byId.set(id, g);
+  });
+
   nodes.value = kept;
   links.value = ls.filter((l) => byId.has(l.s) && byId.has(l.tg));
 }
@@ -266,6 +295,9 @@ function mid(l: GLink) {
 
 <template>
   <Teleport to="body">
+    <!-- Re-establish the .contour-editor scope: Teleport moves this to <body>,
+         outside the editor root, so the scoped editor.css would otherwise miss it. -->
+    <div class="contour-editor">
     <div class="graph-overlay" @click.self="emit('close')">
       <div class="graph-modal">
         <div class="graph-modal__bar">
@@ -333,5 +365,23 @@ function mid(l: GLink) {
         <div class="graph-hint">{{ t('graph.hint') }}</div>
       </div>
     </div>
+    </div>
   </Teleport>
 </template>
+
+<style scoped>
+/* Ghost nodes (19.8b): registered resource types with no shape here — rendered
+   faded + dashed. Base gv-* node styling lives in editor.css. */
+.gv-node--ghost {
+  opacity: 0.6;
+}
+.gv-node--ghost rect {
+  fill: transparent;
+  stroke: var(--color-text-light);
+  stroke-dasharray: 4 3;
+}
+.gv-node--ghost text {
+  fill: var(--color-text-light);
+  font-style: italic;
+}
+</style>
