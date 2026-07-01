@@ -2491,7 +2491,14 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   for the emphasised `not`), DB-IP geo attribution (`<i18n-t>` slot keeps the brand link),
   top-resources stat labels, time-range aria. `KpiCard` stays presentational (labels passed in).
   Units (`4xx + 5xx`, `ms`, `24h/7d/30d/90d`) and brand names kept. Gate green (494 tests).
-- ⬜ Batch 5 — Account (`ProfileView`, `ApiKeysView`) + Appearance (`AppearanceView`).
+- ✅ **Batch 5 — Account + Appearance** (`ProfileView`, `ApiKeysView`, `AppearanceView`, 2026-07-01):
+  `profile.*` (~10 keys), `apiKeys.*` (~30 keys), `appearance.*` (~40 keys) across all 6 bundles.
+  Profile rows/labels, API-key create/reveal/table/status, appearance identity+colour+preview+export
+  panels. `<i18n-t>` used for embedded `<code>`/`<strong>`/`<a>` markup (Bearer header, `/config.js`,
+  `data:`/`img-src`, the multi-slot Docker hint, sample link). AppearanceView aliases i18n as `tr`
+  because `t` is its brandable-token loop variable. `BRANDABLE_TOKEN_LABELS` (from `useBranding.ts`)
+  left as-is — vocab-style token names, same deferral as ODRL vocab labels. `token`/`jeton` follows
+  each locale's existing choice (fr uses *jeton*; pt/es/de/nl keep *token*). Gate green (494 tests).
 - ⬜ Batch 6 — Metadata authoring (`EntityForm`, `EntityCreate/EditView`, `RepositoryEditView`,
   `RepeatableInput`, `AboutSidecar`).
 - ⬜ Batch 7 — Metadata display (`RecordDetailView`, `PropList`, `RdfGraphView`,

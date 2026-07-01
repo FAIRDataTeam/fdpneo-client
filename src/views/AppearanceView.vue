@@ -19,6 +19,7 @@
  * the swatch is a convenience for hex values.
  */
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { runtimeBranding, type BrandingConfig } from "@/runtimeConfig";
 import {
   BRANDABLE_TOKENS,
@@ -30,6 +31,9 @@ import {
 } from "@/composables/useBranding";
 import AppLogo from "@/components/shared/AppLogo.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
+
+// Aliased to `tr` because `t` is used as the brandable-token loop variable throughout this file.
+const { t: tr } = useI18n();
 
 const orgName = ref("");
 const logoUrl = ref("");
@@ -153,21 +157,17 @@ async function copySnippet(): Promise<void> {
 <template>
   <main class="appearance">
     <header class="hero">
-      <h1>Appearance</h1>
-      <p class="sub">
-        Customize this client's look &amp; feel — colors, logo, and favicon. This is
-        a client deployment tool (no sign-in required): changes preview live below
-        but nothing is saved to the server. When you're happy, copy the generated
-        config into your deployment's <code>/config.js</code> to make it permanent.
-      </p>
+      <h1>{{ tr("appearance.heading") }}</h1>
+      <i18n-t keypath="appearance.sub" tag="p" class="sub" scope="global">
+        <template #configJs><code>/config.js</code></template>
+      </i18n-t>
       <p class="notice">
-        <AppIcon name="eye" :size="14" /> Previewing in this session only. Leaving
-        this page or reloading reverts to the deployed branding.
+        <AppIcon name="eye" :size="14" /> {{ tr("appearance.notice") }}
       </p>
     </header>
 
     <div v-if="issues.length" class="issues" role="alert">
-      <strong class="issues__head"><AppIcon name="x" :size="14" /> Configuration issues</strong>
+      <strong class="issues__head"><AppIcon name="x" :size="14" /> {{ tr("appearance.issuesHead") }}</strong>
       <ul class="issues__list">
         <li v-for="(issue, i) in issues" :key="i">{{ issue }}</li>
       </ul>
@@ -175,35 +175,35 @@ async function copySnippet(): Promise<void> {
 
     <div class="grid">
       <section class="panel" aria-labelledby="identity-h">
-        <h2 id="identity-h">Identity</h2>
+        <h2 id="identity-h">{{ tr("appearance.identityHeading") }}</h2>
         <label class="field">
-          <span class="field__label">Organisation name</span>
-          <input v-model="orgName" type="text" placeholder="FAIR Data Point" />
+          <span class="field__label">{{ tr("appearance.orgNameLabel") }}</span>
+          <input v-model="orgName" type="text" :placeholder="tr('appearance.orgNamePlaceholder')" />
         </label>
         <label class="field">
-          <span class="field__label">Logo URL (light)</span>
-          <input v-model="logoUrl" type="text" placeholder="/branding/logo.svg" />
+          <span class="field__label">{{ tr("appearance.logoLightLabel") }}</span>
+          <input v-model="logoUrl" type="text" :placeholder="tr('appearance.logoLightPlaceholder')" />
         </label>
         <label class="field">
-          <span class="field__label">Logo URL (dark)</span>
-          <input v-model="logoUrlDark" type="text" placeholder="optional" />
+          <span class="field__label">{{ tr("appearance.logoDarkLabel") }}</span>
+          <input v-model="logoUrlDark" type="text" :placeholder="tr('appearance.logoDarkPlaceholder')" />
         </label>
         <label class="field">
-          <span class="field__label">Favicon URL (light)</span>
-          <input v-model="faviconUrl" type="text" placeholder="falls back to logo" />
+          <span class="field__label">{{ tr("appearance.faviconLightLabel") }}</span>
+          <input v-model="faviconUrl" type="text" :placeholder="tr('appearance.faviconLightPlaceholder')" />
         </label>
         <label class="field">
-          <span class="field__label">Favicon URL (dark)</span>
-          <input v-model="faviconUrlDark" type="text" placeholder="optional" />
+          <span class="field__label">{{ tr("appearance.faviconDarkLabel") }}</span>
+          <input v-model="faviconUrlDark" type="text" :placeholder="tr('appearance.faviconDarkPlaceholder')" />
         </label>
-        <p class="hint">
-          Serve logos same-origin or as <code>data:</code> URIs to satisfy the
-          <code>img-src</code> content-security policy.
-        </p>
+        <i18n-t keypath="appearance.identityHint" tag="p" class="hint" scope="global">
+          <template #dataUri><code>data:</code></template>
+          <template #imgSrc><code>img-src</code></template>
+        </i18n-t>
       </section>
 
       <section class="panel" aria-labelledby="colors-h">
-        <h2 id="colors-h">Color scheme</h2>
+        <h2 id="colors-h">{{ tr("appearance.colorSchemeHeading") }}</h2>
         <div class="tokens">
           <div v-for="t in BRANDABLE_TOKENS" :key="t" class="token">
             <span class="token__label">{{ BRANDABLE_TOKEN_LABELS[t] }}</span>
@@ -211,7 +211,7 @@ async function copySnippet(): Promise<void> {
               type="color"
               class="token__swatch"
               :value="swatch(light[t] ?? '')"
-              :aria-label="`${BRANDABLE_TOKEN_LABELS[t]} color`"
+              :aria-label="tr('appearance.tokenColorAria', { label: BRANDABLE_TOKEN_LABELS[t] })"
               @input="light[t] = ($event.target as HTMLInputElement).value"
             />
             <input v-model="light[t]" type="text" class="token__hex mono" />
@@ -219,10 +219,9 @@ async function copySnippet(): Promise<void> {
         </div>
 
         <details class="dark">
-          <summary>Dark theme overrides</summary>
+          <summary>{{ tr("appearance.darkOverrides") }}</summary>
           <p class="hint">
-            Leave a value at its default to inherit; edit only the tokens that need
-            a different value in dark mode.
+            {{ tr("appearance.darkHint") }}
           </p>
           <div class="tokens">
             <div v-for="t in BRANDABLE_TOKENS" :key="t" class="token">
@@ -231,7 +230,7 @@ async function copySnippet(): Promise<void> {
                 type="color"
                 class="token__swatch"
                 :value="swatch(dark[t] ?? '')"
-                :aria-label="`${BRANDABLE_TOKEN_LABELS[t]} color (dark)`"
+                :aria-label="tr('appearance.tokenColorDarkAria', { label: BRANDABLE_TOKEN_LABELS[t] })"
                 @input="dark[t] = ($event.target as HTMLInputElement).value"
               />
               <input v-model="dark[t]" type="text" class="token__hex mono" />
@@ -241,20 +240,22 @@ async function copySnippet(): Promise<void> {
       </section>
 
       <section class="panel preview" aria-labelledby="preview-h">
-        <h2 id="preview-h">Preview</h2>
+        <h2 id="preview-h">{{ tr("appearance.previewHeading") }}</h2>
         <div class="preview__lockup"><AppLogo :size="28" /></div>
         <div class="preview__samples">
-          <button type="button" class="sample-accent">Primary action</button>
-          <span class="sample-signal">Signal badge</span>
-          <div class="sample-surface">Surface card with <a href="#">a link</a>.</div>
+          <button type="button" class="sample-accent">{{ tr("appearance.samplePrimary") }}</button>
+          <span class="sample-signal">{{ tr("appearance.sampleSignal") }}</span>
+          <i18n-t keypath="appearance.sampleSurface" tag="div" class="sample-surface" scope="global">
+            <template #link><a href="#">{{ tr("appearance.sampleSurfaceLink") }}</a></template>
+          </i18n-t>
         </div>
       </section>
 
       <section class="panel export" aria-labelledby="export-h">
         <div class="export__head">
-          <h2 id="export-h">Export</h2>
+          <h2 id="export-h">{{ tr("appearance.exportHeading") }}</h2>
           <div class="export__actions">
-            <div class="seg" role="tablist" aria-label="Export format">
+            <div class="seg" role="tablist" :aria-label="tr('appearance.exportFormatAria')">
               <button
                 type="button"
                 class="seg__btn"
@@ -276,22 +277,22 @@ async function copySnippet(): Promise<void> {
                 Docker env
               </button>
             </div>
-            <button type="button" class="btn" @click="resetToDeployed">Reset</button>
+            <button type="button" class="btn" @click="resetToDeployed">{{ tr("appearance.reset") }}</button>
             <button type="button" class="btn btn--primary" @click="copySnippet">
-              <AppIcon name="code" :size="14" /> {{ copied ? "Copied" : "Copy" }}
+              <AppIcon name="code" :size="14" /> {{ copied ? tr("appearance.copied") : tr("appearance.copy") }}
             </button>
           </div>
         </div>
         <p class="hint">
-          <template v-if="format === 'config'">
-            For static hosting: merge this <code>branding</code> block into your
-            deployment's <code>/config.js</code>.
-          </template>
-          <template v-else>
-            For the container: set this <code>FDP_BRANDING</code> variable on the
-            <strong>client</strong> service in your docker-compose. (Off-origin
-            logos also need <code>FDP_BRANDING_IMG_ORIGIN</code> for the CSP.)
-          </template>
+          <i18n-t v-if="format === 'config'" keypath="appearance.hintConfig" tag="span" scope="global">
+            <template #branding><code>branding</code></template>
+            <template #configJs><code>/config.js</code></template>
+          </i18n-t>
+          <i18n-t v-else keypath="appearance.hintDocker" tag="span" scope="global">
+            <template #fdpBranding><code>FDP_BRANDING</code></template>
+            <template #strongClient><strong>{{ tr("appearance.hintDockerClient") }}</strong></template>
+            <template #imgOrigin><code>FDP_BRANDING_IMG_ORIGIN</code></template>
+          </i18n-t>
         </p>
         <textarea
           class="export__code mono"
