@@ -44,4 +44,15 @@ export default defineConfigWithVueTs(
       "@typescript-eslint/no-floating-promises": ["error", { ignoreVoid: true }],
     },
   },
+  {
+    // Vendored SHACL editor (adapted from Contour, Phase 19): its component
+    // names (Canvas, Icon, Inspector, Palette) are single-word by origin and
+    // internal to the editor; renaming would churn its cross-imports. Everything
+    // else is held to the normal rules.
+    name: "contour/vendored-component-names",
+    files: ["src/components/shacl-editor/contour/components/*.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off",
+    },
+  },
 );
