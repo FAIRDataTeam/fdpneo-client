@@ -2523,10 +2523,15 @@ ship as its own standalone app.
   `fr-FR→fr`; `en`/`pt-BR` already match), namespace under `schemaEditor.*`, swap Contour's
   `useI18n` for vue-i18n's, and **drop its `localStorage`** (draft/recent/`contour.locale`) —
   CLAUDE.md forbids storage; server is source of truth.
-- **Canvas:** keep FDP's Vue Flow canvas (carries resource-type ghost nodes via
-  `useResourceTypes` + server-violation badges — both FDP-only) fed from the model via
-  [graph.ts](src/components/shacl-editor/graph.ts) `buildShapeGraph`. Contour's `GraphView`
-  may return later as an optional read-only graph.
+- **Canvas (revised after 19.2b — decided with the maintainer):** now that Contour's own
+  `Canvas` (field workbench) + `GraphView` (RDF graph overview) are ported, the editor
+  **uses Contour's surfaces and FDP's Vue Flow `ShaclCanvas`/`graph.ts` are retired** (19.6).
+  The two FDP-only features — resource-type ghost nodes + server-violation badges on the
+  graph — become **tracked follow-ups** layered onto Contour's `GraphView` (19.8), not
+  blockers. This dissolves the original 19.3 (no `buildShapeGraph` adapter needed).
+- **Multi-shape:** Contour's engine already handles multiple peer top-level `sh:NodeShape`s —
+  `parseShacl` keeps the first as primary and the rest in `nestedShapes[]`, and `generateShacl`
+  re-emits them; round-trip is covered by the ported specs. So no wrapper is required either.
 
 ### 19.1 i18n merge groundwork — ✅ (2026-06-30)
 - Vendored Contour's 6 bundles to `src/i18n/messages/schema-editor/` (tag-normalized
@@ -2582,23 +2587,24 @@ styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedInd
 - Not wired into the live editor yet (19.4 renders these under a `.contour-editor` root and
   imports `editor.css`). Gate green: lint + typecheck + 573 tests + build.
 
-### 19.3 Multi-shape wrapper + canvas adapter — ⬜
-- Define the document wrapper: FDP `shapes[]` around Contour per-shape `Schema`/`NodeShape`
-  (activate Contour's `ShapesDoc` adapters or wrap). Provide Turtle↔doc for multiple peer
-  shapes. Adapt `buildShapeGraph` to the new model so the Vue Flow canvas + ghost nodes +
-  edges keep working.
+### 19.3 Multi-shape + canvas — ✅ dissolved by the canvas decision (2026-07-01)
+- No `buildShapeGraph` adapter (Vue Flow retired). No document wrapper: Contour's engine
+  already parses/round-trips multiple peer shapes (primary + `nestedShapes[]`), verified by
+  the ported round-trip/adapter specs. The editor renders through Contour's own surfaces.
 
-### 19.4 Swap the editor body + server wiring — ⬜
-- In `SchemaEditorView`, replace the SHACL/Visual/Preview tab bodies with Contour components
-  (`Canvas`/`Inspector`/`Palette`/`FormPreview`/`OrTypesEditor`/`TranslationsEditor`/…) fed
-  by the new store. Keep list/save/delete/slug/protected. Load via `getSchemaTurtle`→parse;
-  save via generate→`putSchema`. Re-add server-violation→field mapping (port the idea from
-  [violations.ts](src/components/shacl-editor/violations.ts)). Wire resource-type ghost nodes.
-  Keep Monaco for the raw-Turtle tab.
+### 19.4 Swap the editor body + server wiring — ⬜ (next)
+- Replace `SchemaEditorView`'s editor body with a Contour-based editor rendered under a
+  `.contour-editor` root importing `editor.css`, driven by Contour's `useSchema`. Use
+  Contour's `Canvas`/`Inspector`/`Palette`/`FormPreview`/`GraphView`. Keep the schema
+  list/save/delete/slug/protected lifecycle. Load via `getSchemaTurtle`→`parseShacl`; save via
+  `generateShacl`→`putSchema`. Re-add server-violation→field mapping (idea from
+  [violations.ts](src/components/shacl-editor/violations.ts)). Keep Monaco for a raw-Turtle
+  tab if desired (Contour uses a textarea; Monaco is the client-idiomatic choice).
 
 ### 19.5 Remove Contour's local storage + locale self-management — ⬜
-- Strip `usePersistence` (draft/recent) and Contour's `useI18n` locale detection/persistence;
-  drive locale from the client locale store. Prune now-dead deps.
+- We already skipped `usePersistence`/Contour's `useI18n` locale machinery when porting (the
+  shim + client store own locale; nothing stores drafts). This step just confirms none crept
+  in and prunes any now-dead deps (`marked`, `@fontsource/*`).
 
 ### 19.6 Retire old editor internals — ⬜
 - Once parity is confirmed, delete FDP's `model/parse/serialize/mutations/preview/widgets`
