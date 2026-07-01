@@ -2484,8 +2484,13 @@ coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its ow
   facet/autocomplete editors converted; `ResetPanel` danger-zone uses `<i18n-t>` for the
   `cannot be undone`/token markup. Literal `{ … }` in JSON/SPARQL hint strings escaped as
   `{'{'} … {'}'}` for the vue-i18n compiler. Gate green (494 tests, parity holds).
-- ⬜ Batch 4 — Metrics (`MetricsDashboardView`, `PrivacyDisclosure`, `TimeRangePicker`,
-  `TimeSeriesChart` series labels).
+- ✅ **Batch 4 — Metrics** (`MetricsDashboardView`, `TimeRangePicker`, `PrivacyDisclosure`,
+  `TimeSeriesChart`, `GeoDistribution`, `TopRecordsList`, 2026-07-01): `metrics.*` namespace
+  (~40 keys) across all 6 bundles — dashboard chrome/KPIs/panels/empty+signin states, chart
+  series + axis labels (locale-reactive via `label: () => t(...)`), privacy disclosure (`<i18n-t>`
+  for the emphasised `not`), DB-IP geo attribution (`<i18n-t>` slot keeps the brand link),
+  top-resources stat labels, time-range aria. `KpiCard` stays presentational (labels passed in).
+  Units (`4xx + 5xx`, `ms`, `24h/7d/30d/90d`) and brand names kept. Gate green (494 tests).
 - ⬜ Batch 5 — Account (`ProfileView`, `ApiKeysView`) + Appearance (`AppearanceView`).
 - ⬜ Batch 6 — Metadata authoring (`EntityForm`, `EntityCreate/EditView`, `RepositoryEditView`,
   `RepeatableInput`, `AboutSidecar`).

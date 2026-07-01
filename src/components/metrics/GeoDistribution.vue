@@ -27,10 +27,11 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
         <span class="count mono">{{ r.visitors }}</span>
       </li>
     </ul>
-    <p class="attribution">
-      IP geolocation by
-      <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer">DB-IP</a>
-    </p>
+    <i18n-t keypath="metrics.geoAttribution" tag="p" class="attribution" scope="global">
+      <template #dbip>
+        <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer">DB-IP</a>
+      </template>
+    </i18n-t>
   </div>
 </template>
 

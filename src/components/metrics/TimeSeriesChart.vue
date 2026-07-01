@@ -5,6 +5,7 @@
  * series the server reports per day.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { registerCharts } from "@/charts/register";
@@ -13,6 +14,7 @@ import type { MetricsPoint } from "@/api/metrics";
 
 registerCharts();
 
+const { t } = useI18n();
 const { formatDate, locale } = useFormat();
 
 const props = defineProps<{
@@ -59,8 +61,8 @@ onBeforeUnmount(() => themeObserver?.disconnect());
 const fields = computed(() => props.fields ?? (["requests", "visitors"] as const));
 
 const series = {
-  requests: { label: "Requests", color: () => tokens.value.accent },
-  visitors: { label: "Unique visitors", color: () => tokens.value.ok },
+  requests: { label: () => t("metrics.seriesRequests"), color: () => tokens.value.accent },
+  visitors: { label: () => t("metrics.seriesVisitors"), color: () => tokens.value.ok },
 } as const;
 
 const labels = computed(() => {
@@ -77,7 +79,7 @@ const labels = computed(() => {
 const chartData = computed<ChartData<"line">>(() => ({
   labels: labels.value,
   datasets: fields.value.map((f) => ({
-    label: series[f].label,
+    label: series[f].label(),
     data: props.points.map((p) => p[f]),
     borderColor: series[f].color(),
     backgroundColor: series[f].color() + "22",

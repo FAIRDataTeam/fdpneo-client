@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import type { TopResourceRow } from "@/api/metrics";
 import TypeTag from "@/components/shared/TypeTag.vue";
+
+const { t } = useI18n();
 
 defineProps<{ rows: TopResourceRow[] }>();
 </script>
@@ -15,11 +18,11 @@ defineProps<{ rows: TopResourceRow[] }>();
       </div>
       <div class="stat">
         <div class="stat__value mono">{{ r.requests }}</div>
-        <div class="stat__label">req</div>
+        <div class="stat__label">{{ t("metrics.statReq") }}</div>
       </div>
       <div class="stat">
         <div class="stat__value mono">{{ r.visitors }}</div>
-        <div class="stat__label">visitors</div>
+        <div class="stat__label">{{ t("metrics.statVisitors") }}</div>
       </div>
     </li>
   </ol>
