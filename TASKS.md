@@ -2810,11 +2810,19 @@ running stack, light + dark, 0 console errors) and shipped in the rebuilt Docker
   paired with words for a11y. Added `access.*` i18n keys to all 6 locales; `rightsUri` added to
   `FdpRecord`/`mapRecord`. Gate: lint + typecheck + 499 tests green.
 
+**Follow-up #2 — container-tree depth — ✅ done (2026-07-03):** the browse tree now nests
+repository → catalogs → datasets/data-services via [`useTreeGraph`](src/composables/useTreeGraph.ts)
+(one SPARQL query over `dct:isPartOf` + a pure, tested `buildTreeForest`), replacing the
+catalogs-only listing. Uses the public SPARQL path so it populates for anonymous visitors
+(the `/page` extension was policy-gated → empty); levels below the root collapse by default and
+expand instantly. Distributions stay off the tree (leaf artifacts on the dataset page, per the
+mockup). Verified live (expand a catalog → its members appear); gate green, 501 tests.
+
 **Deferred (follow-ups within P2):**
 - Record detail keeps its `SecondaryNav` breadcrumb + on-demand container browser rather than
   the persistent tree; align if desired.
-- Tree shows repo → catalogs; deeper member nesting isn't eager (the `/page` read-extension is
-  policy-gated → empty for anonymous). Revisit for authed drill-in.
+- The `ContainerBrowser` overlay still uses the `/page`-based `useTree` (empty for anonymous);
+  could switch to `useTreeGraph` if that overlay is kept.
 - Shared primitives still on the alias bridge (`SecondaryNav`, `TypeTag`, `AppChip`, `StateBadge`,
   `RecordSummaryCard`, `DistributionRow`, `MetaItem`, global `.btn` in `main.css`) — bridge keeps
   them correct; full name migration lands with the P5 bridge retirement.

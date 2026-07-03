@@ -12,6 +12,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useCatalogs } from "@/composables/useCatalogs";
 import { useRepository } from "@/composables/useRepository";
+import { useTreeGraph } from "@/composables/useTreeGraph";
 import { useAuthStore } from "@/stores/auth";
 import { sampleDeployment, type TreeNode as TreeNodeData } from "@/data/sampleRecord";
 import { apiBase } from "@/api/rdf";
@@ -26,6 +27,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const { data: repo } = useRepository();
 const { data: catalogs, isLoading } = useCatalogs();
+const { data: containers, isLoading: treeLoading } = useTreeGraph();
 
 const newCatalogLink = computed(() => `/create/catalog?parent=${encodeURIComponent(apiBase())}`);
 const repoTitle = computed(() => repo.value?.title || sampleDeployment.name);
@@ -33,20 +35,19 @@ const repoDescription = computed(() => repo.value?.description || "");
 const catalogCount = computed(() => catalogs.value?.length ?? 0);
 const totalRecords = computed(() => (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0));
 
-// Persistent container tree: repository root → its catalogs. Built from the
-// public catalog listing rather than the policy-gated `/page` extension so it
-// populates for anonymous visitors too. (Deeper member nesting appears when you
-// open a container.)
-const treeData = computed<TreeNodeData>(() => ({
-  id: "",
-  label: repoTitle.value,
-  count: catalogCount.value,
-  children: (catalogs.value ?? []).map((c) => ({
-    id: c.id,
-    label: c.title,
-    count: c.distributions,
-  })),
-}));
+// Persistent container tree: repository root → catalogs → datasets/data-services,
+// built over SPARQL (useTreeGraph) so it nests to full depth and populates for
+// anonymous visitors (the /page extension is policy-gated). Levels below the root
+// are collapsed by default; expanding a node is instant (the forest is preloaded).
+const treeData = computed<TreeNodeData>(() => {
+  const children = containers.value ?? [];
+  return {
+    id: "",
+    label: repoTitle.value,
+    children,
+    ...(children.length ? { count: children.length } : {}),
+  };
+});
 
 // The root is the active node; selecting a child container opens its record.
 function navigate(id: string) {
@@ -60,7 +61,7 @@ function navigate(id: string) {
     <!-- Left: persistent container tree -->
     <aside class="pane tree-pane" :aria-label="t('metadata.containersAria')">
       <div class="eyebrow mono">{{ t("metadata.containers") }}</div>
-      <div v-if="isLoading" class="pane-hint">{{ t("common.loading") }}</div>
+      <div v-if="treeLoading" class="pane-hint">{{ t("common.loading") }}</div>
       <div v-else class="tree" role="tree">
         <TreeNode :node="treeData" :depth="0" :active-path="['']" @navigate="navigate" />
       </div>
