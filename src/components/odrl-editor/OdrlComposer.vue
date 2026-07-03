@@ -143,9 +143,9 @@ const valuePlaceholder = (lo: string) =>
   gap: 16px;
 }
 .panel {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -162,7 +162,7 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted-2);
+  color: var(--fair-text-light);
 }
 .addrules {
   display: flex;
@@ -175,53 +175,53 @@ h3 {
 }
 .f span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .f em {
   font-style: normal;
-  font-family: var(--font-mono);
-  color: var(--muted-2);
+  font-family: var(--fair-font-mono);
+  color: var(--fair-text-light);
 }
 input,
 select {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
   padding: 7px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   box-sizing: border-box;
 }
 .mono {
-  font-family: var(--font-mono);
+  font-family: var(--fair-font-mono);
 }
 .hint {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin: 0;
 }
 .rule {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  border-left: 3px solid var(--ok);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  border-left: 3px solid var(--fair-success);
 }
 .rule.prohibition {
-  border-left-color: var(--signal);
+  border-left-color: var(--fair-danger);
 }
 .rule__head {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: var(--surface-2);
+  background: var(--fair-highlight);
 }
 .kind {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .action {
   flex: 1;
@@ -248,7 +248,7 @@ select {
 }
 .cerror {
   font-size: 11px;
-  color: var(--signal);
+  color: var(--fair-danger);
 }
 .addc {
   align-self: flex-start;
@@ -260,12 +260,12 @@ select {
   height: 26px;
   border: none;
   background: none;
-  border-radius: var(--r-1);
-  color: var(--muted);
+  border-radius: var(--fair-radius-sm);
+  color: var(--fair-text-muted);
   cursor: pointer;
 }
 .icon:hover {
-  background: var(--surface-2);
-  color: var(--signal);
+  background: var(--fair-highlight);
+  color: var(--fair-danger);
 }
 </style>

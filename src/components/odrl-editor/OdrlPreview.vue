@@ -42,15 +42,15 @@ const warnings = computed(() => issues.value.filter((i) => i.level === "warning"
 .banner {
   font-size: 12px;
   padding: 8px 10px;
-  border-radius: var(--r-2);
+  border-radius: var(--fair-radius-md);
 }
 .banner.ok {
-  color: var(--ok);
-  background: var(--ok-soft);
+  color: var(--fair-success);
+  background: var(--fair-success-tint);
 }
 .banner.bad {
-  color: var(--signal);
-  background: var(--signal-soft);
+  color: var(--fair-danger);
+  background: var(--fair-danger-tint);
 }
 .ed {
   flex: 1;

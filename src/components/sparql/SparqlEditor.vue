@@ -81,17 +81,29 @@ function setupMonacoOnce() {
     },
   });
 
+  // Monaco can't read CSS custom properties (canvas-rendered), so these mirror
+  // the FAIR code-surface tokens as literals (teal keywords/IRIs, gold strings).
   monaco.editor.defineTheme("sparql-light", {
     base: "vs",
     inherit: true,
-    rules: [{ token: "type.identifier", foreground: "2D5B89" }],
-    colors: { "editor.background": "#ffffff" },
+    rules: [
+      { token: "keyword", foreground: "0e857f" },
+      { token: "type.identifier", foreground: "0a5f5b" },
+      { token: "string", foreground: "8a6d00" },
+      { token: "comment", foreground: "9aa4b2" },
+    ],
+    colors: { "editor.background": "#f4f6f9" },
   });
   monaco.editor.defineTheme("sparql-dark", {
     base: "vs-dark",
     inherit: true,
-    rules: [{ token: "type.identifier", foreground: "7CA9D6" }],
-    colors: { "editor.background": "#0f1115" },
+    rules: [
+      { token: "keyword", foreground: "5fc2bc" },
+      { token: "type.identifier", foreground: "8fd8d3" },
+      { token: "string", foreground: "c9a23a" },
+      { token: "comment", foreground: "5f6a78" },
+    ],
+    colors: { "editor.background": "#131a23" },
   });
 }
 

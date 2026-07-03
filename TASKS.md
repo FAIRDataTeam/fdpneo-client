@@ -2845,10 +2845,38 @@ rebuilt image:
 - Added `search.modeText` / `search.modeAria` i18n to all 6 locales. Gate: lint + typecheck +
   499 tests green.
 
-### P4 — SHACL + ODRL editors — ⬜ todo
-Skin the Vue Flow canvas as the node-and-edge language (shape = node, `sh:node` = arrowed
-edge, dot-grid canvas, dashed ghost nodes); ODRL plain-language composer. The most custom
-work. See MIGRATION §6 (SHACL editor, ODRL editor rows).
+### P4 — SHACL + ODRL editors — ✅ done (2026-07-03)
+Verified live in an **authenticated admin session** (Keycloak login driven in-browser; SPA nav
+preserves the session — a full reload drops it), 0 console errors. (NB: the SHACL editor is a
+vendored **Contour** subpackage, hand-rolled SVG graph — there is **no Vue Flow** dependency;
+the mockup's "Vue Flow" wording doesn't match the code.)
+- **SHACL editor** ([`contour/editor.css`](src/components/shacl-editor/contour/editor.css)): the
+  editor already themed through a `.contour-editor` token-indirection layer (`--color-*` mapped
+  onto the v2 aliases). Repointed that block (the client-owned bridge, not the vendored rules)
+  directly to `--fair-*`/`--tool-*`. editor.css is a **static** vendored file (no `scope-css.mjs`
+  / Contour dep in-repo), so I also tokenized its hardcoded literals: the Turtle-preview syntax
+  palette (`.shacl-output .tok-*`) → the FAIR per-tool accent family; old slate-blue shadow/scrim
+  tints (`rgba(27,42,74,*)`) → cool-slate ink; danger tints → `--fair-danger*`; warm greys/gold →
+  FAIR. The dot-grid canvas, node-card headers, dashed **ghost nodes**, and the palette·canvas·
+  inspector workbench all already existed and now read in FAIR. Verified: contour mounts, teal
+  node-card header, Visual Editor / SHACL Code / Form Preview tabs.
+- **Monaco** ([`TurtleEditor`](src/components/shacl-editor/TurtleEditor.vue) +
+  [`SparqlEditor`](src/components/sparql/SparqlEditor.vue)): repointed the light/dark themes off
+  the old slate-blue to FAIR code-surface literals (teal keywords/IRIs `0e857f`/`5fc2bc`, gold
+  strings, FAIR `code-bg`) — Monaco is canvas-rendered so it can't consume CSS vars; switched on
+  `resolvedTheme`.
+- **Views/components:** [`SchemaEditorView`](src/views/SchemaEditorView.vue),
+  [`PolicyEditorView`](src/views/PolicyEditorView.vue), [`LicensesView`](src/views/LicensesView.vue),
+  [`OdrlComposer`](src/components/odrl-editor/OdrlComposer.vue),
+  [`OdrlPreview`](src/components/odrl-editor/OdrlPreview.vue) — v2 aliases → `--fair-*`, serif
+  headings → IBM Plex bold. ODRL composer verified: "deny wins" surfaced inline, green profile
+  validation banner, FAIR-tinted Turtle preview.
+- Gate: lint + typecheck + 501 tests green.
+
+**Known follow-up:** the SHACL graph's `.gv-node--shape` label text is hardcoded `#fff` (white)
+on the accent fill — fine in light mode, but low-contrast in dark mode where `--tool-accent` is a
+light teal. A handful of on-accent `#fff` literals remain in the vendored editor.css for the same
+reason. Fix by giving graph-node label text a contrast-aware token.
 
 ### P5 — Metrics + admin, then retire the bridge — ⬜ todo
 KPI row / time-series / country bars / top-resources (charts use `--tool-accent`); admin

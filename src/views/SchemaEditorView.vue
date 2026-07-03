@@ -320,23 +320,24 @@ onMounted(() => startNew());
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: 400;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-bold);
   font-size: 32px;
-  color: var(--ink);
+  letter-spacing: var(--fair-tracking-display);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
   max-width: 640px;
 }
 .layout {
@@ -366,36 +367,36 @@ h1 {
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--paper);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
   cursor: pointer;
 }
 .schema.active {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
+  border-color: var(--fair-node-soft);
+  background: var(--tool-accent-tint);
 }
 .schema__id {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .schema__lock {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   flex: none;
 }
 .schema__tc {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   word-break: break-all;
 }
 .schema__v {
   font-size: 10px;
-  color: var(--muted-2);
+  color: var(--fair-text-light);
 }
 .editor {
   display: flex;
@@ -408,39 +409,39 @@ h1 {
   gap: 6px;
 }
 .label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 input,
 textarea {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   width: 100%;
   box-sizing: border-box;
 }
 textarea {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--fair-font-mono, monospace);
   font-size: 12.5px;
   line-height: 1.5;
   resize: vertical;
 }
 input:disabled,
 textarea:disabled {
-  background: var(--surface-2);
-  color: var(--muted);
+  background: var(--fair-highlight);
+  color: var(--fair-text-muted);
 }
 .help {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .actions {
   display: flex;
@@ -451,54 +452,54 @@ textarea:disabled {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
   padding-top: 16px;
 }
 .notice {
   padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  color: var(--muted);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  color: var(--fair-text-muted);
   font-size: 13px;
   margin-bottom: 14px;
 }
 .error {
-  border: 1px solid var(--signal);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-danger);
+  border-radius: var(--fair-radius-md);
   padding: 12px 14px;
   margin-bottom: 14px;
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .error strong {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .result {
-  border-radius: var(--r-2);
+  border-radius: var(--fair-radius-md);
   padding: 10px 12px;
   font-size: 13px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--fair-separator);
 }
 .result.bad {
-  border-color: var(--signal);
+  border-color: var(--fair-danger);
 }
 .violations {
   margin: 8px 0 0;
   padding-left: 18px;
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 12px;
 }
 .btn.danger {
-  color: var(--signal);
+  color: var(--fair-danger);
 }
 .protected {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 
 @media (max-width: 900px) {

@@ -233,23 +233,24 @@ async function copyTurtle() {
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: 400;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-bold);
   font-size: 32px;
-  color: var(--ink);
+  letter-spacing: var(--fair-tracking-display);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
   max-width: 680px;
 }
 .layout {
@@ -279,23 +280,23 @@ h1 {
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--paper);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
   cursor: pointer;
 }
 .policy.active {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
+  border-color: var(--fair-node-soft);
+  background: var(--tool-accent-tint);
 }
 .policy__id {
   font-weight: 500;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .policy__meta {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .editor {
   display: flex;
@@ -313,25 +314,25 @@ h1 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 input {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   box-sizing: border-box;
 }
 input:disabled {
-  background: var(--surface-2);
-  color: var(--muted);
+  background: var(--fair-highlight);
+  color: var(--fair-text-muted);
 }
 .help {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .actions {
   display: flex;
@@ -348,39 +349,39 @@ input:disabled {
 .notice,
 .error,
 .result {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
   padding: 12px 14px;
   font-size: 13px;
 }
 .notice {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin-bottom: 14px;
 }
 .error {
-  border-color: var(--signal);
-  color: var(--ink-2);
+  border-color: var(--fair-danger);
+  color: var(--fair-text);
   margin-bottom: 14px;
 }
 .error strong {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .result.ok {
-  border-color: var(--ok);
+  border-color: var(--fair-success);
 }
 .result.bad {
-  border-color: var(--signal);
+  border-color: var(--fair-danger);
 }
 .violations {
   margin: 8px 0 0;
   padding-left: 18px;
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 12px;
 }
 .btn.danger {
-  color: var(--signal);
+  color: var(--fair-danger);
 }
 @media (max-width: 980px) {
   .page {
