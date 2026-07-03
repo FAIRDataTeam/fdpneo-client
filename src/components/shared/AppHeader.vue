@@ -37,6 +37,11 @@ interface Tab {
   family: string[];
   show: boolean;
 }
+// Browse and Search are public and always shown. The authenticated tools —
+// Schemas, Policies, Metrics — appear as tabs only for the users who can use
+// them (mirroring the old user-menu gating: admin for authoring surfaces, the
+// metrics feature for the dashboard), and are *not* also listed in the user
+// menu, so there's no duplication and no dead tabs for anonymous visitors.
 const tabs = computed<Tab[]>(() =>
   [
     {
@@ -60,20 +65,26 @@ const tabs = computed<Tab[]>(() =>
       family: ["search", "advanced-search", "sparql"],
       show: config.isEnabled("search"),
     },
-    { key: "schemas", label: t("header.nav.schemas"), to: { name: "schemas" }, family: ["schemas"], show: true },
+    {
+      key: "schemas",
+      label: t("header.nav.schemas"),
+      to: { name: "schemas" },
+      family: ["schemas"],
+      show: auth.isAdmin,
+    },
     {
       key: "policies",
       label: t("header.nav.policies"),
       to: { name: "policies" },
       family: ["policies", "licenses"],
-      show: true,
+      show: auth.isAdmin,
     },
     {
       key: "metrics",
       label: t("header.nav.metrics"),
       to: { name: "metrics" },
       family: ["metrics"],
-      show: config.isEnabled("metrics"),
+      show: auth.isAuthenticated && config.isEnabled("metrics"),
     },
   ].filter((tab) => tab.show),
 );

@@ -37,9 +37,10 @@ describe("App", () => {
 
     // Wordmark (FAIR Ecosystem lockup — no more "DATA POINT" / "neo").
     expect(wrapper.text()).toContain("FAIR Data Point");
-    // Primary tab navigation.
+    // Primary tab navigation — only the public surfaces (Browse, Search); the
+    // authenticated tools live in the user menu.
     expect(wrapper.text()).toContain("Browse");
-    expect(wrapper.text()).toContain("Schemas");
+    expect(wrapper.text()).toContain("Search");
     expect(wrapper.text()).toContain("Sign in");
   });
 });

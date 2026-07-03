@@ -5,10 +5,12 @@
  *
  * Closes on Escape, click-outside, and after a node is selected.
  */
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { useTree } from "@/composables/useTree";
+import { useTreeGraph } from "@/composables/useTreeGraph";
+import { useRepository } from "@/composables/useRepository";
+import type { TreeNode as TreeNodeData } from "@/data/sampleRecord";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TreeNode from "./TreeNode.vue";
 
@@ -17,13 +19,27 @@ const { t } = useI18n();
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: "close"): void }>();
 
-const { data: tree, isLoading } = useTree();
+// Repository root → catalogs → members, over SPARQL (useTreeGraph) so the tree
+// populates for anonymous visitors too — the /page-based useTree returns nothing
+// without auth. Mirrors the browse view's tree.
+const { data: containers, isLoading } = useTreeGraph();
+const { data: repo } = useRepository();
+const tree = computed<TreeNodeData>(() => {
+  const children = containers.value ?? [];
+  return {
+    id: "",
+    label: repo.value?.title || t("header.deploymentFallback"),
+    children,
+    ...(children.length ? { count: children.length } : {}),
+  };
+});
+
 const router = useRouter();
 const overlayRef = ref<HTMLElement | null>(null);
 const panelRef = ref<HTMLElement | null>(null);
 
 function navigate(id: string) {
-  void router.push(`/records/${id}`);
+  void router.push(id ? `/records/${id}` : "/");
   emit("close");
 }
 
@@ -72,7 +88,7 @@ function onBackdropClick(e: MouseEvent) {
       </header>
       <div v-if="isLoading" class="loading">{{ t("containerBrowser.loading") }}</div>
       <div v-else-if="tree" class="tree" role="tree">
-        <TreeNode :node="tree" :depth="0" :active-path="['fdp']" @navigate="navigate" />
+        <TreeNode :node="tree" :depth="0" :active-path="['']" @navigate="navigate" />
       </div>
     </section>
   </div>

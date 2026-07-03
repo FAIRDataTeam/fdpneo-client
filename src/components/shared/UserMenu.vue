@@ -56,11 +56,6 @@ async function gotoDashboard() {
   await router.push("/dashboard");
 }
 
-async function gotoMetrics() {
-  open.value = false;
-  await router.push("/metrics");
-}
-
 async function gotoResourceTypes() {
   open.value = false;
   await router.push("/admin/resource-definitions");
@@ -89,16 +84,6 @@ async function gotoProfile() {
 async function gotoTokens() {
   open.value = false;
   await router.push("/account/tokens");
-}
-
-async function gotoSchemas() {
-  open.value = false;
-  await router.push("/schemas");
-}
-
-async function gotoPolicies() {
-  open.value = false;
-  await router.push("/policies");
 }
 
 async function gotoLicenses() {
@@ -159,22 +144,11 @@ onUnmounted(() => {
         <div v-if="displayEmail" class="identity__email mono">{{ displayEmail }}</div>
       </div>
       <hr class="hr" />
+      <!-- Schemas, Policies and Metrics live in the top nav (for signed-in users),
+           so they're intentionally not repeated here — only the surfaces the tab
+           bar doesn't carry stay in this menu. -->
       <button v-if="auth.isSteward" class="item" role="menuitem" @click="gotoDashboard">
         <AppIcon name="book" :size="14" /> {{ t("userMenu.myMetadata") }}
-      </button>
-      <button
-        v-if="config.isEnabled('metrics')"
-        class="item"
-        role="menuitem"
-        @click="gotoMetrics"
-      >
-        <AppIcon name="monitor" :size="14" /> {{ t("userMenu.metrics") }}
-      </button>
-      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSchemas">
-        <AppIcon name="code" :size="14" /> {{ t("userMenu.schemas") }}
-      </button>
-      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoPolicies">
-        <AppIcon name="shield" :size="14" /> {{ t("userMenu.policies") }}
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoLicenses">
         <AppIcon name="book" :size="14" /> {{ t("userMenu.licenses") }}

@@ -2873,10 +2873,11 @@ the mockup's "Vue Flow" wording doesn't match the code.)
   validation banner, FAIR-tinted Turtle preview.
 - Gate: lint + typecheck + 501 tests green.
 
-**Known follow-up:** the SHACL graph's `.gv-node--shape` label text is hardcoded `#fff` (white)
-on the accent fill — fine in light mode, but low-contrast in dark mode where `--tool-accent` is a
-light teal. A handful of on-accent `#fff` literals remain in the vendored editor.css for the same
-reason. Fix by giving graph-node label text a contrast-aware token.
+**Known follow-up — ✅ resolved (2026-07-03):** added a contrast-aware `--fair-text-on-accent`
+token (white in light, dark slate in dark — theme-and-bridge.css) and applied it to every
+on-accent text/glyph in editor.css (graph `.gv-node--shape` label, `.tag-new`, `.btn-primary`,
+banner icon, hover tooltip). Only the two decorative white shapes (bnode circle fill, legend
+swatch) keep `#fff`. Verified the token resolves to `#10161e` in dark mode.
 
 ### P5 — Metrics + admin, then retire the bridge — ✅ done (2026-07-03)
 Verified live (metrics in light + dark, browse regression pixel-identical, 0 console errors);
@@ -2904,9 +2905,19 @@ shipped in the rebuilt image. **This completes the P1–P5 FAIR Ecosystem re-ski
 grain/vignette; no hard-coded hexes (only `--fair-*` / `--tool-*`); light & dark both pass
 AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified. ✅ met across P1–P5.
 
-**Residual follow-ups (non-blocking):** the SHACL graph's `.gv-node--shape` label text is a
-hardcoded `#fff` (low contrast in dark where the accent is light teal — see P4 note); the
-`ContainerBrowser` overlay still uses the `/page`-based `useTree` (empty for anonymous).
+**Residual follow-ups — ✅ resolved (2026-07-03):**
+- SHACL graph node label contrast → contrast-aware `--fair-text-on-accent` token (see P4 note).
+- `ContainerBrowser` overlay switched from the `/page`-based `useTree` to the SPARQL
+  [`useTreeGraph`](src/composables/useTreeGraph.ts); verified it now populates (root + 4 catalogs)
+  for anonymous visitors.
+
+**Top-nav / user-menu de-duplication (2026-07-03):** the header tab bar shows **Browse · Search**
+for everyone, and adds **Schemas · Policies** (admin) and **Metrics** (authenticated + metrics
+feature) as tabs — gated exactly as the old user-menu links were, so no dead tabs for anonymous
+visitors. Those three were **removed from the avatar menu** to avoid duplication; the menu keeps
+only the non-tab surfaces (My metadata, Licenses, Resource types, Settings, Appearance, Users,
+Profile, Access tokens, Sign out). Verified live: anon nav = Browse·Search; admin nav = all five;
+menu no longer lists the three. Gate green, 501 tests.
 
 **Definition of done (per surface, from MIGRATION §8):** no Fraunces/Hanken/Spline; no
 grain/vignette; no hard-coded hexes (only `--fair-*` / `--tool-*`); light & dark both pass

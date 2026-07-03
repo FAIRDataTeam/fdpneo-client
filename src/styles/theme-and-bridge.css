@@ -20,6 +20,11 @@
   --t-distribution: var(--tool-station);
   --t-biobank: var(--tool-framework);
   --t-publication: var(--tool-identifier);
+
+  /* Text/glyphs sitting on a tool-accent fill. White reads on the dark-teal
+     light-mode accent; in dark mode the accent lightens, so this flips to
+     dark slate (see .theme-dark) to keep contrast. */
+  --fair-text-on-accent: #ffffff;
 }
 
 /* ---- Dark mode (cool-slate) ---- */
@@ -41,6 +46,9 @@
   --fair-success:#5bb97a;  --fair-success-tint:#183021;
   --fair-warning:#c9a23a;  --fair-warning-tint:#2c2510;
   --fair-danger:#e07a70;   --fair-danger-tint:#331b19;
+
+  /* accent lightens in dark mode → on-accent text must go dark to stay legible */
+  --fair-text-on-accent:#10161e;
 
   --fair-shadow-2: 0 18px 44px -16px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.4);
 }

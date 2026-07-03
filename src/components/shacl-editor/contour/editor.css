@@ -227,7 +227,7 @@
 
 .contour-editor .nav-tabs .nav-link .tag-new {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--fair-text-on-accent);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -337,7 +337,7 @@
 
 .contour-editor .btn-primary {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--fair-text-on-accent);
 }
 
 .contour-editor .btn-primary:hover:not(:disabled) {
@@ -571,7 +571,7 @@
   width: 36px;
   height: 36px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--fair-text-on-accent);
   border-radius: var(--radius-md);
   display: grid;
   place-items: center;
@@ -1462,7 +1462,7 @@
   width: 220px;
   padding: 8px 10px;
   background: var(--color-text-dark);
-  color: #fff;
+  color: var(--fair-text-on-accent);
   border-radius: var(--radius-md);
   font-size: 12px;
   font-weight: 400;
@@ -1495,7 +1495,7 @@
   letter-spacing: 0.4px;
   text-transform: uppercase;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--fair-text-on-accent);
   padding: 1px 7px;
   border-radius: var(--radius-pill);
   vertical-align: middle;
@@ -1943,7 +1943,7 @@
 }
 
 .contour-editor .gv-node--shape text {
-  fill: #fff; font-weight: 600;
+  fill: var(--fair-text-on-accent); font-weight: 600;
 }
 
 .contour-editor .gv-node--group rect {
