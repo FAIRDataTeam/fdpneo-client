@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/styles.css">
+  <script src="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; }
+    .db-reset *, .db-reset *::before, .db-reset *::after { box-sizing: border-box; }
+    /* Dark path for the FAIR Ecosystem palette (cool-slate ink), authored here
+       because the DS ships light-first. Consistent with the ink family. */
+    .theme-dark {
+      --fair-bg:#10161e; --fair-surface:#1a2230; --fair-surface-input:#141b24;
+      --fair-canvas:#141b24; --fair-highlight:#232c3a; --fair-code-bg:#131a23;
+      --fair-border:#2b3543; --fair-separator:#222c39;
+      --fair-text:#c6ceda; --fair-text-muted:#8a94a2; --fair-text-light:#5f6a78;
+      --fair-text-strong:#eef2f7; --fair-ink-soft:#3a4655; --fair-ink-tint:#1e2733;
+      --fair-node:#5fc2bc; --fair-node-darker:#8fd8d3; --fair-node-soft:#2a4a48; --fair-node-tint:#15302e;
+      --tool-fdp:#5fc2bc; --tool-fdp-tint:#15302e; --tool-accent:#5fc2bc; --tool-accent-tint:#15302e;
+      --fair-success:#5bb97a; --fair-success-tint:#183021; --fair-warning:#c9a23a; --fair-warning-tint:#2c2510; --fair-danger:#e07a70; --fair-danger-tint:#331b19;
+    }
+    .db-navlink:hover { color: var(--fair-text-strong) !important; }
+    .db-row:hover { border-color: var(--tool-accent) !important; box-shadow: var(--fair-shadow-2) !important; }
+    .db-tnode:hover { background: var(--fair-highlight) !important; }
+    .db-facet:hover { color: var(--fair-text-strong) !important; }
+    .db-themebtn:hover { background: var(--fair-highlight) !important; }
+    .theme-dark .pbtn { background: var(--fair-ink-lighter) !important; color: var(--fair-text-strong) !important; border-color: var(--fair-ink-lighter) !important; }
+  </style>
+</helmet>
+
+<div class="db-reset" ref="{{ rootRef }}" style="font-family: var(--fair-font-sans); background: var(--fair-bg); color: var(--fair-text); min-height: 100vh; padding: 26px 30px 80px;">
+
+  <!-- Doc toolbar -->
+  <div style="display:flex; align-items:center; gap:16px; max-width:1360px; margin:0 auto 24px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:11px;">
+      <img src="assets/tools/fdp.svg" width="30" height="30" alt="" />
+      <div>
+        <div style="font-size:17px; font-weight:700; letter-spacing:-0.01em; color:var(--fair-text-strong);">FAIR Data Point — redesign</div>
+        <div style="font-family:var(--fair-font-mono); font-size:11px; letter-spacing:0.04em; color:var(--fair-text-muted);">Metadata browse · merged direction (2a) + explorations (1a–1c)</div>
+      </div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">
+      <a href="#2a" style="color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:2px 7px; text-decoration:none; font-weight:700;">2a</a>
+      <a href="#1a" style="color:var(--tool-accent); text-decoration:none; font-weight:600;">1a</a>
+      <a href="#1b" style="color:var(--tool-accent); text-decoration:none; font-weight:600;">1b</a>
+      <a href="#1c" style="color:var(--tool-accent); text-decoration:none; font-weight:600;">1c</a>
+    </div>
+    <button class="db-themebtn" onClick="{{ toggleTheme }}" style="font-family:var(--fair-font-mono); font-size:11.5px; font-weight:600; letter-spacing:0.04em; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:8px 16px; cursor:pointer; transition:background var(--fair-transition);">◐ {{ themeLabel }}</button>
+  </div>
+
+  <!-- ===================== TURN 2 · MERGED ===================== -->
+  <section style="max-width:1360px; margin:0 auto 48px;">
+    <div id="2a" style="max-width:1300px;">
+      <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:14px;">
+        <span style="font-family:var(--fair-font-mono); font-size:13px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:4px 10px;">2a</span>
+        <div>
+          <div style="font-size:16px; font-weight:700; color:var(--fair-text-strong);">Merged direction — three-pane + working sidecar</div>
+          <div style="font-size:13px; color:var(--fair-text-muted);">1a's structure &amp; full metadata sidecar · 1b's type-colour graph spines · sidecar now stacks metadata properties + RDF-syntax tabs + a mini graph visualizer. Search is a top-level menu destination.</div>
+        </div>
+      </div>
+
+      <div data-tool="fdp" style="width:1300px; height:940px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+        <!-- header -->
+        <header style="height:58px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 22px; background:var(--fair-surface); border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:15px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="24" height="24" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:7px 12px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Browse</a>
+            <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:7px 12px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:7px 12px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:7px 12px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:7px 12px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="display:flex; align-items:center; gap:8px; background:var(--fair-canvas); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:7px 14px; width:230px; color:var(--fair-text-light); font-size:12.5px;"><span style="font-family:var(--fair-font-mono);">⌕</span><span>Search metadata…</span><span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; border:1px solid var(--fair-border); border-radius:4px; padding:1px 5px;">/</span></div>
+          <button style="font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:8px 14px; cursor:pointer;">+ New</button>
+          <div style="width:31px; height:31px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+
+        <div style="flex:1; display:flex; min-height:0;">
+          <!-- LEFT: tree (compact + node dots) -->
+          <aside style="width:252px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 12px; overflow:auto;">
+            <div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); padding:0 8px 10px;">Containers</div>
+            <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text);"><span style="width:10px; color:var(--fair-text-light); font-size:9px;">▾</span><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-ink);"></span><span style="flex:1; font-size:13px; font-weight:600;">UMC Data Point</span></div>
+            <div style="margin-left:13px; border-left:1px solid var(--fair-border); padding-left:6px;">
+              <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; background:var(--tool-accent-tint); color:var(--tool-accent);"><span style="width:10px; font-size:9px;">▾</span><span style="width:9px; height:9px; border-radius:50%; background:var(--tool-accent);"></span><span style="flex:1; font-size:13px; font-weight:600;">Rare Disease Registry</span><span style="font-family:var(--fair-font-mono); font-size:10.5px;">3</span></div>
+              <div style="margin-left:13px; border-left:1px solid var(--fair-border); padding-left:6px;">
+                <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Cohort A — clinical</span></div>
+                <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Cohort B — genomic</span></div>
+                <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Data dictionary</span></div>
+              </div>
+              <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text);"><span style="width:10px; color:var(--fair-text-light); font-size:9px;">▸</span><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-ink-soft);"></span><span style="flex:1; font-size:13px; font-weight:500;">Imaging Cohorts</span><span style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">7</span></div>
+            </div>
+          </aside>
+
+          <!-- CENTER: spined cards -->
+          <div style="flex:1; min-width:0; overflow:auto; padding:20px 24px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:14px;"><a style="color:var(--fair-text-muted); text-decoration:none;">Home</a><span style="color:var(--fair-text-light);">/</span><a style="color:var(--fair-text-muted); text-decoration:none;">UMC Data Point</a><span style="color:var(--fair-text-light);">/</span><b style="color:var(--fair-text-strong);">Rare Disease Registry</b></div>
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+              <div>
+                <div style="font-family:var(--fair-font-mono); font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--tool-accent); margin-bottom:6px;">dcat:Catalog</div>
+                <h1 style="font-size:27px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0 0 8px;">Rare Disease Registry</h1>
+                <p style="font-size:13.5px; color:var(--fair-text-muted); margin:0; max-width:520px; line-height:1.55;">Harmonised clinical and genomic datasets for rare-disease cohorts, described in DCAT and validated against the registry's SHACL profile.</p>
+              </div>
+              <div style="display:flex; gap:8px; flex-shrink:0;"><button style="font-family:inherit; font-size:12px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:7px 12px; cursor:pointer;">Edit</button><button class="pbtn" style="font-family:inherit; font-size:12px; font-weight:600; color:#fff; background:var(--fair-ink); border:none; border-radius:var(--fair-radius-md); padding:7px 12px; cursor:pointer;">Publish</button></div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin:22px 0 12px;"><h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0;">Datasets</h2><span style="font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-text-light);">3 of 3</span></div>
+
+            <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <div style="width:5px; background:var(--fair-node); flex-shrink:0;"></div>
+              <div style="padding:14px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Cohort A — clinical variables</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">128 harmonised clinical variables across 2,400 participants, mapped to the CARE semantic model.</div><div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">care:ClinicalVariable</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC-BY-4.0</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">2 distributions</span></div></div>
+            </div>
+            <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <div style="width:5px; background:var(--fair-node); flex-shrink:0;"></div>
+              <div style="padding:14px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Cohort B — genomic panel</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Targeted sequencing panel results with variant calls linked to Orphanet disease codes.</div><div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">sio:Genome</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC-BY-4.0</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">3 distributions</span></div></div>
+            </div>
+            <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <div style="width:5px; background:var(--fair-warning); flex-shrink:0;"></div>
+              <div style="padding:14px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">skos:ConceptScheme</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-warning-tint); color:var(--fair-warning);">● Draft</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Registry data dictionary</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Machine-readable definitions for every field in the registry, published as a reusable vocabulary.</div><div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">skos:ConceptScheme</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC0-1.0</span></div></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: working sidecar -->
+          <aside style="width:384px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 16px; overflow:auto;">
+            <!-- metadata properties -->
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="padding:11px 15px; border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Catalog metadata</div>
+              <dl style="padding:14px 15px; display:grid; grid-template-columns:auto 1fr; gap:10px 14px; align-items:baseline; margin:0;">
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">publisher</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">UMC Data Steward Office</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">issued</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">2026-03-12</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">modified</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">2026-06-28</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">language</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">en · nl</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">license</dt><dd style="margin:0; font-size:12.5px;"><a style="color:var(--fair-node-darker); text-decoration:underline; text-underline-offset:2px;">CC-BY-4.0</a></dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">theme</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">Rare diseases · Genomics</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">conformsTo</dt><dd style="margin:0; font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-node-darker); word-break:break-all;">registry-shape v2.3</dd>
+              </dl>
+            </div>
+
+            <!-- graph visualizer -->
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 15px; border-bottom:1px solid var(--fair-separator);"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Graph</span><span style="font-size:11px; font-weight:600; color:var(--tool-accent);">Expand ⤢</span></div>
+              <div style="padding:8px 10px 12px; background:radial-gradient(var(--fair-border) 0.7px, transparent 0.7px); background-size:14px 14px;">
+                <svg viewBox="0 0 352 176" width="100%" height="176" role="img" aria-label="Record graph — catalog linked to datasets, publisher and shape">
+                  <g stroke="var(--fair-ink-soft)" stroke-width="1.4">
+                    <line x1="176" y1="88" x2="70" y2="42"></line>
+                    <line x1="176" y1="88" x2="60" y2="130"></line>
+                    <line x1="176" y1="88" x2="292" y2="44"></line>
+                    <line x1="176" y1="88" x2="296" y2="126"></line>
+                    <line x1="176" y1="88" x2="176" y2="158"></line>
+                  </g>
+                  <!-- center catalog -->
+                  <circle cx="176" cy="88" r="15" fill="var(--tool-accent)"></circle>
+                  <circle cx="176" cy="88" r="15" fill="none" stroke="var(--fair-surface)" stroke-width="3"></circle>
+                  <!-- datasets -->
+                  <circle cx="70" cy="42" r="9" fill="var(--fair-node)"></circle>
+                  <circle cx="60" cy="130" r="9" fill="var(--fair-node)"></circle>
+                  <!-- draft dataset -->
+                  <circle cx="176" cy="158" r="9" fill="var(--fair-warning)"></circle>
+                  <!-- publisher / shape (ink) -->
+                  <circle cx="292" cy="44" r="8" fill="var(--fair-ink-soft)"></circle>
+                  <circle cx="296" cy="126" r="8" fill="var(--fair-ink-soft)"></circle>
+                  <g font-family="var(--fair-font-mono)" font-size="9" fill="var(--fair-text-muted)">
+                    <text x="70" y="26" text-anchor="middle">Cohort A</text>
+                    <text x="60" y="150" text-anchor="middle">Cohort B</text>
+                    <text x="176" y="174" text-anchor="middle">dictionary</text>
+                    <text x="292" y="30" text-anchor="middle">publisher</text>
+                    <text x="296" y="146" text-anchor="middle">shape</text>
+                  </g>
+                  <text x="176" y="91" text-anchor="middle" font-family="var(--fair-font-mono)" font-size="8.5" font-weight="700" fill="#fff">this</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- RDF representation -->
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; gap:0; padding:8px 10px; border-bottom:1px solid var(--fair-separator);">
+                <span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent); color:#fff;">Turtle</span>
+                <span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted); cursor:pointer;">JSON-LD</span>
+                <span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted); cursor:pointer;">RDF/XML</span>
+                <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:14px; color:var(--fair-text-light); cursor:pointer; padding-right:6px;" title="Copy">⧉</span>
+              </div>
+              <div style="padding:12px 14px; font-family:var(--fair-font-mono); font-size:11px; line-height:1.7; color:var(--fair-text); white-space:pre; overflow:hidden; background:var(--fair-code-bg);"><span style="color:var(--fair-node-darker);">@prefix</span> dcat: &lt;…&gt; .
+<span style="color:var(--fair-text-strong); font-weight:600;">&lt;registry&gt;</span>
+  a <span style="color:var(--tool-accent);">dcat:Catalog</span> ;
+  dct:title <span style="color:var(--fair-warning);">"Rare Disease…"</span> ;
+  dcat:dataset <span style="color:var(--fair-node-darker);">&lt;cohort-a&gt;</span> ,
+    <span style="color:var(--fair-node-darker);">&lt;cohort-b&gt;</span> ;
+  dct:conformsTo <span style="color:var(--fair-node-darker);">&lt;shape&gt;</span> .</div>
+            </div>
+
+            <!-- validation + PID -->
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden;">
+              <div style="padding:12px 15px; display:flex; align-items:center; gap:10px;"><span style="width:26px; height:26px; border-radius:var(--fair-radius-md); background:var(--fair-success-tint); color:var(--fair-success); display:grid; place-items:center; font-weight:700;">✓</span><div style="font-size:13px;"><div style="font-weight:600; color:var(--fair-text-strong);">Conforms to profile</div><div style="font-size:11px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">0 violations · 2 warnings</div></div></div>
+              <div style="padding:11px 15px; border-top:1px solid var(--fair-separator); display:flex; gap:8px; align-items:center; justify-content:space-between;"><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-node-darker);">w3id.org/…/8f2a-91c3</span><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:transparent; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:5px 10px; cursor:pointer;">Resolve ↗</button></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TURN 1 ===================== -->
+  <section style="max-width:1360px; margin:0 auto;">
+    <div style="display:flex; gap:34px; align-items:flex-start; flex-wrap:nowrap;">
+
+      <!-- ---------- OPTION 1a — Classic three-pane ---------- -->
+      <div id="1a" style="flex:0 0 auto;">
+        <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
+          <span style="font-family:var(--fair-font-mono); font-size:12px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">1a</span>
+          <div>
+            <div style="font-size:15px; font-weight:700; color:var(--fair-text-strong);">Classic three-pane</div>
+            <div style="font-size:12.5px; color:var(--fair-text-muted);">Container tree · dataset list · metadata sidecar. Dense, familiar, steward-oriented.</div>
+          </div>
+        </div>
+
+        <div data-tool="fdp" style="width:1240px; height:760px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+          <!-- header -->
+          <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:var(--fair-surface); border-bottom:1px solid var(--fair-separator);">
+            <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+            <nav style="display:flex; gap:2px; margin-left:14px;">
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Browse</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+            </nav>
+            <div style="flex:1;"></div>
+            <div style="display:flex; align-items:center; gap:8px; background:var(--fair-canvas); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:6px 13px; width:200px; color:var(--fair-text-light); font-size:12.5px;"><span style="font-family:var(--fair-font-mono);">⌕</span><span>Search metadata…</span></div>
+            <button style="font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:8px 13px; cursor:pointer;">+ New</button>
+            <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+          </header>
+
+          <div style="flex:1; display:flex; min-height:0;">
+            <!-- LEFT: tree -->
+            <aside style="width:262px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 12px; overflow:auto;">
+              <div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); padding:0 8px 10px;">Containers</div>
+              <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text);"><span style="width:10px; color:var(--fair-text-light); font-size:9px;">▾</span><span style="width:8px; height:8px; border-radius:2px; background:var(--fair-ink);"></span><span style="flex:1; font-size:13px; font-weight:600;">UMC Data Point</span></div>
+              <div style="margin-left:13px; border-left:1px solid var(--fair-border); padding-left:6px;">
+                <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; background:var(--tool-accent-tint); color:var(--tool-accent);"><span style="width:10px; font-size:9px;">▾</span><span style="width:8px; height:8px; border-radius:2px; background:var(--tool-accent);"></span><span style="flex:1; font-size:13px; font-weight:600;">Rare Disease Registry</span><span style="font-family:var(--fair-font-mono); font-size:10.5px;">3</span></div>
+                <div style="margin-left:13px; border-left:1px solid var(--fair-border); padding-left:6px;">
+                  <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:2px; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Cohort A — clinical</span></div>
+                  <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:2px; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Cohort B — genomic</span></div>
+                  <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text-muted);"><span style="width:10px;"></span><span style="width:7px; height:7px; border-radius:2px; background:var(--fair-node);"></span><span style="flex:1; font-size:12.5px;">Data dictionary</span></div>
+                </div>
+                <div class="db-tnode" style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--fair-radius-md); cursor:pointer; color:var(--fair-text);"><span style="width:10px; color:var(--fair-text-light); font-size:9px;">▸</span><span style="width:8px; height:8px; border-radius:2px; background:var(--fair-ink-soft);"></span><span style="flex:1; font-size:13px; font-weight:500;">Imaging Cohorts</span><span style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">7</span></div>
+              </div>
+            </aside>
+
+            <!-- CENTER -->
+            <div style="flex:1; min-width:0; overflow:auto; padding:20px 24px;">
+              <div style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:14px;"><a style="color:var(--fair-text-muted); text-decoration:none;">Home</a><span style="color:var(--fair-text-light);">/</span><a style="color:var(--fair-text-muted); text-decoration:none;">UMC Data Point</a><span style="color:var(--fair-text-light);">/</span><b style="color:var(--fair-text-strong);">Rare Disease Registry</b></div>
+              <div style="font-family:var(--fair-font-mono); font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--tool-accent); margin-bottom:6px;">dcat:Catalog</div>
+              <h1 style="font-size:26px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0 0 8px;">Rare Disease Registry</h1>
+              <p style="font-size:13.5px; color:var(--fair-text-muted); margin:0 0 18px; max-width:560px; line-height:1.55;">Harmonised clinical and genomic datasets for rare-disease cohorts, described in DCAT and validated against the registry's SHACL profile.</p>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0;">Datasets</h2><span style="font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-text-light);">3 of 3</span></div>
+
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em; margin:5px 0 3px;">Cohort A — clinical variables</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">128 harmonised clinical variables across 2,400 participants, mapped to the CARE semantic model.</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">care:ClinicalVariable</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC-BY-4.0</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">2 distributions</span></div>
+              </div>
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em; margin:5px 0 3px;">Cohort B — genomic panel</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Targeted sequencing panel results with variant calls linked to Orphanet disease codes.</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">sio:Genome</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC-BY-4.0</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">3 distributions</span></div>
+              </div>
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-warning-tint); color:var(--fair-warning);">● Draft</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em; margin:5px 0 3px;">Registry data dictionary</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Machine-readable definitions for every field in the registry, published as a reusable vocabulary.</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker); border:1px solid var(--fair-node-soft);">skos:ConceptScheme</span><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text);">CC0-1.0</span></div>
+              </div>
+            </div>
+
+            <!-- RIGHT sidecar -->
+            <aside style="width:296px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 16px; overflow:auto;">
+              <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+                <div style="padding:11px 14px; border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Catalog metadata</div>
+                <dl style="padding:13px 14px; display:grid; grid-template-columns:auto 1fr; gap:9px 12px; align-items:baseline; margin:0;">
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">publisher</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">UMC Data Steward Office</dd>
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">issued</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">2026-03-12</dd>
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">license</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">CC-BY-4.0</dd>
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">conformsTo</dt><dd style="margin:0; font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-node-darker); word-break:break-all;">registry-shape v2.3</dd>
+                </dl>
+                <div style="padding:11px 14px; border-top:1px solid var(--fair-separator); display:flex; gap:8px; align-items:center; justify-content:space-between;"><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-node-darker);">w3id.org/…/8f2a</span><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:transparent; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:5px 10px; cursor:pointer;">Resolve ↗</button></div>
+              </div>
+              <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden;">
+                <div style="padding:11px 14px; border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Validation</div>
+                <div style="padding:12px 14px; display:flex; align-items:center; gap:10px; font-size:13px;"><span style="width:26px; height:26px; border-radius:var(--fair-radius-md); background:var(--fair-success-tint); color:var(--fair-success); display:grid; place-items:center; font-weight:700;">✓</span><div><div style="font-weight:600; color:var(--fair-text-strong);">Conforms to profile</div><div style="font-size:11px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">0 violations · 2 warnings</div></div></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- OPTION 1b — Graph-forward ---------- -->
+      <div id="1b" style="flex:0 0 auto;">
+        <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
+          <span style="font-family:var(--fair-font-mono); font-size:12px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">1b</span>
+          <div>
+            <div style="font-size:15px; font-weight:700; color:var(--fair-text-strong);">Graph-forward</div>
+            <div style="font-size:12.5px; color:var(--fair-text-muted);">Node-and-edge lineage rail · type-colour spines · live RDF sidecar. Leans into the linked-data identity.</div>
+          </div>
+        </div>
+
+        <div data-tool="fdp" style="width:1240px; height:760px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+          <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:var(--fair-surface); border-bottom:1px solid var(--fair-separator);">
+            <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+            <nav style="display:flex; gap:2px; margin-left:14px;">
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Browse</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+            </nav>
+            <div style="flex:1;"></div>
+            <div style="display:flex; align-items:center; gap:8px; background:var(--fair-canvas); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:6px 13px; width:200px; color:var(--fair-text-light); font-size:12.5px;"><span style="font-family:var(--fair-font-mono);">⌕</span><span>Search metadata…</span></div>
+            <button style="font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:8px 13px; cursor:pointer;">+ New</button>
+            <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+          </header>
+
+          <div style="flex:1; display:flex; min-height:0;">
+            <!-- LEFT: graph tree -->
+            <aside style="width:262px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 14px; overflow:auto;">
+              <div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); padding:0 4px 12px;">Knowledge graph</div>
+              <!-- node-edge rail -->
+              <div style="position:relative;">
+                <div style="display:flex; align-items:center; gap:10px; padding:6px 6px;"><span style="width:12px; height:12px; border-radius:50%; background:var(--fair-ink); box-shadow:0 0 0 3px var(--fair-ink-tint);"></span><span style="font-size:13px; font-weight:700; color:var(--fair-text-strong);">UMC Data Point</span></div>
+                <div style="margin-left:5px; border-left:2px solid var(--fair-border); padding-left:16px; margin-top:2px;">
+                  <div style="display:flex; align-items:center; gap:10px; padding:6px 6px; background:var(--tool-accent-tint); border-radius:var(--fair-radius-md);"><span style="width:11px; height:11px; border-radius:50%; background:var(--tool-accent); box-shadow:0 0 0 3px var(--fair-surface);"></span><span style="flex:1; font-size:12.5px; font-weight:700; color:var(--tool-accent);">Rare Disease Registry</span></div>
+                  <div style="margin-left:5px; border-left:2px solid var(--fair-node-soft); padding-left:16px; margin-top:2px;">
+                    <div style="display:flex; align-items:center; gap:9px; padding:5px 6px;"><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-node);"></span><span style="font-size:12px; color:var(--fair-text);">Cohort A — clinical</span></div>
+                    <div style="display:flex; align-items:center; gap:9px; padding:5px 6px;"><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-node);"></span><span style="font-size:12px; color:var(--fair-text);">Cohort B — genomic</span></div>
+                    <div style="display:flex; align-items:center; gap:9px; padding:5px 6px;"><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-node);"></span><span style="font-size:12px; color:var(--fair-text);">Data dictionary</span></div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:10px; padding:6px 6px;"><span style="width:11px; height:11px; border-radius:50%; background:var(--fair-ink-soft);"></span><span style="flex:1; font-size:12.5px; font-weight:500; color:var(--fair-text-muted);">Imaging Cohorts</span></div>
+                </div>
+              </div>
+              <div style="margin-top:16px; padding:10px 12px; background:var(--fair-node-tint); border:1px solid var(--fair-node-soft); border-radius:var(--fair-radius-md); font-size:11px; color:var(--fair-node-darker); line-height:1.5;"><b>4 types</b> · 11 records<br/>linked by dct:isPartOf</div>
+            </aside>
+
+            <!-- CENTER: spined cards -->
+            <div style="flex:1; min-width:0; overflow:auto; padding:20px 24px;">
+              <div style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:12px;"><a style="color:var(--fair-text-muted); text-decoration:none;">Home</a><span style="color:var(--fair-text-light);">/</span><a style="color:var(--fair-text-muted); text-decoration:none;">UMC Data Point</a><span style="color:var(--fair-text-light);">/</span><b style="color:var(--fair-text-strong);">Rare Disease Registry</b></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;"><span style="width:11px; height:11px; border-radius:50%; background:var(--tool-accent);"></span><div style="font-family:var(--fair-font-mono); font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--tool-accent);">dcat:Catalog</div></div>
+              <h1 style="font-size:26px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0 0 8px;">Rare Disease Registry</h1>
+              <p style="font-size:13.5px; color:var(--fair-text-muted); margin:0 0 18px; max-width:560px; line-height:1.55;">Harmonised clinical and genomic datasets, connected as a graph of typed records. Each node below links to its distributions and parent container.</p>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0;">Member nodes</h2><span style="font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-text-light);">3 datasets</span></div>
+
+              <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="width:5px; background:var(--fair-node); flex-shrink:0;"></div>
+                <div style="padding:13px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Cohort A — clinical variables</div><div style="display:flex; gap:14px; margin-top:9px; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);"><span>→ 2 distributions</span><span>→ care:ClinicalVariable</span><span>↑ Rare Disease Registry</span></div></div>
+              </div>
+              <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="width:5px; background:var(--fair-node); flex-shrink:0;"></div>
+                <div style="padding:13px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Cohort B — genomic panel</div><div style="display:flex; gap:14px; margin-top:9px; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);"><span>→ 3 distributions</span><span>→ sio:Genome</span><span>↑ Rare Disease Registry</span></div></div>
+              </div>
+              <div class="db-row" style="display:flex; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="width:5px; background:var(--fair-warning); flex-shrink:0;"></div>
+                <div style="padding:13px 16px; flex:1;"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">skos:ConceptScheme</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:var(--fair-radius-pill); background:var(--fair-warning-tint); color:var(--fair-warning);">● Draft</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 3px;">Registry data dictionary</div><div style="display:flex; gap:14px; margin-top:9px; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);"><span>→ 1 distribution</span><span>→ 84 concepts</span><span>↑ Rare Disease Registry</span></div></div>
+              </div>
+            </div>
+
+            <!-- RIGHT: RDF sidecar -->
+            <aside style="width:320px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 14px; overflow:auto;">
+              <div style="display:flex; gap:4px; margin-bottom:10px;"><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent); color:#fff;">Turtle</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted);">JSON-LD</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted);">RDF/XML</span></div>
+              <div style="background:var(--fair-code-bg); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 14px; font-family:var(--fair-font-mono); font-size:11px; line-height:1.7; color:var(--fair-text); white-space:pre; overflow:hidden;"><span style="color:var(--fair-node-darker);">@prefix</span> dcat: &lt;…&gt; .
+<span style="color:var(--fair-text-strong); font-weight:600;">&lt;registry&gt;</span>
+  a <span style="color:var(--tool-accent);">dcat:Catalog</span> ;
+  dct:title <span style="color:var(--fair-warning);">"Rare Disease…"</span> ;
+  dcat:dataset <span style="color:var(--fair-node-darker);">&lt;cohort-a&gt;</span> ,
+    <span style="color:var(--fair-node-darker);">&lt;cohort-b&gt;</span> ;
+  dct:publisher <span style="color:var(--fair-node-darker);">&lt;umc&gt;</span> ;
+  dct:conformsTo <span style="color:var(--fair-node-darker);">&lt;shape&gt;</span> .</div>
+              <div style="margin-top:14px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:12px 14px; display:flex; align-items:center; gap:10px;"><span style="width:26px; height:26px; border-radius:var(--fair-radius-md); background:var(--fair-success-tint); color:var(--fair-success); display:grid; place-items:center; font-weight:700;">✓</span><div style="font-size:12.5px;"><div style="font-weight:600; color:var(--fair-text-strong);">Conforms to profile</div><div style="font-size:11px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">0 violations · 2 warnings</div></div></div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- OPTION 1c — Search-first / faceted ---------- -->
+      <div id="1c" style="flex:0 0 auto;">
+        <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
+          <span style="font-family:var(--fair-font-mono); font-size:12px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">1c</span>
+          <div>
+            <div style="font-size:15px; font-weight:700; color:var(--fair-text-strong);">Search-first · faceted</div>
+            <div style="font-size:12.5px; color:var(--fair-text-muted);">Query bar up top · container tree folded into facets · results with match context. Consumer-oriented discovery.</div>
+          </div>
+        </div>
+
+        <div data-tool="fdp" style="width:1240px; height:760px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+          <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 20px; background:var(--fair-surface); border-bottom:1px solid var(--fair-separator);">
+            <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+            <nav style="display:flex; gap:2px; margin-left:14px;">
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Search</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+              <a class="db-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+            </nav>
+            <div style="flex:1;"></div>
+            <button style="font-family:inherit; font-size:12.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:7px 12px; cursor:pointer;">SPARQL</button>
+            <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+          </header>
+
+          <!-- query bar -->
+          <div style="flex-shrink:0; padding:18px 24px 14px; border-bottom:1px solid var(--fair-separator); background:var(--fair-surface);">
+            <div style="display:flex; align-items:center; gap:10px; background:var(--fair-surface-input); border:1.5px solid var(--tool-accent); border-radius:var(--fair-radius-md); padding:11px 15px; box-shadow:var(--fair-focus-ring-accent);"><span style="font-family:var(--fair-font-mono); color:var(--tool-accent); font-size:15px;">⌕</span><span style="flex:1; font-size:15px; color:var(--fair-text-strong);">rare disease genomic</span><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">↵ search</span></div>
+          </div>
+
+          <div style="flex:1; display:flex; min-height:0;">
+            <!-- LEFT facets -->
+            <aside style="width:250px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 16px; overflow:auto;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Refine</span><span style="font-size:11px; color:var(--tool-accent); font-weight:600;">Clear</span></div>
+              <div style="margin-bottom:18px;"><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">Type</div>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; background:var(--tool-accent); display:grid; place-items:center; color:#fff; font-size:9px;">✓</span>Dataset <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">24</span></label>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Catalog <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">6</span></label>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Distribution <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">51</span></label>
+              </div>
+              <div style="margin-bottom:18px;"><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">Container</div>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Rare Disease Registry</label>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Imaging Cohorts</label>
+              </div>
+              <div><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">License</div>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>CC-BY-4.0 <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">18</span></label>
+                <label class="db-facet" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>CC0-1.0 <span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">6</span></label>
+              </div>
+            </aside>
+
+            <!-- CENTER results -->
+            <div style="flex:1; min-width:0; overflow:auto; padding:18px 24px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;"><div style="font-size:13px; color:var(--fair-text-muted);"><b style="color:var(--fair-text-strong);">12 results</b> for “rare disease genomic”</div><div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fair-text-muted);">Sort: <b style="color:var(--fair-text-strong);">Relevance</b> ▾</div></div>
+              <div style="display:flex; gap:7px; margin-bottom:16px;"><span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent-tint); color:var(--tool-accent);">Dataset ✕</span></div>
+
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">Rare Disease Registry</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">Cohort B — <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">genomic</mark> panel</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Targeted sequencing panel results with variant calls linked to Orphanet <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">disease</mark> codes.</div>
+              </div>
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">Rare Disease Registry</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">Cohort A — clinical variables</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">128 harmonised clinical variables across a <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">rare-disease</mark> cohort of 2,400 participants.</div>
+              </div>
+              <div class="db-row" style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-size:10.5px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">Imaging Cohorts</span></div>
+                <div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">MRI reference set — <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">rare</mark> phenotypes</div>
+                <div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Curated imaging series annotated with phenotype terms for downstream model training.</div>
+              </div>
+            </div>
+
+            <!-- RIGHT peek -->
+            <aside style="width:290px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 16px; overflow:auto;">
+              <div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); margin-bottom:12px;">Selected · preview</div>
+              <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:15px 16px;">
+                <span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span>
+                <div style="font-size:15px; font-weight:700; color:var(--fair-text-strong); margin:6px 0 10px;">Cohort B — genomic panel</div>
+                <dl style="display:grid; grid-template-columns:auto 1fr; gap:8px 12px; margin:0 0 12px;">
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">status</dt><dd style="margin:0; font-size:12px;"><span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Validated</span></dd>
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">license</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">CC-BY-4.0</dd>
+                  <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">dists</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">3 available</dd>
+                </dl>
+                <button style="width:100%; font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:9px; cursor:pointer;">Open record →</button>
+              </div>
+              <div style="margin-top:12px; padding:11px 13px; background:var(--fair-node-tint); border:1px solid var(--fair-node-soft); border-radius:var(--fair-radius-md); font-size:11px; color:var(--fair-node-darker); line-height:1.5;">Hidden records are absent, not locked — sign in to widen results.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1420, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  state = { dark: false };
+  toggleTheme = () => {
+    this.setState(s => ({ dark: !s.dark }), () => {
+      const el = this.rootRef.current;
+      if (el) el.classList.toggle('theme-dark', this.state.dark);
+    });
+  };
+  renderVals() {
+    return {
+      rootRef: this.rootRef,
+      toggleTheme: this.toggleTheme,
+      themeLabel: this.state.dark ? 'Dark' : 'Light',
+    };
+  }
+}
+</script>
+</body>
+</html>

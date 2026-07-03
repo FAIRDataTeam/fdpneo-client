@@ -1,0 +1,87 @@
+/* ==========================================================================
+   FAIR Ecosystem — Color tokens
+   Ink (cool-slate structure) · Node (teal linked-data accent) · cool Slate
+   surfaces, plus a harmonious per-tool accent family. Base values first, then
+   semantic aliases. Neutral foundation: "Cool Slate" (direction 4b).
+   ========================================================================== */
+:root {
+  /* ---- Ink — cool-slate structural chrome ---- */
+  --fair-ink:          #1f2733;
+  --fair-ink-lighter:  #2f3a49;
+  --fair-ink-darker:   #141b24;
+  --fair-ink-soft:     #c3ccd8;
+  --fair-ink-tint:     #eef1f5;
+
+  /* ---- Node — teal, the linked-data layer (ecosystem default accent) ---- */
+  --fair-node:         #0e857f;
+  --fair-node-darker:  #0a5f5b;
+  --fair-node-soft:    #b6ddd9;
+  --fair-node-tint:    #e2f2f0;
+  --fair-node-reverse: #7fd0cb; /* teal for use on ink/dark surfaces */
+
+  /* ---- Cool slate surfaces ---- */
+  --fair-bg:            #eef1f5;
+  --fair-surface:       #ffffff;
+  --fair-surface-input: #ffffff;
+  --fair-canvas:        #e7ecf2;
+  --fair-code-bg:       #f4f6f9;
+  --fair-highlight:     #e3e8ef;
+  --fair-border:        #dde3ea;
+  --fair-separator:     #e8ecf1;
+
+  /* ---- Text ---- */
+  --fair-text:         #384049;
+  --fair-text-muted:   #6b7480;
+  --fair-text-light:   #9aa4b2;
+  --fair-text-strong:  #1f2733;
+  --fair-text-on-dark: #ffffff;
+
+  /* ---- Semantic ---- */
+  --fair-danger:        #a4271f;
+  --fair-danger-tint:   #fbecea;
+  --fair-success:       #2e7d32;
+  --fair-success-tint:  #e6f2ec;
+  --fair-warning:       #8a6d00;
+  --fair-warning-tint:  #f7f0d9;
+  --fair-info:          #0e857f;
+  --fair-info-tint:     #e2f2f0;
+
+  /* ---- Per-tool accents (the sub-brand family) ---- */
+  --tool-fdp:              #0e857f;
+  --tool-fdp-tint:         #e2f2f0;
+  --tool-station:          #2f8f5b;
+  --tool-station-tint:     #e6f2ec;
+  --tool-directory:        #2a6fdb;
+  --tool-directory-tint:   #e8eefb;
+  --tool-train:            #c8622a;
+  --tool-train-tint:       #f8ede4;
+  --tool-framework:        #5a4bc4;
+  --tool-framework-tint:   #ece9f9;
+  --tool-identifier:       #b07a1e;
+  --tool-identifier-tint:  #f6efdf;
+
+  /* ---- Semantic aliases (author against these) ---- */
+  --surface-page:     var(--fair-bg);
+  --surface-card:     var(--fair-surface);
+  --surface-sunken:   var(--fair-canvas);
+  --border-default:   var(--fair-border);
+  --border-subtle:    var(--fair-separator);
+  --text-body:        var(--fair-text);
+  --text-heading:     var(--fair-text-strong);
+  --text-subtle:      var(--fair-text-muted);
+  --accent:           var(--fair-node);
+  --accent-tint:      var(--fair-node-tint);
+
+  /* Active tool accent — override on a product root to re-skin, e.g.
+     <body data-tool="station"> or inline style="--accent: var(--tool-station)" */
+  --tool-accent:      var(--fair-node);
+  --tool-accent-tint: var(--fair-node-tint);
+}
+
+/* Per-tool skins: set data-tool on any container to switch the active accent */
+[data-tool="fdp"]        { --tool-accent: var(--tool-fdp);        --tool-accent-tint: var(--tool-fdp-tint); }
+[data-tool="station"]    { --tool-accent: var(--tool-station);    --tool-accent-tint: var(--tool-station-tint); }
+[data-tool="directory"]  { --tool-accent: var(--tool-directory);  --tool-accent-tint: var(--tool-directory-tint); }
+[data-tool="train"]      { --tool-accent: var(--tool-train);      --tool-accent-tint: var(--tool-train-tint); }
+[data-tool="framework"]  { --tool-accent: var(--tool-framework);  --tool-accent-tint: var(--tool-framework-tint); }
+[data-tool="identifier"] { --tool-accent: var(--tool-identifier); --tool-accent-tint: var(--tool-identifier-tint); }

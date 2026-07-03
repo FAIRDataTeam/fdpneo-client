@@ -6,102 +6,26 @@
  * subset at runtime (see `useBranding` — Phase 13.6). `main.css` imports this
  * file and adds the base/utility rules that build on these variables.
  *
- * "Specimen Archive" direction (Phase 13.1): warm-paper archive bones + the FAIR
- * slate-blue accent, retypeset onto Fraunces (display) / Hanken Grotesk (UI) /
- * Spline Sans Mono (RDF).
+ * FAIR Ecosystem re-skin (P1 — see docs/design_handoff_fair_ecosystem/MIGRATION.md):
+ * the "Specimen Archive" tokens are retired. This file now imports the FAIR
+ * Ecosystem token layers plus a v2→FAIR alias bridge that keeps the existing
+ * component CSS (which references --paper, --ink, --accent, …) compiling against
+ * FAIR values, so the whole app reskins at once. Author new code against the
+ * --fair-* / --tool-* names; the bridge is retired per surface (MIGRATION §8, P5).
+ *
+ * NB: useBranding overrides a curated subset of these custom-property *names* at
+ * runtime — keep the names stable so deployer white-labeling keeps working.
  */
 
+@import "./fair-tokens/fonts.css";
+@import "./fair-tokens/colors.css";
+@import "./fair-tokens/typography.css";
+@import "./fair-tokens/spacing.css";
+@import "./fair-tokens/effects.css";
+@import "./theme-and-bridge.css"; /* dark palette + v2→FAIR alias bridge */
+
 :root {
-  /* light palette — warm "archive paper" (Phase 13.8): creamier grounds and
-     warmer hairlines than the near-white original, so the editorial direction
-     reads clearly. Accent/signal are unchanged (FAIR brand). */
-  --paper: #f5f1e8;
-  --paper-deep: #ece6d8;
-  --surface: #fffdf7;
-  --surface-2: #f1ece0;
-  --line: #e2dccc;
-  --line-strong: #d0c7b3;
-  --ink: #14181f;
-  --ink-2: #2a2f38;
-  --muted: #6b7280;
-  --muted-2: #8a8f99;
-
-  /* accent: FAIR brand slate-blue, refined */
-  --accent: #2d5b89;
-  --accent-deep: #1f4567;
-  --accent-soft: #e8eef5;
-  --accent-line: #c1d0e0;
-
-  /* signal: warm rust for highlights, badges, charts */
-  --signal: #b5532a;
-  --signal-soft: #f6e8dd;
-
-  /* status */
-  --ok: #2f7a4a;
-  --ok-soft: #e1f0e5;
-  --warn: #8a6b0a;
-  --warn-soft: #f6efd3;
-
-  /* type-color system — record-kind colors, first-class (Phase 13.4) so one
-     source drives type tags, card spines, and lineage-rail nodes. The first
-     four follow the semantic tokens (auto-adjust in dark); biobank/publication
-     get explicit dark overrides below. */
-  --t-fdp: var(--ink);
-  --t-catalog: var(--accent);
-  --t-dataset: var(--signal);
-  --t-distribution: var(--ok);
-  --t-biobank: #6e4a8e;
-  --t-publication: #1f6f8e;
-
-  /* type scales */
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
-
-  /* radii */
-  --r-1: 4px;
-  --r-2: 8px;
-  --r-3: 12px;
-  --r-4: 18px;
-
-  /* shadow */
-  --shadow-1: 0 1px 0 rgba(20, 24, 31, 0.04), 0 1px 2px rgba(20, 24, 31, 0.04);
-  --shadow-2: 0 10px 34px -14px rgba(28, 40, 60, 0.3), 0 2px 6px rgba(20, 24, 31, 0.05);
-
-  font-family: var(--font-sans);
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  color: var(--fair-text-strong);
   line-height: 1.5;
-}
-
-.theme-dark {
-  --paper: #0b0e13;
-  --paper-deep: #090b0f;
-  --surface: #141821;
-  --surface-2: #1a1f2a;
-  --line: #232a37;
-  --line-strong: #2e3645;
-  --ink: #e8e5de;
-  --ink-2: #c8c6bf;
-  --muted: #8a93a0;
-  --muted-2: #6a7280;
-
-  --accent: #7aa5d4;
-  --accent-deep: #5489bc;
-  --accent-soft: #1a2738;
-  --accent-line: #2a3d58;
-
-  --signal: #e08858;
-  --signal-soft: #2b1e16;
-
-  --ok: #6bb58a;
-  --ok-soft: #142a1e;
-  --warn: #d9b257;
-  --warn-soft: #2a220e;
-
-  /* type colors: fdp/catalog/dataset/distribution follow the semantic tokens
-     above; only these two need a dark-mode lift. */
-  --t-biobank: #b794d6;
-  --t-publication: #6cb6cf;
-
-  --shadow-2: 0 18px 44px -16px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
 }

@@ -1,0 +1,39 @@
+/* ==========================================================================
+   FAIR Ecosystem — Typography tokens
+   IBM Plex Sans for everything UI + display; IBM Plex Mono for identifiers,
+   IRIs, code, predicates and eyebrows (the machine-readable layer).
+   ========================================================================== */
+:root {
+  --fair-font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fair-font-mono: 'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale (px) */
+  --fair-text-xs:    11px;
+  --fair-text-sm:    12px;
+  --fair-text-base:  14px;
+  --fair-text-md:    15px;
+  --fair-text-lg:    17px;
+  --fair-text-xl:    20px;
+  --fair-text-2xl:   24px;
+  --fair-text-3xl:   28px;
+  --fair-text-display:    34px;
+  --fair-text-display-lg: 44px;
+
+  /* Weights */
+  --fair-weight-regular:  400;
+  --fair-weight-medium:   500;
+  --fair-weight-semibold: 600;
+  --fair-weight-bold:     700;
+
+  /* Line height */
+  --fair-leading-tight:  1.15;
+  --fair-leading-snug:   1.35;
+  --fair-leading-normal: 1.55;
+
+  /* Letter spacing */
+  --fair-tracking-display: -0.02em;
+  --fair-tracking-tight:   -0.01em;
+  --fair-tracking-normal:  0;
+  --fair-tracking-eyebrow: 0.16em; /* uppercase mono eyebrows */
+  --fair-tracking-wide:    0.26em;
+}

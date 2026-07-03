@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/styles.css">
+  <script src="_ds/fair-ecosystem-30bdf6c0-03b0-421d-88a1-d44a43a82981/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; }
+    .sf-reset *, .sf-reset *::before, .sf-reset *::after { box-sizing: border-box; }
+    .theme-dark {
+      --fair-bg:#10161e; --fair-surface:#1a2230; --fair-surface-input:#141b24;
+      --fair-canvas:#141b24; --fair-highlight:#232c3a; --fair-code-bg:#131a23;
+      --fair-border:#2b3543; --fair-separator:#222c39;
+      --fair-text:#c6ceda; --fair-text-muted:#8a94a2; --fair-text-light:#5f6a78;
+      --fair-text-strong:#eef2f7; --fair-ink-soft:#3a4655; --fair-ink-tint:#1e2733; --fair-ink:#eef2f7;
+      --fair-node:#5fc2bc; --fair-node-darker:#8fd8d3; --fair-node-soft:#2a4a48; --fair-node-tint:#15302e;
+      --tool-fdp:#5fc2bc; --tool-fdp-tint:#15302e; --tool-accent:#5fc2bc; --tool-accent-tint:#15302e;
+      --fair-success:#5bb97a; --fair-success-tint:#183021; --fair-warning:#c9a23a; --fair-warning-tint:#2c2510; --fair-danger:#e07a70; --fair-danger-tint:#331b19;
+    }
+    .sf-navlink:hover { color: var(--fair-text-strong) !important; }
+    .sf-row:hover { border-color: var(--tool-accent) !important; box-shadow: var(--fair-shadow-2) !important; }
+    .sf-themebtn:hover { background: var(--fair-highlight) !important; }
+    /* Primary ink buttons/badges: in dark, ink flips light (for node-dots/text), so
+       give these an explicit dark-slate fill + light text to stay legible. */
+    .theme-dark .pbtn { background: var(--fair-ink-lighter) !important; color: var(--fair-text-strong) !important; border-color: var(--fair-ink-lighter) !important; }
+  </style>
+</helmet>
+
+<div class="sf-reset" ref="{{ rootRef }}" style="font-family: var(--fair-font-sans); background: var(--fair-bg); color: var(--fair-text); min-height: 100vh; padding: 26px 30px 90px;">
+
+  <!-- Doc toolbar -->
+  <div style="display:flex; align-items:center; gap:16px; max-width:1320px; margin:0 auto 26px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:11px;">
+      <img src="assets/tools/fdp.svg" width="30" height="30" alt="" />
+      <div>
+        <div style="font-size:17px; font-weight:700; letter-spacing:-0.01em; color:var(--fair-text-strong);">FAIR Data Point — surfaces</div>
+        <div style="font-family:var(--fair-font-mono); font-size:11px; letter-spacing:0.04em; color:var(--fair-text-muted);">Direction 2a extended across the client · v2 IA, FAIR Ecosystem skin</div>
+      </div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex; align-items:center; gap:9px; font-family:var(--fair-font-mono); font-size:11px; color:var(--tool-accent); font-weight:600;">
+      <a href="#s-record" style="color:inherit; text-decoration:none;">Record</a><a href="#s-search" style="color:inherit; text-decoration:none;">Search + SPARQL</a><a href="#s-shacl" style="color:inherit; text-decoration:none;">SHACL</a><a href="#s-odrl" style="color:inherit; text-decoration:none;">ODRL</a><a href="#s-metrics" style="color:inherit; text-decoration:none;">Metrics</a><a href="#s-admin" style="color:inherit; text-decoration:none;">Admin</a>
+    </div>
+    <button class="sf-themebtn" onClick="{{ toggleTheme }}" style="font-family:var(--fair-font-mono); font-size:11.5px; font-weight:600; letter-spacing:0.04em; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:8px 16px; cursor:pointer;">◐ {{ themeLabel }}</button>
+  </div>
+
+  <div style="max-width:1320px; margin:0 auto; display:flex; flex-direction:column; gap:44px;">
+
+    <!-- ============ RECORD DETAIL ============ -->
+    <div id="s-record">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">RECORD DETAIL</span><span style="font-size:13px; color:var(--fair-text-muted);">Consumer's core page — hero · stat strip · distributions, with the working sidecar (metadata · graph · RDF · access · validation).</span></div>
+      <div data-tool="fdp" style="width:1300px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden;">
+        <header style="height:56px; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="display:flex; align-items:center; gap:8px; background:var(--fair-canvas); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:6px 13px; width:200px; color:var(--fair-text-light); font-size:12.5px;"><span style="font-family:var(--fair-font-mono);">⌕</span><span>Search metadata…</span></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+
+        <div style="display:flex;">
+          <div style="flex:1; min-width:0; padding:22px 26px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:16px;"><a style="color:var(--fair-text-muted); text-decoration:none;">Home</a><span style="color:var(--fair-text-light);">/</span><a style="color:var(--fair-text-muted); text-decoration:none;">UMC Data Point</a><span style="color:var(--fair-text-light);">/</span><a style="color:var(--fair-text-muted); text-decoration:none;">Rare Disease Registry</a><span style="color:var(--fair-text-light);">/</span><b style="color:var(--fair-text-strong);">Cohort B — genomic panel</b></div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;"><span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--fair-success-tint); color:var(--fair-success);">● Published</span><button style="font-family:inherit; font-size:12px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:6px 11px; cursor:pointer;">✎ Edit</button><button style="font-family:inherit; font-size:12px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:6px 11px; cursor:pointer;">+ New distribution</button></div>
+            <div style="font-family:var(--fair-font-mono); font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--tool-accent); margin-bottom:7px;">dcat:Dataset</div>
+            <h1 style="font-size:30px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0 0 10px;">Cohort B — genomic panel</h1>
+            <p style="font-size:14.5px; color:var(--fair-text-muted); margin:0 0 18px; max-width:600px; line-height:1.6;">Targeted sequencing panel results with variant calls linked to Orphanet disease codes, harmonised for federated analysis across the registry network.</p>
+            <div style="display:flex; gap:9px; margin-bottom:24px;"><a class="pbtn" style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:#fff; background:var(--fair-ink); border-radius:var(--fair-radius-pill); padding:8px 15px; text-decoration:none;">↗ Access data</a><a style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-pill); padding:8px 15px; text-decoration:none;">Documentation</a></div>
+
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:26px;">
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 15px; background:var(--fair-bg);"><div style="font-family:var(--fair-font-mono); font-size:22px; font-weight:700; color:var(--fair-text-strong);">3</div><div style="font-size:11px; color:var(--fair-text-muted); margin-top:2px;">distributions</div></div>
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 15px; background:var(--fair-bg);"><div style="font-family:var(--fair-font-mono); font-size:22px; font-weight:700; color:var(--fair-text-strong);">312</div><div style="font-size:11px; color:var(--fair-text-muted); margin-top:2px;">variants</div></div>
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 15px; background:var(--fair-bg);"><div style="font-family:var(--fair-font-mono); font-size:22px; font-weight:700; color:var(--fair-text-strong);">2,400</div><div style="font-size:11px; color:var(--fair-text-muted); margin-top:2px;">participants</div></div>
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 15px; background:var(--fair-bg);"><div style="font-family:var(--fair-font-mono); font-size:15px; font-weight:700; color:var(--fair-text-strong); margin-top:5px;">CC-BY-4.0</div><div style="font-size:11px; color:var(--fair-text-muted); margin-top:2px;">license</div></div>
+            </div>
+
+            <h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0 0 12px;">Distributions</h2>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 16px; margin-bottom:10px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:700; color:var(--fair-node-darker); background:var(--fair-node-tint); border:1px solid var(--fair-node-soft); border-radius:var(--fair-radius-sm); padding:4px 8px;">VCF</span>
+              <div style="flex:1;"><div style="font-size:14px; font-weight:600; color:var(--fair-text-strong);">Variant calls — VCF 4.2</div><div style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">application/vcf · 84 MB</div></div>
+              <span style="font-size:11px; font-weight:600; color:var(--tool-accent);">Download ↓</span>
+            </div>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 16px; margin-bottom:10px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:700; color:var(--fair-node-darker); background:var(--fair-node-tint); border:1px solid var(--fair-node-soft); border-radius:var(--fair-radius-sm); padding:4px 8px;">CSV</span>
+              <div style="flex:1;"><div style="font-size:14px; font-weight:600; color:var(--fair-text-strong);">Phenotype table — CSV</div><div style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">text/csv · 2.1 MB</div></div>
+              <span style="font-size:11px; font-weight:600; color:var(--tool-accent);">Download ↓</span>
+            </div>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:13px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);">
+              <span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:700; color:var(--tool-accent); background:var(--tool-accent-tint); border-radius:var(--fair-radius-sm); padding:4px 8px;">API</span>
+              <div style="flex:1;"><div style="font-size:14px; font-weight:600; color:var(--fair-text-strong);">SPARQL endpoint</div><div style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">restricted · sign in to query</div></div>
+              <span style="font-size:11px; font-weight:600; color:var(--fair-text-light);">🔒 Authenticated</span>
+            </div>
+          </div>
+
+          <!-- working sidecar -->
+          <aside style="width:372px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:20px 16px;">
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="padding:11px 15px; border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Metadata</div>
+              <dl style="padding:14px 15px; display:grid; grid-template-columns:auto 1fr; gap:10px 14px; align-items:baseline; margin:0;">
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">publisher</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">UMC Data Steward Office</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">issued</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">2026-02-04</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">theme</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-text); font-weight:500;">Genomics</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">isPartOf</dt><dd style="margin:0; font-size:12.5px; color:var(--fair-node-darker); font-weight:500;">Rare Disease Registry</dd>
+                <dt style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">conformsTo</dt><dd style="margin:0; font-family:var(--fair-font-mono); font-size:11.5px; color:var(--fair-node-darker); word-break:break-all;">registry-shape v2.3</dd>
+              </dl>
+            </div>
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; gap:0; padding:8px 10px; border-bottom:1px solid var(--fair-separator);"><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent); color:#fff;">Turtle</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted);">JSON-LD</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); color:var(--fair-text-muted);">RDF/XML</span><span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:14px; color:var(--fair-text-light); padding-right:6px;">⧉</span></div>
+              <div style="padding:12px 14px; font-family:var(--fair-font-mono); font-size:11px; line-height:1.7; color:var(--fair-text); white-space:pre; overflow:hidden; background:var(--fair-code-bg);"><span style="color:var(--fair-node-darker);">@prefix</span> dcat: &lt;…&gt; .
+<span style="color:var(--fair-text-strong); font-weight:600;">&lt;cohort-b&gt;</span>
+  a <span style="color:var(--tool-accent);">dcat:Dataset</span> ;
+  dct:title <span style="color:var(--fair-warning);">"Cohort B…"</span> ;
+  dcat:distribution <span style="color:var(--fair-node-darker);">&lt;vcf&gt;</span> ;
+  dct:isPartOf <span style="color:var(--fair-node-darker);">&lt;registry&gt;</span> .</div>
+            </div>
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; margin-bottom:14px;">
+              <div style="padding:11px 15px; border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Access — in effect</div>
+              <div style="padding:12px 15px; font-size:12.5px; line-height:1.5;"><div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--fair-success);"></span><span style="color:var(--fair-text);"><b>Read</b> — any authenticated researcher</span></div><div style="display:flex; align-items:center; gap:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--fair-warning);"></span><span style="color:var(--fair-text);"><b>Modify</b> — BBMRI consortium only</span></div><div style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light); margin-top:8px;">inherited from Rare Disease Registry</div></div>
+            </div>
+            <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden;">
+              <div style="padding:12px 15px; display:flex; align-items:center; gap:10px;"><span style="width:26px; height:26px; border-radius:var(--fair-radius-md); background:var(--fair-success-tint); color:var(--fair-success); display:grid; place-items:center; font-weight:700;">✓</span><div style="font-size:13px;"><div style="font-weight:600; color:var(--fair-text-strong);">Conforms to profile</div><div style="font-size:11px; color:var(--fair-text-light); font-family:var(--fair-font-mono);">0 violations</div></div></div>
+              <div style="padding:11px 15px; border-top:1px solid var(--fair-separator); display:flex; gap:8px; align-items:center; justify-content:space-between;"><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-node-darker);">w3id.org/…/b-91c3</span><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:transparent; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:5px 10px; cursor:pointer;">Resolve ↗</button></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SEARCH ============ -->
+    <div id="s-search">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">SEARCH</span><span style="font-size:13px; color:var(--fair-text-muted);">One surface, two modes — toggle between text search (with schema-driven facets) and a SPARQL editor. Facets adapt to whatever the deployment marks facetable; hidden records are absent, not locked.</span></div>
+      <div data-tool="fdp" style="width:1300px; height:720px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+        <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <button style="font-family:inherit; font-size:12.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:7px 12px; cursor:pointer;">SPARQL</button>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+        <div style="flex-shrink:0; padding:14px 26px 14px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; gap:6px; margin-bottom:12px;">
+            <sc-if value="{{ textMode }}" hint-placeholder-val="{{ true }}"><button style="font-family:inherit; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:var(--fair-radius-pill); border:none; background:var(--tool-accent); color:#fff; cursor:pointer;">⌕ Text search</button></sc-if>
+            <sc-if value="{{ sparqlMode }}"><button onClick="{{ showText }}" style="font-family:inherit; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:var(--fair-radius-pill); border:1px solid var(--fair-border); background:transparent; color:var(--fair-text-muted); cursor:pointer;">⌕ Text search</button></sc-if>
+            <sc-if value="{{ textMode }}" hint-placeholder-val="{{ true }}"><button onClick="{{ showSparql }}" style="font-family:var(--fair-font-mono); display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:7px 14px; border-radius:var(--fair-radius-pill); border:1px solid var(--fair-border); background:transparent; color:var(--fair-text-muted); cursor:pointer;">&lt;/&gt; SPARQL</button></sc-if>
+            <sc-if value="{{ sparqlMode }}"><button style="font-family:var(--fair-font-mono); display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:7px 14px; border-radius:var(--fair-radius-pill); border:none; background:var(--tool-accent); color:#fff; cursor:pointer;">&lt;/&gt; SPARQL</button></sc-if>
+          </div>
+          <sc-if value="{{ textMode }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; align-items:center; gap:10px; background:var(--fair-surface-input); border:1.5px solid var(--tool-accent); border-radius:var(--fair-radius-md); padding:11px 15px; box-shadow:var(--fair-focus-ring-accent);"><span style="font-family:var(--fair-font-mono); color:var(--tool-accent); font-size:15px;">⌕</span><span style="flex:1; font-size:15px; color:var(--fair-text-strong);">rare disease genomic</span><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">↵ search</span></div>
+          </sc-if>
+          <sc-if value="{{ sparqlMode }}">
+            <div style="display:flex; align-items:center; gap:12px;"><button style="font-family:inherit; font-size:13px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:9px 18px; cursor:pointer;">▸ Run</button><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">⌘ + ↵</span><div style="flex:1;"></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-light);">SELECT · ASK · CONSTRUCT · DESCRIBE</span><div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--fair-text-muted); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:7px 12px;">Load example ▾</div></div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ textMode }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; display:flex; min-height:0;">
+          <aside style="width:248px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 16px; overflow:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Refine</span><span style="font-size:11px; color:var(--tool-accent); font-weight:600;">Clear</span></div>
+            <div style="margin-bottom:18px;"><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">Type</div>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; background:var(--tool-accent); display:grid; place-items:center; color:#fff; font-size:9px;">✓</span>Dataset<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">24</span></label>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Catalog<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">6</span></label>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Distribution<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">51</span></label>
+            </div>
+            <div style="margin-bottom:18px;"><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">Theme <span style="font-family:var(--fair-font-mono); font-weight:400; font-size:9.5px; color:var(--fair-text-light);">·facet</span></div>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Rare diseases<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">19</span></label>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>Genomics<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">12</span></label>
+            </div>
+            <div><div style="font-size:11.5px; font-weight:700; color:var(--fair-text-strong); margin-bottom:8px;">License</div>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>CC-BY-4.0<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">18</span></label>
+              <label class="sf-navlink" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--fair-text-muted); cursor:pointer;"><span style="width:14px; height:14px; border-radius:3px; border:1.5px solid var(--fair-border);"></span>CC0-1.0<span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">6</span></label>
+            </div>
+          </aside>
+          <div style="flex:1; min-width:0; overflow:auto; padding:18px 26px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;"><div style="font-size:13px; color:var(--fair-text-muted);"><b style="color:var(--fair-text-strong);">12 results</b> · 8 ms</div><div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fair-text-muted);">Sort: <b style="color:var(--fair-text-strong);">Relevance</b> ▾</div></div>
+            <div style="display:flex; gap:7px; margin-bottom:16px;"><span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent-tint); color:var(--tool-accent);">Dataset ✕</span></div>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);"><div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">Rare Disease Registry</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">Cohort B — <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">genomic</mark> panel</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Targeted sequencing panel results with variant calls linked to Orphanet <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">disease</mark> codes.</div></div>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; margin-bottom:11px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);"><div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">Rare Disease Registry</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">Cohort A — clinical variables</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">128 harmonised clinical variables across a <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">rare-disease</mark> cohort of 2,400 participants.</div></div>
+            <div class="sf-row" style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; cursor:pointer; transition:border-color var(--fair-transition), box-shadow var(--fair-transition);"><div style="display:flex; align-items:center; gap:10px;"><span style="font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; color:var(--tool-accent);">dcat:Dataset</span><span style="font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">Imaging Cohorts</span></div><div style="font-size:15.5px; font-weight:700; color:var(--fair-text-strong); margin:5px 0 4px;">MRI reference set — <mark style="background:var(--fair-warning-tint); color:var(--fair-text-strong); padding:0 2px; border-radius:2px;">rare</mark> phenotypes</div><div style="font-size:12.5px; color:var(--fair-text-muted); line-height:1.5;">Curated imaging series annotated with phenotype terms for downstream model training.</div></div>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ sparqlMode }}">
+          <div style="flex:1; display:flex; min-height:0;">
+            <div style="flex:1; min-width:0; display:flex; flex-direction:column; padding:18px 24px; gap:12px;">
+              <div style="background:var(--fair-code-bg); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:14px 16px; font-family:var(--fair-font-mono); font-size:12.5px; line-height:1.75; color:var(--fair-text); white-space:pre; overflow:hidden; height:150px;"><span style="color:var(--tool-accent); font-weight:600;">SELECT</span> ?catalog ?title <span style="color:var(--tool-accent); font-weight:600;">WHERE</span> {
+  <span style="color:var(--fair-node-darker);">GRAPH</span> ?catalog {
+    ?catalog a <span style="color:var(--fair-warning);">dcat:Catalog</span> ;
+      <span style="color:var(--fair-node-darker);">dct:title</span> ?title .
+  }
+} <span style="color:var(--tool-accent); font-weight:600;">LIMIT</span> 50</div>
+              <div style="flex:1; min-height:0; border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden; display:flex; flex-direction:column;">
+                <div style="display:flex; padding:9px 14px; background:var(--fair-bg); border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:11px; font-weight:600; color:var(--fair-text-muted);"><span style="flex:1;">?catalog</span><span style="flex:2;">?title</span></div>
+                <div style="display:flex; padding:9px 14px; border-bottom:1px solid var(--fair-separator); font-size:12.5px;"><span style="flex:1; font-family:var(--fair-font-mono); color:var(--fair-node-darker);">…/registry</span><span style="flex:2; color:var(--fair-text);">Rare Disease Registry</span></div>
+                <div style="display:flex; padding:9px 14px; border-bottom:1px solid var(--fair-separator); font-size:12.5px;"><span style="flex:1; font-family:var(--fair-font-mono); color:var(--fair-node-darker);">…/imaging</span><span style="flex:2; color:var(--fair-text);">Imaging Cohorts</span></div>
+                <div style="display:flex; padding:9px 14px; font-size:12.5px;"><span style="flex:1; font-family:var(--fair-font-mono); color:var(--fair-node-darker);">…/omics</span><span style="flex:2; color:var(--fair-text);">Multi-omics Reference</span></div>
+                <div style="margin-top:auto; padding:8px 14px; border-top:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-light);">3 rows · SELECT · access-filtered rows are absent, never faked</div>
+              </div>
+            </div>
+            <aside style="width:250px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 14px; overflow:auto;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">History</span><span style="font-size:11px; color:var(--tool-accent); font-weight:600;">Clear</span></div>
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:9px 11px; margin-bottom:8px; background:var(--fair-surface);"><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light); margin-bottom:3px;">10:24</div><div style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text); line-height:1.4;">SELECT ?catalog ?title WHERE…</div></div>
+              <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:9px 11px; margin-bottom:8px; background:var(--fair-surface);"><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light); margin-bottom:3px;">10:19</div><div style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text); line-height:1.4;">DESCRIBE &lt;…/cohort-b&gt;</div></div>
+              <div style="margin-top:14px; font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light); line-height:1.5;">History is in-memory only — nothing written to browser storage.</div>
+            </aside>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- ============ SHACL EDITOR ============ -->
+    <div id="s-shacl">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">SHACL EDITOR</span><span style="font-size:13px; color:var(--fair-text-muted);">Visual schema editor — shapes as nodes, properties on the node, sh:node relationships as edges. Node-and-edge is the ecosystem's native motif. Keyboard-first, Turtle is the source of truth.</span></div>
+      <div data-tool="fdp" style="width:1300px; height:740px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+        <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+        <div style="flex:1; display:flex; min-height:0;">
+          <!-- schema list -->
+          <aside style="width:210px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 12px; overflow:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px 10px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Shapes</span><span style="font-size:15px; color:var(--tool-accent); font-weight:700;">+</span></div>
+            <div style="padding:9px 11px; border:1px solid var(--tool-accent); background:var(--tool-accent-tint); border-radius:var(--fair-radius-md); margin-bottom:6px;"><div style="font-size:12.5px; font-weight:600; color:var(--tool-accent);">DatasetShape</div><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-node-darker);">dcat:Dataset · v2</div></div>
+            <div style="padding:9px 11px; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); margin-bottom:6px; background:var(--fair-surface);"><div style="font-size:12.5px; font-weight:500; color:var(--fair-text); display:flex; align-items:center; gap:6px;">CatalogShape <span style="font-size:9px; color:var(--fair-text-light);">🔒</span></div><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light);">dcat:Catalog</div></div>
+            <div style="padding:9px 11px; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); background:var(--fair-surface);"><div style="font-size:12.5px; font-weight:500; color:var(--fair-text);">RegistryShape</div><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light);">skos:ConceptScheme</div></div>
+          </aside>
+          <!-- canvas -->
+          <div style="flex:1; min-width:0; position:relative; background:radial-gradient(var(--fair-border) 0.8px, transparent 0.8px); background-size:18px 18px; background-color:var(--fair-canvas); overflow:hidden;">
+            <div style="position:absolute; top:14px; left:14px; display:flex; gap:6px; z-index:3;"><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:6px 11px; cursor:pointer;">+ Shape</button><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:6px 11px; cursor:pointer;">+ Property</button><button style="font-family:inherit; font-size:11.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:6px 11px; cursor:pointer;">↺ Undo</button></div>
+            <!-- edges -->
+            <svg style="position:absolute; inset:0; width:100%; height:100%; z-index:1;"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--fair-ink-soft)"></path></marker></defs><line x1="300" y1="150" x2="470" y2="330" stroke="var(--fair-ink-soft)" stroke-width="1.6" marker-end="url(#arrow)"></line><text x="378" y="238" font-family="var(--fair-font-mono)" font-size="10" fill="var(--fair-node-darker)" style="paint-order:stroke; stroke:var(--fair-canvas); stroke-width:4px;">sh:node</text></svg>
+            <!-- node: DatasetShape -->
+            <div style="position:absolute; top:70px; left:80px; width:236px; background:var(--fair-surface); border:1.5px solid var(--tool-accent); border-radius:var(--fair-radius-lg); box-shadow:var(--fair-shadow-2); z-index:2;">
+              <div style="padding:9px 12px; border-bottom:1px solid var(--fair-separator); display:flex; align-items:center; gap:8px; border-radius:var(--fair-radius-lg) var(--fair-radius-lg) 0 0; background:var(--tool-accent-tint);"><span style="width:9px; height:9px; border-radius:50%; background:var(--tool-accent);"></span><span style="font-size:13px; font-weight:700; color:var(--tool-accent);">DatasetShape</span><span style="margin-left:auto; font-family:var(--fair-font-mono); font-size:9.5px; color:var(--fair-node-darker);">dcat:Dataset</span></div>
+              <div style="padding:8px 12px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px;"><span style="font-family:var(--fair-font-mono); color:var(--fair-text); flex:1;">dct:title</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker);">string</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">1..1</span></div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px;"><span style="font-family:var(--fair-font-mono); color:var(--fair-text); flex:1;">dcat:distribution</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker);">IRI</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">1..*</span></div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px;"><span style="font-family:var(--fair-font-mono); color:var(--fair-text); flex:1;">dct:isPartOf</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--tool-accent-tint); color:var(--tool-accent);">→ shape</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">1..1</span></div>
+              </div>
+            </div>
+            <!-- node: CatalogShape -->
+            <div style="position:absolute; top:300px; left:400px; width:210px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); box-shadow:var(--fair-shadow-2); z-index:2;">
+              <div style="padding:9px 12px; border-bottom:1px solid var(--fair-separator); display:flex; align-items:center; gap:8px;"><span style="width:9px; height:9px; border-radius:50%; background:var(--fair-ink-soft);"></span><span style="font-size:13px; font-weight:700; color:var(--fair-text-strong);">CatalogShape</span></div>
+              <div style="padding:8px 12px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px;"><span style="font-family:var(--fair-font-mono); color:var(--fair-text); flex:1;">dct:title</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker);">string</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">1..1</span></div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px;"><span style="font-family:var(--fair-font-mono); color:var(--fair-text); flex:1;">dcat:dataset</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-node-tint); color:var(--fair-node-darker);">IRI</span><span style="font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">0..*</span></div>
+              </div>
+            </div>
+            <!-- ghost node -->
+            <div style="position:absolute; top:120px; left:410px; width:160px; border:1.5px dashed var(--fair-ink-soft); border-radius:var(--fair-radius-lg); padding:12px 14px; z-index:2; opacity:0.75;"><div style="font-size:12px; font-weight:600; color:var(--fair-text-muted);">BiobankShape</div><div style="font-family:var(--fair-font-mono); font-size:9.5px; color:var(--fair-text-light); margin-top:3px;">registered type · no shape yet</div></div>
+          </div>
+          <!-- right: live TTL + testbed -->
+          <aside style="width:300px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 14px; display:flex; flex-direction:column; gap:12px; overflow:auto;">
+            <div><div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); margin-bottom:8px;">Serialized SHACL</div>
+              <div style="background:var(--fair-code-bg); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:11px 13px; font-family:var(--fair-font-mono); font-size:10.5px; line-height:1.65; color:var(--fair-text); white-space:pre; overflow:hidden;"><span style="color:var(--fair-node-darker);">[]</span> a <span style="color:var(--tool-accent);">sh:NodeShape</span> ;
+  sh:targetClass <span style="color:var(--fair-warning);">dcat:Dataset</span> ;
+  sh:property [
+    sh:path dct:title ;
+    sh:minCount 1 ] .</div></div>
+            <div style="border-top:1px solid var(--fair-separator); padding-top:12px;"><div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); margin-bottom:8px;">Test against sample</div>
+              <div style="background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:10px 12px; font-family:var(--fair-font-mono); font-size:10.5px; color:var(--fair-text-muted); line-height:1.5; height:56px; overflow:hidden;">&lt;urn:ex&gt; a dcat:Dataset ;
+  dct:title "Cohort B" .</div>
+              <button style="width:100%; margin-top:8px; font-family:inherit; font-size:12px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:8px; cursor:pointer;">Validate sample</button>
+              <div style="margin-top:10px; display:flex; align-items:center; gap:9px; background:var(--fair-success-tint); border-radius:var(--fair-radius-md); padding:9px 11px;"><span style="color:var(--fair-success); font-weight:700;">✓</span><span style="font-size:12px; color:var(--fair-success); font-weight:600;">Conforms</span></div></div>
+            <div style="margin-top:auto; display:flex; gap:8px;"><button class="pbtn" style="flex:1; font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--fair-ink); border:none; border-radius:var(--fair-radius-md); padding:9px; cursor:pointer;">Save v3</button></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ODRL EDITOR ============ -->
+    <div id="s-odrl">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">ODRL EDITOR</span><span style="font-size:13px; color:var(--fair-text-muted);">Guided access-policy composer — plain-language rules, not ODRL vocabulary. Only FDP-profile constructs; live RDF preview; Offers are versioned.</span></div>
+      <div data-tool="fdp" style="width:1300px; height:740px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+        <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+        <div style="flex:1; display:flex; min-height:0;">
+          <aside style="width:210px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 12px; overflow:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px 10px;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Policies</span><span style="font-size:15px; color:var(--tool-accent); font-weight:700;">+</span></div>
+            <div style="padding:9px 11px; border:1px solid var(--tool-accent); background:var(--tool-accent-tint); border-radius:var(--fair-radius-md); margin-bottom:6px;"><div style="font-size:12.5px; font-weight:600; color:var(--tool-accent);">Consortium access</div><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-node-darker);">1P · 1X · v4</div></div>
+            <div style="padding:9px 11px; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); margin-bottom:6px; background:var(--fair-surface);"><div style="font-size:12.5px; font-weight:500; color:var(--fair-text);">Public read</div><div style="font-family:var(--fair-font-mono); font-size:10px; color:var(--fair-text-light);">1P · 0X · v1</div></div>
+            <div style="margin-top:12px; padding:0 4px 8px; font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Templates</div>
+            <div style="padding:7px 10px; border:1px dashed var(--fair-border); border-radius:var(--fair-radius-md); margin-bottom:5px; font-size:11.5px; color:var(--fair-text-muted);">Public read, auth modify</div>
+            <div style="padding:7px 10px; border:1px dashed var(--fair-border); border-radius:var(--fair-radius-md); font-size:11.5px; color:var(--fair-text-muted);">Consortium-only</div>
+          </aside>
+          <!-- composer -->
+          <div style="flex:1; min-width:0; overflow:auto; padding:20px 24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;"><div style="flex:1; min-width:200px;"><div style="font-family:var(--fair-font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--fair-text-light); margin-bottom:4px;">Offer id</div><div style="font-family:var(--fair-font-mono); font-size:13px; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:8px 12px;">consortium-access</div></div><button class="pbtn" style="font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--fair-ink); border:none; border-radius:var(--fair-radius-md); padding:9px 14px; cursor:pointer; align-self:flex-end;">Save new version</button><button style="font-family:inherit; font-size:12.5px; font-weight:600; color:var(--fair-text); background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:9px 14px; cursor:pointer; align-self:flex-end;">Validate</button></div>
+
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><span style="width:8px; height:8px; border-radius:50%; background:var(--fair-success);"></span><h2 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--fair-text-strong); margin:0;">Permission</h2></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px; margin-bottom:16px; background:var(--fair-bg);">
+              <div style="font-size:14px; color:var(--fair-text); line-height:2;">Allow <span style="font-weight:600; color:var(--fair-text-strong); border-bottom:2px solid var(--tool-accent); padding-bottom:1px;">read</span> for anyone with role <span style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent-tint); color:var(--tool-accent);">researcher ✕</span></div>
+              <div style="display:flex; gap:6px; margin-top:12px;"><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent); color:#fff;">read</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); border:1px solid var(--fair-border); color:var(--fair-text-muted);">+ modify</span><span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--fair-radius-pill); border:1px solid var(--fair-border); color:var(--fair-text-muted);">+ distribute</span><span style="margin-left:auto; font-size:12px; color:var(--tool-accent); font-weight:600;">+ Add constraint</span></div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><span style="width:8px; height:8px; border-radius:50%; background:var(--fair-danger);"></span><h2 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--fair-text-strong); margin:0;">Prohibition</h2></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px; margin-bottom:16px; background:var(--fair-bg);">
+              <div style="font-size:14px; color:var(--fair-text); line-height:2;">Forbid <span style="font-weight:600; color:var(--fair-text-strong); border-bottom:2px solid var(--fair-danger); padding-bottom:1px;">modify</span> unless member of <span style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--fair-danger-tint); color:var(--fair-danger);">BBMRI consortium ✕</span></div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--fair-warning-tint); border-radius:var(--fair-radius-md);"><span style="font-family:var(--fair-font-mono); font-weight:700; color:var(--fair-warning);">!</span><span style="font-size:12.5px; color:var(--fair-text);">When rules conflict, <b>deny wins</b> — a prohibition overrides a matching permission.</span></div>
+          </div>
+          <!-- live preview -->
+          <aside style="width:296px; flex-shrink:0; border-left:1px solid var(--fair-separator); background:var(--fair-bg); padding:16px 14px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;"><span style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light);">Resulting RDF</span><span style="font-family:var(--fair-font-mono); font-size:13px; color:var(--fair-text-light);">⧉</span></div>
+            <div style="flex:1; background:var(--fair-code-bg); border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:12px 13px; font-family:var(--fair-font-mono); font-size:10.5px; line-height:1.7; color:var(--fair-text); white-space:pre; overflow:hidden;"><span style="color:var(--fair-text-strong); font-weight:600;">&lt;offer&gt;</span> a <span style="color:var(--tool-accent);">odrl:Offer</span> ;
+  odrl:permission [
+    odrl:action <span style="color:var(--fair-node-darker);">odrl:read</span> ;
+    odrl:constraint [
+      odrl:leftOperand <span style="color:var(--fair-warning);">role</span> ;
+      odrl:rightOperand <span style="color:var(--fair-warning);">"researcher"</span> ]] ;
+  odrl:prohibition [
+    odrl:action <span style="color:var(--fair-node-darker);">odrl:modify</span> ] .</div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); padding:10px 12px; background:var(--fair-surface);"><div style="font-family:var(--fair-font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--fair-text-light); margin-bottom:6px;">Versions</div><div style="font-size:11.5px; color:var(--fair-text);">v4 · current · 2026-06-28</div><div style="font-size:11.5px; color:var(--fair-text-light);">v3 · 2026-05-10</div></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ METRICS DASHBOARD ============ -->
+    <div id="s-metrics">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">METRICS</span><span style="font-size:13px; color:var(--fair-text-muted);">Renders only what the anonymous server API returns — no cross-day tracking, no query text, no per-user identity. Flat & restrained, matching the privacy posture.</span></div>
+      <div data-tool="fdp" style="width:1300px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden;">
+        <header style="height:56px; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-strong); padding:6px 11px; border-bottom:2px solid var(--tool-accent); text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+        <div style="padding:24px 28px 28px;">
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+            <div><div style="font-family:var(--fair-font-mono); font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--tool-accent); margin-bottom:6px;">USAGE</div><h1 style="font-size:28px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0;">Metrics dashboard</h1></div>
+            <div style="display:flex; align-items:center; gap:10px;"><div style="display:flex; border:1px solid var(--fair-border); border-radius:var(--fair-radius-md); overflow:hidden;"><span style="font-size:12px; font-weight:600; padding:7px 13px; color:var(--fair-text-muted);">24h</span><span style="font-size:12px; font-weight:600; padding:7px 13px; background:var(--tool-accent); color:#fff;">30d</span><span style="font-size:12px; font-weight:600; padding:7px 13px; color:var(--fair-text-muted);">1y</span></div><span style="font-size:11.5px; color:var(--fair-text-muted); display:inline-flex; align-items:center; gap:5px;">ⓘ Privacy</span></div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px;">
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px 18px; background:var(--fair-bg);"><div style="font-size:11px; color:var(--fair-text-muted); text-transform:uppercase; letter-spacing:0.06em;">Requests</div><div style="font-family:var(--fair-font-mono); font-size:28px; font-weight:700; color:var(--fair-text-strong); margin-top:6px;">48,210</div></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px 18px; background:var(--fair-bg);"><div style="font-size:11px; color:var(--fair-text-muted); text-transform:uppercase; letter-spacing:0.06em;">Unique visitors <span style="color:var(--fair-text-light);">ⓘ</span></div><div style="font-family:var(--fair-font-mono); font-size:28px; font-weight:700; color:var(--fair-text-strong); margin-top:6px;">3,127</div><div style="font-size:10px; color:var(--fair-text-light); font-family:var(--fair-font-mono); margin-top:2px;">daily-rotated</div></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px 18px; background:var(--fair-bg);"><div style="font-size:11px; color:var(--fair-text-muted); text-transform:uppercase; letter-spacing:0.06em;">Avg latency</div><div style="font-family:var(--fair-font-mono); font-size:28px; font-weight:700; color:var(--fair-text-strong); margin-top:6px;">42<span style="font-size:15px; color:var(--fair-text-muted);">ms</span></div></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:16px 18px; background:var(--fair-bg);"><div style="font-size:11px; color:var(--fair-text-muted); text-transform:uppercase; letter-spacing:0.06em;">Errors <span style="color:var(--fair-text-light);">4xx/5xx</span></div><div style="font-family:var(--fair-font-mono); font-size:28px; font-weight:700; color:var(--fair-text-strong); margin-top:6px;">311</div></div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1.7fr 1fr; gap:18px; margin-bottom:18px;">
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:18px 20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px;"><h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0;">Activity</h2><span style="font-size:11.5px; color:var(--fair-text-light);">requests / day</span></div>
+              <svg viewBox="0 0 640 150" width="100%" height="150" preserveAspectRatio="none">
+                <g fill="var(--tool-accent)">
+                  <rect x="4" y="86" width="24" height="64" rx="2"></rect><rect x="36" y="70" width="24" height="80" rx="2"></rect><rect x="68" y="94" width="24" height="56" rx="2"></rect><rect x="100" y="54" width="24" height="96" rx="2"></rect><rect x="132" y="62" width="24" height="88" rx="2"></rect><rect x="164" y="40" width="24" height="110" rx="2"></rect><rect x="196" y="48" width="24" height="102" rx="2"></rect><rect x="228" y="30" width="24" height="120" rx="2"></rect><rect x="260" y="58" width="24" height="92" rx="2"></rect><rect x="292" y="44" width="24" height="106" rx="2"></rect><rect x="324" y="22" width="24" height="128" rx="2"></rect><rect x="356" y="36" width="24" height="114" rx="2"></rect><rect x="388" y="52" width="24" height="98" rx="2"></rect><rect x="420" y="28" width="24" height="122" rx="2"></rect><rect x="452" y="46" width="24" height="104" rx="2"></rect><rect x="484" y="18" width="24" height="132" rx="2"></rect><rect x="516" y="40" width="24" height="110" rx="2"></rect><rect x="548" y="60" width="24" height="90" rx="2"></rect><rect x="580" y="34" width="24" height="116" rx="2"></rect><rect x="612" y="50" width="24" height="100" rx="2"></rect>
+                </g>
+              </svg>
+            </div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:18px 20px;">
+              <h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0 0 16px;">Countries</h2>
+              <div style="display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; align-items:center; gap:10px;"><span style="width:34px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text);">NL</span><div style="flex:1; height:8px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:82%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-muted);">1,140</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="width:34px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text);">DE</span><div style="flex:1; height:8px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:58%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-muted);">812</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="width:34px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text);">US</span><div style="flex:1; height:8px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:44%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-muted);">601</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="width:34px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text);">UK</span><div style="flex:1; height:8px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:31%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-muted);">433</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="width:34px; font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text);">FR</span><div style="flex:1; height:8px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:22%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:11px; color:var(--fair-text-muted);">308</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); padding:18px 20px;">
+            <h2 style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--fair-text-muted); margin:0 0 4px;">Top resources</h2>
+            <div style="font-size:11.5px; color:var(--fair-text-light); margin-bottom:14px;">by request count · resource IRI (the server does not report human titles)</div>
+            <div style="display:flex; flex-direction:column;">
+              <div style="display:flex; align-items:center; gap:14px; padding:9px 0; border-bottom:1px solid var(--fair-separator);"><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-node-darker); flex:1;">…/dataset/cohort-b</span><div style="width:180px; height:7px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:90%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text); width:56px; text-align:right;">9,204</span></div>
+              <div style="display:flex; align-items:center; gap:14px; padding:9px 0; border-bottom:1px solid var(--fair-separator);"><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-node-darker); flex:1;">…/catalog/registry</span><div style="width:180px; height:7px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:66%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text); width:56px; text-align:right;">6,731</span></div>
+              <div style="display:flex; align-items:center; gap:14px; padding:9px 0;"><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-node-darker); flex:1;">…/dataset/cohort-a</span><div style="width:180px; height:7px; background:var(--fair-highlight); border-radius:var(--fair-radius-pill); overflow:hidden;"><div style="width:48%; height:100%; background:var(--tool-accent);"></div></div><span style="font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text); width:56px; text-align:right;">4,902</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ADMIN ============ -->
+    <div id="s-admin">
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;"><span style="font-family:var(--fair-font-mono); font-size:11px; font-weight:700; color:#fff; background:var(--tool-accent); border-radius:var(--fair-radius-sm); padding:3px 9px;">ADMIN</span><span style="font-size:13px; color:var(--fair-text-muted);">Users · API keys · resource definitions · settings. Sober DataTable treatment — role badges, status dots, right-aligned actions.</span></div>
+      <div data-tool="fdp" style="width:1300px; height:600px; background:var(--fair-surface); border:1px solid var(--fair-border); border-radius:var(--fair-radius-xl); box-shadow:var(--fair-shadow-3); overflow:hidden; display:flex; flex-direction:column;">
+        <header style="height:56px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 22px; border-bottom:1px solid var(--fair-separator);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:700; color:var(--fair-text-strong); letter-spacing:-0.01em;"><img src="assets/tools/fdp.svg" width="23" height="23" alt=""/>FAIR Data Point</div>
+          <nav style="display:flex; gap:2px; margin-left:16px;">
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Browse</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Search</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Schemas</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Policies</a>
+            <a class="sf-navlink" style="font-size:13px; font-weight:600; color:var(--fair-text-muted); padding:6px 11px; border-bottom:2px solid transparent; text-decoration:none;">Metrics</a>
+          </nav>
+          <div style="flex:1;"></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:12px; font-weight:700;">DS</div>
+        </header>
+        <div style="flex:1; display:flex; min-height:0;">
+          <aside style="width:210px; flex-shrink:0; border-right:1px solid var(--fair-separator); background:var(--fair-bg); padding:18px 12px;">
+            <div style="font-family:var(--fair-font-mono); font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--fair-text-light); padding:0 10px 12px;">Administration</div>
+            <div style="padding:8px 12px; border-radius:var(--fair-radius-md); background:var(--tool-accent-tint); color:var(--tool-accent); font-size:13px; font-weight:600; margin-bottom:3px;">Users</div>
+            <div style="padding:8px 12px; border-radius:var(--fair-radius-md); color:var(--fair-text-muted); font-size:13px; font-weight:500; margin-bottom:3px;">API keys</div>
+            <div style="padding:8px 12px; border-radius:var(--fair-radius-md); color:var(--fair-text-muted); font-size:13px; font-weight:500; margin-bottom:3px;">Resource definitions</div>
+            <div style="padding:8px 12px; border-radius:var(--fair-radius-md); color:var(--fair-text-muted); font-size:13px; font-weight:500;">Settings</div>
+          </aside>
+          <div style="flex:1; min-width:0; overflow:auto; padding:22px 26px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;"><div><h1 style="font-size:22px; font-weight:700; letter-spacing:-0.02em; color:var(--fair-text-strong); margin:0;">Users</h1><div style="font-size:12.5px; color:var(--fair-text-muted); margin-top:3px;">Identity comes from the OIDC provider — roles are managed here.</div></div><button style="font-family:inherit; font-size:12.5px; font-weight:600; color:#fff; background:var(--tool-accent); border:none; border-radius:var(--fair-radius-md); padding:9px 14px; cursor:pointer;">+ Invite user</button></div>
+            <div style="border:1px solid var(--fair-border); border-radius:var(--fair-radius-lg); overflow:hidden;">
+              <div style="display:flex; padding:11px 16px; background:var(--fair-bg); border-bottom:1px solid var(--fair-separator); font-family:var(--fair-font-mono); font-size:10.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--fair-text-light);"><span style="flex:2;">Name</span><span style="flex:2;">Email</span><span style="flex:1;">Role</span><span style="flex:1;">Status</span><span style="width:70px;"></span></div>
+              <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--fair-separator); font-size:13px;"><span style="flex:2; display:flex; align-items:center; gap:9px;"><span style="width:26px; height:26px; border-radius:50%; background:var(--tool-accent-tint); color:var(--tool-accent); display:grid; place-items:center; font-size:11px; font-weight:700;">DS</span><b style="color:var(--fair-text-strong); font-weight:600;">Daan Smit</b></span><span style="flex:2; font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text-muted);">d.smit@umc.nl</span><span style="flex:1;"><span class="pbtn" style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--fair-ink); color:#fff;">Admin</span></span><span style="flex:1; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fair-success);"><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-success);"></span>Active</span><span style="width:70px; text-align:right; font-family:var(--fair-font-mono); font-size:14px; color:var(--fair-text-light);">⋯</span></div>
+              <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--fair-separator); font-size:13px;"><span style="flex:2; display:flex; align-items:center; gap:9px;"><span style="width:26px; height:26px; border-radius:50%; background:var(--fair-highlight); color:var(--fair-text-muted); display:grid; place-items:center; font-size:11px; font-weight:700;">AK</span><b style="color:var(--fair-text-strong); font-weight:600;">Anna Kowalski</b></span><span style="flex:2; font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text-muted);">a.kowalski@umc.nl</span><span style="flex:1;"><span style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--tool-accent-tint); color:var(--tool-accent);">Steward</span></span><span style="flex:1; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fair-success);"><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-success);"></span>Active</span><span style="width:70px; text-align:right; font-family:var(--fair-font-mono); font-size:14px; color:var(--fair-text-light);">⋯</span></div>
+              <div style="display:flex; align-items:center; padding:12px 16px; font-size:13px;"><span style="flex:2; display:flex; align-items:center; gap:9px;"><span style="width:26px; height:26px; border-radius:50%; background:var(--fair-highlight); color:var(--fair-text-muted); display:grid; place-items:center; font-size:11px; font-weight:700;">MR</span><b style="color:var(--fair-text-strong); font-weight:600;">Marco Rossi</b></span><span style="flex:2; font-family:var(--fair-font-mono); font-size:12px; color:var(--fair-text-muted);">m.rossi@ext.org</span><span style="flex:1;"><span style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:var(--fair-radius-pill); background:var(--fair-highlight); color:var(--fair-text-muted);">Steward</span></span><span style="flex:1; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fair-text-muted);"><span style="width:7px; height:7px; border-radius:50%; background:var(--fair-text-light);"></span>Invited</span><span style="width:70px; text-align:right; font-family:var(--fair-font-mono); font-size:14px; color:var(--fair-text-light);">⋯</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREENS-APPEND -->
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  state = { dark: false, searchMode: 'text' };
+  toggleTheme = () => {
+    this.setState(s => ({ dark: !s.dark }), () => {
+      const el = this.rootRef.current;
+      if (el) el.classList.toggle('theme-dark', this.state.dark);
+    });
+  };
+  showText = () => this.setState({ searchMode: 'text' });
+  showSparql = () => this.setState({ searchMode: 'sparql' });
+  renderVals() {
+    return {
+      rootRef: this.rootRef,
+      toggleTheme: this.toggleTheme,
+      themeLabel: this.state.dark ? 'Dark' : 'Light',
+      textMode: this.state.searchMode === 'text',
+      sparqlMode: this.state.searchMode === 'sparql',
+      showText: this.showText,
+      showSparql: this.showSparql,
+    };
+  }
+}
+</script>
+</body>
+</html>

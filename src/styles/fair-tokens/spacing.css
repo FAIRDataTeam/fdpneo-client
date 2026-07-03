@@ -1,0 +1,23 @@
+/* ==========================================================================
+   FAIR Ecosystem — Spacing scale (4px base grid)
+   ========================================================================== */
+:root {
+  --fair-space-0:  0;
+  --fair-space-1:  4px;
+  --fair-space-2:  8px;
+  --fair-space-3:  12px;
+  --fair-space-4:  16px;
+  --fair-space-5:  20px;
+  --fair-space-6:  24px;
+  --fair-space-7:  28px;
+  --fair-space-8:  32px;
+  --fair-space-10: 40px;
+  --fair-space-12: 48px;
+  --fair-space-16: 64px;
+  --fair-space-20: 80px;
+
+  /* Common layout measures */
+  --fair-page-max:   1440px;
+  --fair-gutter:     32px;
+  --fair-header-h:   64px;
+}

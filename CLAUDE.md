@@ -132,6 +132,17 @@ The ODRL editor is guided rather than canvas-based:
 3. Run the gate before declaring done: `npm run lint && npm run typecheck && npm run test:unit`.
 4. The SHACL and ODRL editors are the parts most likely to be wrong in subtle ways. When changing them, test the round-trip: import known-good `.ttl`, modify, export, and diff against the expected output.
 
+## Design: FAIR Ecosystem re-skin
+
+The client is being restyled from the "Specimen Archive" theme onto the shared **FAIR
+Ecosystem** design system. The authoritative spec is
+`docs/design_handoff_fair_ecosystem/MIGRATION.md` — token crosswalk, per-surface→file mapping,
+and phased plan (P1–P5). Visual references (light & dark) live in that folder's `reference/`.
+
+This is a **re-skin, not a rebuild**: information architecture, routes, and the stack (Vue 3 +
+PrimeVue + Vue Flow) stay; only the visual language changes. Foundations first (tokens, fonts,
+remove the paper grain/vignette, `data-tool="fdp"`, dark palette), then per-surface.
+
 ## Open questions
 
 - Which exact SHACL features the visual editor supports out of the gate (all of `sh:`, or a curated subset matching the FDP profile)

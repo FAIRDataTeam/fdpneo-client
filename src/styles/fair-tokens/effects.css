@@ -1,0 +1,23 @@
+/* ==========================================================================
+   FAIR Ecosystem — Radii, shadows, borders, motion
+   Soft cool shadows tinted toward slate; restrained radii.
+   ========================================================================== */
+:root {
+  --fair-radius-sm:   4px;
+  --fair-radius-md:   6px;
+  --fair-radius-lg:   10px;
+  --fair-radius-xl:   14px;
+  --fair-radius-pill: 999px;
+
+  --fair-shadow-1: 0 1px 2px rgba(31, 39, 51, 0.05);
+  --fair-shadow-2: 0 2px 8px rgba(31, 39, 51, 0.07);
+  --fair-shadow-3: 0 8px 24px rgba(31, 39, 51, 0.12);
+  --fair-shadow-4: 0 14px 44px rgba(31, 39, 51, 0.12);
+
+  --fair-focus-ring:        0 0 0 3px rgba(31, 39, 51, 0.16);
+  --fair-focus-ring-accent: 0 0 0 3px rgba(14, 133, 127, 0.20);
+
+  --fair-transition-fast: 0.1s ease;  /* @kind other */
+  --fair-transition:      0.12s ease; /* @kind other */
+  --fair-transition-slow: 0.2s ease;  /* @kind other */
+}

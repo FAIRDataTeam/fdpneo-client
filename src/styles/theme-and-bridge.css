@@ -1,0 +1,96 @@
+/*
+ * FAIR Ecosystem — dark palette + v2→FAIR alias bridge.
+ *
+ * Import order in src/styles/tokens.css (or main.css):
+ *   @import "./fair-tokens/fonts.css";
+ *   @import "./fair-tokens/colors.css";
+ *   @import "./fair-tokens/typography.css";
+ *   @import "./fair-tokens/spacing.css";
+ *   @import "./fair-tokens/effects.css";
+ *   @import "./theme-and-bridge.css";   <-- this file, last
+ *
+ * The bridge lets existing FDPneo component CSS (which references --paper, --ink,
+ * --accent, etc.) keep compiling against FAIR values, so P1 reskins the whole app
+ * at once. Retire the bridge per surface as you migrate component CSS to the
+ * --fair-* / --tool-* names directly (see MIGRATION.md §8, P5).
+ */
+
+/* ---- v2 → FAIR alias bridge (transitional) ---- */
+:root {
+  --paper:        var(--fair-bg);
+  --paper-deep:   var(--fair-canvas);
+  --surface:      var(--fair-surface);
+  --surface-2:    var(--fair-highlight);
+  --line:         var(--fair-separator);
+  --line-strong:  var(--fair-border);
+  --ink:          var(--fair-text-strong);
+  --ink-2:        var(--fair-text);
+  --muted:        var(--fair-text-muted);
+  --muted-2:      var(--fair-text-light);
+
+  --accent:       var(--tool-accent);
+  --accent-deep:  var(--fair-node-darker);
+  --accent-soft:  var(--tool-accent-tint);
+  --accent-line:  var(--fair-node-soft);
+
+  --signal:       var(--fair-warning);
+  --signal-soft:  var(--fair-warning-tint);
+  --ok:           var(--fair-success);
+  --ok-soft:      var(--fair-success-tint);
+  --warn:         var(--fair-warning);
+  --warn-soft:    var(--fair-warning-tint);
+
+  --font-sans:    var(--fair-font-sans);
+  --font-serif:   var(--fair-font-sans);   /* serif display retired */
+  --font-mono:    var(--fair-font-mono);
+
+  --r-1: var(--fair-radius-sm);
+  --r-2: var(--fair-radius-md);
+  --r-3: var(--fair-radius-lg);
+  --r-4: var(--fair-radius-xl);
+
+  --shadow-1: var(--fair-shadow-1);
+  --shadow-2: var(--fair-shadow-2);
+
+  /* record-kind colors → per-tool accent family (see MIGRATION.md §4) */
+  --t-fdp:          var(--fair-ink);
+  --t-catalog:      var(--tool-fdp);
+  --t-dataset:      var(--tool-directory);
+  --t-distribution: var(--tool-station);
+  --t-biobank:      var(--tool-framework);
+  --t-publication:  var(--tool-identifier);
+}
+
+/* ---- Dark mode (cool-slate) ---- */
+.theme-dark {
+  --fair-bg:#10161e;  --fair-surface:#1a2230;  --fair-surface-input:#141b24;
+  --fair-canvas:#141b24;  --fair-highlight:#232c3a;  --fair-code-bg:#131a23;
+  --fair-border:#2b3543;  --fair-separator:#222c39;
+  --fair-text:#c6ceda;  --fair-text-muted:#8a94a2;  --fair-text-light:#5f6a78;
+  --fair-text-strong:#eef2f7;  --fair-ink-soft:#3a4655;  --fair-ink-tint:#1e2733;
+
+  /* NOTE: ink flips light so it can serve as text/structure on dark surfaces. */
+  --fair-ink:#eef2f7;
+  /* ...but ink-lighter stays dark, so it's the fill for primary buttons (see .pbtn). */
+  --fair-ink-lighter:#2f3a49;
+
+  --fair-node:#5fc2bc;  --fair-node-darker:#8fd8d3;  --fair-node-soft:#2a4a48;  --fair-node-tint:#15302e;
+  --tool-fdp:#5fc2bc;  --tool-fdp-tint:#15302e;  --tool-accent:#5fc2bc;  --tool-accent-tint:#15302e;
+
+  --fair-success:#5bb97a;  --fair-success-tint:#183021;
+  --fair-warning:#c9a23a;  --fair-warning-tint:#2c2510;
+  --fair-danger:#e07a70;   --fair-danger-tint:#331b19;
+
+  --fair-shadow-2: 0 18px 44px -16px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/*
+ * The ink-fill trap: any primary button/badge styled `background: var(--fair-ink);
+ * color:#fff` would be white-on-near-white in dark mode. Add class="pbtn" to those
+ * elements and this override gives them a dark-slate fill + light text in dark mode.
+ */
+.theme-dark .pbtn {
+  background: var(--fair-ink-lighter) !important;
+  color: var(--fair-text-strong) !important;
+  border-color: var(--fair-ink-lighter) !important;
+}

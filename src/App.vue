@@ -24,7 +24,7 @@ watchEffect(() => theme.setSystemPrefersDark(prefersDark.value));
 </script>
 
 <template>
-  <div class="shell">
+  <div class="shell" data-tool="fdp">
     <AppHeader />
     <main class="main">
       <AppErrorBoundary v-slot="{ remountKey }">
