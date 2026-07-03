@@ -27,6 +27,7 @@ import PropList from "@/components/metadata/PropList.vue";
 import RecordSummaryCard from "@/components/metadata/RecordSummaryCard.vue";
 import DistributionList from "@/components/metadata/DistributionList.vue";
 import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
+import AccessInEffect from "@/components/metadata/AccessInEffect.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import { useChildRecords } from "@/composables/useChildRecords";
 
@@ -136,7 +137,10 @@ function changeState(to: MetadataState) {
           <DistributionList :distributions="record.distributions" />
         </template>
       </div>
-      <AboutSidecar :record="record" :container="container" :record-id="id" />
+      <div class="rail">
+        <AboutSidecar :record="record" :container="container" :record-id="id" />
+        <AccessInEffect :record="record" />
+      </div>
     </main>
   </template>
 </template>
@@ -153,6 +157,19 @@ function changeState(to: MetadataState) {
 }
 .column {
   min-width: 0;
+}
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: calc(var(--fair-header-h) + 16px);
+  align-self: start;
+}
+@media (max-width: 1100px) {
+  .rail {
+    position: static;
+  }
 }
 .contents {
   display: grid;

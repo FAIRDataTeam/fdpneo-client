@@ -163,6 +163,16 @@ const es: Messages = {
     aboutAria: "Acerca de",
     countOf: "{shown} de {total}",
   },
+  access: {
+    title: "Acceso — en vigor",
+    allow: "Permitir",
+    forbid: "Prohibir",
+    denyWins: "La denegación prevalece en caso de conflicto.",
+    definedHere: "Definido en este registro",
+    inherited: "Heredado de la jerarquía de contenedores",
+    openBody: "Abierto — no se declaran restricciones de acceso.",
+    unavailable: "Política de acceso no disponible.",
+  },
   search: {
     queryAria: "Consulta de búsqueda",
     placeholder: "Buscar registros, palabras clave, temas…",

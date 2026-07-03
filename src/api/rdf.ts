@@ -254,6 +254,7 @@ export function mapRecord(
     license: licenseLabel(licenseUri),
     licenseUri,
     conformsTo: one(store, s, `${NS.dct}conformsTo`) ?? "",
+    rightsUri: one(store, s, `${NS.dct}rights`) ?? "",
     identifier: one(store, s, `${NS.dct}identifier`) ?? "",
     // Equivalent foreign identifiers (ADR-0014). The server records owl:sameAs
     // automatically when a record is created under a foreign subject IRI, so

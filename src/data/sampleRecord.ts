@@ -59,6 +59,9 @@ export interface FdpRecord {
   license: string;
   licenseUri: string;
   conformsTo: string;
+  /** `dct:rights` — the ODRL Offer IRI governing access, when set on this record
+   * itself (absent ⇒ access is inherited from an ancestor container). */
+  rightsUri: string;
   identifier: string;
   /** Equivalent foreign persistent identifiers (`owl:sameAs`) — ADR-0014. */
   sameAs: string[];
@@ -157,6 +160,7 @@ export const sampleRecord: FdpRecord = {
   license: "CC BY 4.0",
   licenseUri: "https://creativecommons.org/licenses/by/4.0/",
   conformsTo: "DCAT-AP 3.0 · FDP DatasetShape 1.2",
+  rightsUri: "",
   identifier: "https://doi.org/10.5072/fdp/ad-cohort-2024",
   sameAs: ["https://w3id.org/example/ad-cohort-2024"],
   exactMatch: ["https://registry.example.org/datasets/ad-cohort-2024"],

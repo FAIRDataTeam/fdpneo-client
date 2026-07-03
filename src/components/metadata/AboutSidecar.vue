@@ -79,8 +79,6 @@ const hasIdentifiers = computed(
   border: 1px solid var(--fair-border);
   border-radius: var(--fair-radius-lg);
   background: var(--fair-surface);
-  position: sticky;
-  top: calc(var(--fair-header-h) + 16px);
 }
 .eyebrow {
   font-family: var(--fair-font-sans);

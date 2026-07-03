@@ -159,6 +159,16 @@ const en = {
     aboutAria: "About",
     countOf: "{shown} of {total}",
   },
+  access: {
+    title: "Access — in effect",
+    allow: "Allow",
+    forbid: "Forbid",
+    denyWins: "Deny wins where rules conflict.",
+    definedHere: "Set on this record",
+    inherited: "Inherited from the container hierarchy",
+    openBody: "Open — no access restrictions are declared.",
+    unavailable: "Access policy unavailable.",
+  },
   search: {
     queryAria: "Search query",
     placeholder: "Search records, keywords, themes…",

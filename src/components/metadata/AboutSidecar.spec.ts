@@ -27,6 +27,7 @@ function record(over: Partial<FdpRecord> = {}): FdpRecord {
     license: "",
     licenseUri: "",
     conformsTo: "",
+    rightsUri: "",
     identifier: "",
     sameAs: [],
     exactMatch: [],

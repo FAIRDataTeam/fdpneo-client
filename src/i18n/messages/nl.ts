@@ -164,6 +164,16 @@ const nl: Messages = {
     aboutAria: "Over",
     countOf: "{shown} van {total}",
   },
+  access: {
+    title: "Toegang — van kracht",
+    allow: "Toestaan",
+    forbid: "Verbieden",
+    denyWins: "Weigeren wint bij conflicten.",
+    definedHere: "Ingesteld op dit record",
+    inherited: "Overgeërfd van de containerhiërarchie",
+    openBody: "Open — er zijn geen toegangsbeperkingen gedeclareerd.",
+    unavailable: "Toegangsbeleid niet beschikbaar.",
+  },
   search: {
     queryAria: "Zoekopdracht",
     placeholder: "Zoek records, trefwoorden, thema's…",

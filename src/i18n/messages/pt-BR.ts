@@ -164,6 +164,16 @@ const ptBR: Messages = {
     aboutAria: "Sobre",
     countOf: "{shown} de {total}",
   },
+  access: {
+    title: "Acesso — em vigor",
+    allow: "Permitir",
+    forbid: "Proibir",
+    denyWins: "A negação prevalece em caso de conflito.",
+    definedHere: "Definido neste registro",
+    inherited: "Herdado da hierarquia de contêineres",
+    openBody: "Aberto — nenhuma restrição de acesso declarada.",
+    unavailable: "Política de acesso indisponível.",
+  },
   search: {
     queryAria: "Consulta de busca",
     placeholder: "Buscar registros, palavras-chave, temas…",

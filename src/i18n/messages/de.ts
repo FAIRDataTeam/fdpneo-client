@@ -164,6 +164,16 @@ const de: Messages = {
     aboutAria: "Über",
     countOf: "{shown} von {total}",
   },
+  access: {
+    title: "Zugriff — in Kraft",
+    allow: "Erlauben",
+    forbid: "Verbieten",
+    denyWins: "Ablehnung gewinnt bei Konflikten.",
+    definedHere: "Für diesen Datensatz festgelegt",
+    inherited: "Von der Container-Hierarchie geerbt",
+    openBody: "Offen — keine Zugriffsbeschränkungen deklariert.",
+    unavailable: "Zugriffsrichtlinie nicht verfügbar.",
+  },
   search: {
     queryAria: "Suchanfrage",
     placeholder: "Datensätze, Schlagwörter, Themen suchen…",

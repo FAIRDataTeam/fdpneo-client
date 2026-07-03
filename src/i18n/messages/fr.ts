@@ -165,6 +165,16 @@ const fr: Messages = {
     aboutAria: "À propos",
     countOf: "{shown} sur {total}",
   },
+  access: {
+    title: "Accès — en vigueur",
+    allow: "Autoriser",
+    forbid: "Interdire",
+    denyWins: "Le refus l'emporte en cas de conflit.",
+    definedHere: "Défini sur cet enregistrement",
+    inherited: "Hérité de la hiérarchie des conteneurs",
+    openBody: "Ouvert — aucune restriction d'accès déclarée.",
+    unavailable: "Politique d'accès indisponible.",
+  },
   search: {
     queryAria: "Requête de recherche",
     placeholder: "Rechercher des enregistrements, mots-clés, thèmes…",

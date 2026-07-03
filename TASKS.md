@@ -2782,7 +2782,7 @@ labels below (P1–P5) are §8's; this section just tracks their status.
   mis-classified as Dataset — added the `fdp:` namespace + `fdp:FAIRDataPoint`/`fdp:Repository`
   → `fdp` kind in `TYPE_MAP` ([`rdf.ts`](src/api/rdf.ts), [`namespaces.ts`](src/rdf/namespaces.ts)).
 
-### P2 — Shell + browse + record detail — ✅ mostly done (2026-07-03)
+### P2 — Shell + browse + record detail — ✅ done (2026-07-03)
 The everyday consumer/steward path. Delivered, verified live (headless Chromium against the
 running stack, light + dark, 0 console errors) and shipped in the rebuilt Docker image:
 - **App shell:** [`AppHeader`](src/components/shared/AppHeader.vue) rebuilt — node-and-edge
@@ -2800,11 +2800,17 @@ running stack, light + dark, 0 console errors) and shipped in the rebuilt Docker
   [`AboutSidecar`](src/components/metadata/AboutSidecar.vue), and the view itself migrated.
 - **Working sidecar:** [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue) (heaviest;
   removed the `#fff`/`#b00` hard-coded hexes) + [`RdfGraphOverlay`](src/components/metadata/RdfGraphOverlay.vue)
-  migrated. Gate: lint + typecheck + 497 tests green.
+  migrated.
+- **"Access — in effect" card** ([`AccessInEffect`](src/components/metadata/AccessInEffect.vue))
+  on the record-detail sidecar: resolves the governing ODRL Offer (the record's own `dct:rights`,
+  else the repository default) via [`useEffectiveAccess`](src/composables/useEffectiveAccess.ts),
+  parses it with the ODRL editor's `parseOffer`, and renders a plain-language summary
+  ([`accessSummary.ts`](src/components/metadata/accessSummary.ts) — green "Allow"/red "Forbid"
+  lines with conditions, "Deny wins" note, and a set-here/inherited note + policy link). Colour is
+  paired with words for a11y. Added `access.*` i18n keys to all 6 locales; `rightsUri` added to
+  `FdpRecord`/`mapRecord`. Gate: lint + typecheck + 499 tests green.
 
 **Deferred (follow-ups within P2):**
-- **"Access — in effect" card** on record detail (plain-language ODRL summary + inheritance
-  note) — a net-new feature, not yet built.
 - Record detail keeps its `SecondaryNav` breadcrumb + on-demand container browser rather than
   the persistent tree; align if desired.
 - Tree shows repo → catalogs; deeper member nesting isn't eager (the `/page` read-extension is
