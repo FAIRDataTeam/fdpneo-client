@@ -103,7 +103,12 @@ describe("neighbourhood", () => {
 `;
     const g = neighbourhood(rootTurtle, BASE);
     const focus = g.recordNodes.find((n) => n.focus);
-    expect(focus).toMatchObject({ iri: BASE, recordId: "", label: "Test FAIR Data Point" });
+    expect(focus).toMatchObject({
+      iri: BASE,
+      recordId: "",
+      label: "Test FAIR Data Point",
+      type: "fdp", // fdp:FAIRDataPoint → the repository-root kind, not "dataset"
+    });
     // The root's literals + external IRIs land as attributes (not a single node).
     expect(g.attrs.length).toBeGreaterThan(0);
     expect(g.attrs.find((a) => a.pred === `${NS.dct}title`)?.value).toBe("Test FAIR Data Point");

@@ -30,6 +30,7 @@ export const NS = {
   ldp: NAMESPACES.ldp,
   owl: NAMESPACES.owl,
   skos: NAMESPACES.skos,
+  fdp: NAMESPACES.fdp,
 } as const;
 
 const RDF_TYPE = `${NS.rdf}type`;
@@ -183,6 +184,10 @@ export function serializeTurtle(store: Store): Promise<string> {
 }
 
 const TYPE_MAP: Record<string, { kind: RecordKind; label: string }> = {
+  // The FDP root advertises `fdp:FAIRDataPoint` (current server) or `fdp:Repository`
+  // (older spec); both are the repository root, not a dataset.
+  [`${NS.fdp}FAIRDataPoint`]: { kind: "fdp", label: "FAIR Data Point" },
+  [`${NS.fdp}Repository`]: { kind: "fdp", label: "FAIR Data Point" },
   [`${NS.dcat}Catalog`]: { kind: "catalog", label: "Catalog" },
   [`${NS.dcat}Dataset`]: { kind: "dataset", label: "Dataset" },
   [`${NS.dcat}Distribution`]: { kind: "distribution", label: "Distribution" },

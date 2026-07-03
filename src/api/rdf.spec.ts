@@ -27,6 +27,7 @@ import {
   setLiteral,
   setIri,
   serializeTurtle,
+  classify,
 } from "./rdf";
 
 const DATASET_TTL = `
@@ -119,6 +120,17 @@ describe("rdf helpers", () => {
   it("iriToId maps the bare base IRI (repository root) to the empty path id", () => {
     expect(iriToId("http://localhost:8000")).toBe("");
     expect(iriToId("http://localhost:8000/dataset/x")).toBe("dataset/x");
+  });
+
+  it("classify recognises the FDP root type (FAIRDataPoint / Repository) as the fdp kind", () => {
+    const root = "http://localhost:8000";
+    const fdpTtl = `<${root}> a <http://www.w3.org/ns/ldp#DirectContainer>, <https://w3id.org/fdp/o#FAIRDataPoint> .`;
+    expect(classify(parseTurtle(fdpTtl), root).kind).toBe("fdp");
+    const repoTtl = `<${root}> a <https://w3id.org/fdp/o#Repository> .`;
+    expect(classify(parseTurtle(repoTtl), root).kind).toBe("fdp");
+    // DCAT types still classify as before; unknown types fall back to dataset.
+    const dsTtl = `<${root}/dataset/x> a <http://www.w3.org/ns/dcat#Dataset> .`;
+    expect(classify(parseTurtle(dsTtl), `${root}/dataset/x`).kind).toBe("dataset");
   });
 
   it("licenseLabel maps Creative Commons URIs", () => {

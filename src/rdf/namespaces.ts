@@ -25,6 +25,7 @@ export const NAMESPACES = {
   ldp: "http://www.w3.org/ns/ldp#",
   owl: "http://www.w3.org/2002/07/owl#",
   skos: "http://www.w3.org/2004/02/skos/core#",
+  fdp: "https://w3id.org/fdp/o#",
 } as const;
 
 /** The bare-colon default namespace a schema's own terms (`:DatasetShape`) live under. */
