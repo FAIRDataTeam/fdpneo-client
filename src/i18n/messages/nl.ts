@@ -175,6 +175,8 @@ const nl: Messages = {
     unavailable: "Toegangsbeleid niet beschikbaar.",
   },
   search: {
+    modeText: "Tekstueel zoeken",
+    modeAria: "Zoekmodus",
     queryAria: "Zoekopdracht",
     placeholder: "Zoek records, trefwoorden, thema's…",
     searchButton: "Zoeken",

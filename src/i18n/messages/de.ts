@@ -175,6 +175,8 @@ const de: Messages = {
     unavailable: "Zugriffsrichtlinie nicht verfügbar.",
   },
   search: {
+    modeText: "Textsuche",
+    modeAria: "Suchmodus",
     queryAria: "Suchanfrage",
     placeholder: "Datensätze, Schlagwörter, Themen suchen…",
     searchButton: "Suchen",

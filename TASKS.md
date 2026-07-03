@@ -2821,10 +2821,21 @@ running stack, light + dark, 0 console errors) and shipped in the rebuilt Docker
 - Removed the header deployment host label + inline "advanced search" link (per mockup);
   `/advanced-search` still routable.
 
-### P3 — Search + SPARQL unify — ⬜ todo
-One surface, two modes via a Text search / SPARQL toggle; facet rail, result rows, in-memory
-SPARQL history. Fold the standalone playground into Search; keep `/sparql` as a deep-link.
-See MIGRATION §6 (Search + SPARQL row).
+### P3 — Search + SPARQL unify — ✅ done (2026-07-03)
+One surface, two modes, verified live (light + dark, 0 console errors) and shipped in the
+rebuilt image:
+- [`SearchView`](src/views/SearchView.vue) rebuilt as a thin **unified shell**: a Text search /
+  SPARQL toggle whose mode is **derived from the route** so it deep-links — `/search` opens
+  Text, `/sparql` opens SPARQL. SPARQL tab shows only when the `sparql` feature is enabled.
+- Text body extracted to [`TextSearchPanel`](src/components/search/TextSearchPanel.vue) (query
+  bar + schema-driven facet rail + result rows w/ match highlight + saved searches), tokens
+  migrated.
+- SPARQL body extracted to [`SparqlPanel`](src/components/sparql/SparqlPanel.vue) (Monaco editor
+  + table/boolean/Turtle results + in-memory history), hero dropped, tokens migrated.
+- **Router:** `/sparql` now renders `SearchView` (folded); the standalone `SparqlPlaygroundView`
+  and `AdvancedSearchView` are **deleted**; `/advanced-search` redirects to `/search`.
+- Added `search.modeText` / `search.modeAria` i18n to all 6 locales. Gate: lint + typecheck +
+  499 tests green.
 
 ### P4 — SHACL + ODRL editors — ⬜ todo
 Skin the Vue Flow canvas as the node-and-edge language (shape = node, `sh:node` = arrowed

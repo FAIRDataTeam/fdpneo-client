@@ -175,6 +175,8 @@ const ptBR: Messages = {
     unavailable: "Política de acesso indisponível.",
   },
   search: {
+    modeText: "Busca textual",
+    modeAria: "Modo de busca",
     queryAria: "Consulta de busca",
     placeholder: "Buscar registros, palavras-chave, temas…",
     searchButton: "Buscar",

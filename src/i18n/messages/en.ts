@@ -170,6 +170,8 @@ const en = {
     unavailable: "Access policy unavailable.",
   },
   search: {
+    modeText: "Text search",
+    modeAria: "Search mode",
     queryAria: "Search query",
     placeholder: "Search records, keywords, themes…",
     searchButton: "Search",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * SPARQL playground.
+ * SPARQL panel — the SPARQL mode of the unified Search surface.
  *
  * Monaco editor → POST /sparql → results. SELECT renders as a table, ASK as a
  * boolean, CONSTRUCT/DESCRIBE as a Turtle document. Query history is kept in
@@ -81,16 +81,6 @@ function timeLabel(at: number): string {
 
 <template>
   <section class="page">
-    <header class="page__head">
-      <div>
-        <div class="eyebrow mono">{{ t("sparql.eyebrow") }}</div>
-        <h1>{{ t("sparql.heading") }}</h1>
-        <p class="lede">
-          {{ t("sparql.lede") }}
-        </p>
-      </div>
-    </header>
-
     <div class="layout">
       <div class="main">
         <div class="toolbar">
@@ -178,33 +168,12 @@ function timeLabel(at: number): string {
 <style scoped>
 .page {
   flex: 1;
-  padding: 32px 48px 40px;
+  padding: 24px 48px 40px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  background: var(--paper);
+  gap: 16px;
+  background: var(--fair-bg);
   min-height: 0;
-}
-.eyebrow {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-}
-h1 {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 34px;
-  color: var(--ink);
-}
-.lede {
-  margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 640px;
 }
 
 .layout {
@@ -229,17 +198,17 @@ h1 {
   flex: 1;
 }
 .hint {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 .examples select {
-  font-family: var(--font-sans);
-  font-size: 13px;
+  font-family: var(--fair-font-sans);
+  font-size: var(--fair-text-base);
   padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface-input);
+  color: var(--fair-text-strong);
 }
 .editor-pane {
   height: 260px;
@@ -251,27 +220,27 @@ h1 {
 
 .panel {
   padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface);
 }
 .error {
-  border-color: var(--signal);
+  border-color: var(--fair-danger);
 }
 .error h2 {
   margin: 0 0 6px;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  font-size: var(--fair-text-md);
+  color: var(--fair-text-strong);
 }
 .error p {
   margin: 0 0 6px;
-  font-size: 13px;
-  color: var(--ink-2);
+  font-size: var(--fair-text-base);
+  color: var(--fair-text);
 }
 .error .code {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 .error__actions {
   display: flex;
@@ -285,36 +254,36 @@ h1 {
 }
 .boolean__value {
   font-size: 22px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .boolean__label {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--fair-tracking-tight);
 }
 .turtle {
   margin: 0;
   padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
-  font-size: 12px;
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-code-bg);
+  font-size: var(--fair-text-sm);
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
   overflow: auto;
   max-height: 100%;
   white-space: pre-wrap;
   word-break: break-word;
 }
 .placeholder {
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-base);
   padding: 24px 4px;
 }
 
 .history {
-  border-left: 1px solid var(--line);
+  border-left: 1px solid var(--fair-separator);
   padding-left: 18px;
   min-width: 0;
   display: flex;
@@ -327,23 +296,23 @@ h1 {
 }
 .history__head h2 {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--fair-text-sm);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 500;
+  letter-spacing: var(--fair-tracking-eyebrow);
+  color: var(--fair-text-muted);
+  font-weight: var(--fair-weight-medium);
 }
 .link {
   background: none;
   border: 0;
-  color: var(--accent);
-  font-size: 12px;
+  color: var(--tool-accent);
+  font-size: var(--fair-text-sm);
   cursor: pointer;
   padding: 0;
 }
 .history__empty {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-muted);
   line-height: 1.5;
 }
 .history__list {
@@ -358,9 +327,9 @@ h1 {
 .history__item {
   width: 100%;
   text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
   padding: 8px 10px;
   cursor: pointer;
   display: flex;
@@ -368,15 +337,15 @@ h1 {
   gap: 4px;
 }
 .history__item:hover {
-  border-color: var(--line-strong);
+  border-color: var(--tool-accent);
 }
 .history__time {
-  font-size: 10px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 .history__query {
-  font-size: 11px;
-  color: var(--ink-2);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -401,7 +370,7 @@ h1 {
   .history {
     border-left: 0;
     padding-left: 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--fair-separator);
     padding-top: 16px;
   }
 }

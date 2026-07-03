@@ -38,10 +38,10 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Search", feature: "search" },
   },
   {
+    // Retired: the unified Search surface now hosts both modes (ADR/MIGRATION
+    // §6). Kept as a redirect so old links/bookmarks land on Search.
     path: "/advanced-search",
-    name: "advanced-search",
-    component: () => import("@/views/AdvancedSearchView.vue"),
-    meta: { title: "Advanced search", feature: "search" },
+    redirect: { name: "search" },
   },
   {
     path: "/records/:id+",
@@ -76,9 +76,11 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Edit repository", requiresAuth: true },
   },
   {
+    // SPARQL is a mode of the unified Search surface; /sparql is the deep-link
+    // that opens it (feature-gated). SearchView derives the mode from the route.
     path: "/sparql",
     name: "sparql",
-    component: () => import("@/views/SparqlPlaygroundView.vue"),
+    component: () => import("@/views/SearchView.vue"),
     meta: { title: "SPARQL", feature: "sparql" },
   },
   {

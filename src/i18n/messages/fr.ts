@@ -176,6 +176,8 @@ const fr: Messages = {
     unavailable: "Politique d'accès indisponible.",
   },
   search: {
+    modeText: "Recherche textuelle",
+    modeAria: "Mode de recherche",
     queryAria: "Requête de recherche",
     placeholder: "Rechercher des enregistrements, mots-clés, thèmes…",
     searchButton: "Rechercher",

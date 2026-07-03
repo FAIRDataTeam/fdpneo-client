@@ -174,6 +174,8 @@ const es: Messages = {
     unavailable: "Política de acceso no disponible.",
   },
   search: {
+    modeText: "Búsqueda de texto",
+    modeAria: "Modo de búsqueda",
     queryAria: "Consulta de búsqueda",
     placeholder: "Buscar registros, palabras clave, temas…",
     searchButton: "Buscar",
