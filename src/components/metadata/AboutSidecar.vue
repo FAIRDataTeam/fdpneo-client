@@ -61,7 +61,7 @@ const hasIdentifiers = computed(
       </template>
 
       <hr class="hr divider" />
-      <RdfPreviewPanel :record-id="recordId ?? ''" auto-open />
+      <RdfPreviewPanel :record-id="recordId ?? ''" />
 
       <hr class="hr divider" />
       <div class="eyebrow">{{ t("aboutSidecar.related") }}</div>

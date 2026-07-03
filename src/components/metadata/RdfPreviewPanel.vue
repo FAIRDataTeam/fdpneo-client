@@ -17,7 +17,7 @@
  *
  * `recordId` is the record's path id ("" for the repository root).
  */
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { http } from "@/api/http";
 import { apiBase } from "@/api/rdf";
@@ -27,9 +27,8 @@ import { highlightTurtle } from "./rdfHighlight";
 
 const { t } = useI18n();
 
-const props = withDefaults(defineProps<{ recordId?: string; autoOpen?: boolean }>(), {
+const props = withDefaults(defineProps<{ recordId?: string }>(), {
   recordId: "",
-  autoOpen: false,
 });
 
 interface Format {
@@ -140,12 +139,8 @@ function openTab() {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-// `autoOpen` surfaces the serialized RDF as a first-class artifact: reveal the
-// Turtle view on mount rather than waiting for a click. Best-effort — a failed
-// fetch just leaves the chips for a manual retry.
-onMounted(() => {
-  if (props.autoOpen) void select("turtle");
-});
+// The RDF panel starts reduced: the format chips are shown but no serialization
+// is expanded until the user picks one, so the sidecar stays compact by default.
 </script>
 
 <template>
