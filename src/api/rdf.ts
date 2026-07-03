@@ -58,7 +58,10 @@ export const servingBase = (): string => normalizeBase(runtimeServingBase());
 /** IRI → the path id the client routes/calls on (`catalog/cohort`); IRI unchanged if it isn't under the PID base. */
 export function iriToId(iri: string): string {
   const base = apiBase();
-  if (base && iri.startsWith(`${base}/`)) return iri.slice(base.length + 1);
+  if (!base) return iri;
+  // The bare base IRI (no trailing slash) is the repository root → empty path id.
+  if (iri === base) return "";
+  if (iri.startsWith(`${base}/`)) return iri.slice(base.length + 1);
   return iri;
 }
 

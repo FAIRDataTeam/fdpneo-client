@@ -116,6 +116,11 @@ describe("rdf helpers", () => {
     expect(iriToId("http://other.example/x")).toContain("other.example");
   });
 
+  it("iriToId maps the bare base IRI (repository root) to the empty path id", () => {
+    expect(iriToId("http://localhost:8000")).toBe("");
+    expect(iriToId("http://localhost:8000/dataset/x")).toBe("dataset/x");
+  });
+
   it("licenseLabel maps Creative Commons URIs", () => {
     expect(licenseLabel("https://creativecommons.org/licenses/by-nc/4.0/")).toBe("CC BY-NC 4.0");
     expect(licenseLabel("https://creativecommons.org/publicdomain/zero/1.0/")).toBe("CC0");

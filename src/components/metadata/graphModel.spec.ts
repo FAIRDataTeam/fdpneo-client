@@ -88,4 +88,25 @@ describe("neighbourhood", () => {
   it("returns an empty neighbourhood for unparseable turtle", () => {
     expect(neighbourhood("@@ not turtle", FOCUS)).toEqual({ recordNodes: [], attrs: [], edges: [] });
   });
+
+  // Regression: the repository root's subject is the *bare* PID base (no trailing
+  // slash), and the FDP node is that same bare IRI. Focusing it must surface the
+  // root's own properties as attributes, not collapse to a lone focus node.
+  it("resolves the repository root (bare base IRI) to its attributes", () => {
+    const rootTurtle = `
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+<${BASE}> a ldp:DirectContainer, <https://w3id.org/fdp/o#FAIRDataPoint> ;
+  dcterms:title "Test FAIR Data Point" ;
+  dcterms:description "Root description." ;
+  dcterms:creator <http://example.org/person/1> .
+`;
+    const g = neighbourhood(rootTurtle, BASE);
+    const focus = g.recordNodes.find((n) => n.focus);
+    expect(focus).toMatchObject({ iri: BASE, recordId: "", label: "Test FAIR Data Point" });
+    // The root's literals + external IRIs land as attributes (not a single node).
+    expect(g.attrs.length).toBeGreaterThan(0);
+    expect(g.attrs.find((a) => a.pred === `${NS.dct}title`)?.value).toBe("Test FAIR Data Point");
+    expect(g.attrs.some((a) => a.pred === `${NS.dct}description`)).toBe(true);
+  });
 });

@@ -61,7 +61,11 @@ const copied = ref(false);
 const cache = new Map<string, string>();
 
 const path = computed(() => (props.recordId ? `/${props.recordId}` : "/"));
-const subjectIri = computed(() => `${apiBase()}/${props.recordId}`);
+// The repository root's subject is the bare PID base (`<http://…:8000>`, no
+// trailing slash — that's how the server mints it). Appending "/" for the empty
+// root recordId would yield `…:8000/`, which matches no triple in the root graph
+// and collapses the RDF graph to a single node. Fall back to the bare base.
+const subjectIri = computed(() => (props.recordId ? `${apiBase()}/${props.recordId}` : apiBase()));
 
 const activeFormat = computed(() => FORMATS.find((f) => f.key === active.value) ?? null);
 const content = computed(() =>
