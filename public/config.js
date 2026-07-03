@@ -11,8 +11,10 @@
 //   window.__FDP_CONFIG__ = {
 //     branding: {
 //       orgName: "Erasmus MC Data Repository",   // header lockup label
-//       logoUrl: "/branding/logo.svg",           // same-origin asset or data: URI
+//       logoUrl: "/branding/logo.svg",           // header lockup
 //       logoUrlDark: "/branding/logo-dark.svg",  // optional dark-theme variant
+//       faviconUrl: "/branding/icon.svg",         // browser-tab icon (falls back to logoUrl)
+//       faviconUrlDark: "/branding/icon-dark.svg",// optional dark-theme variant
 //       theme:     { "--accent": "#7a1f2b", "--signal": "#0d6e6e" },  // light overrides
 //       themeDark: { "--accent": "#e08aa0" },                         // dark overrides
 //     },
@@ -23,4 +25,10 @@
 // --accent-soft, --accent-line, --signal, --signal-soft, --paper, --paper-deep,
 // --surface, --ink. Unknown keys are ignored. Serve logos same-origin (or as a
 // data: URI) to satisfy the img-src CSP (see index.html).
+//
+// Default UI language (optional) — pin the language the app boots in instead of
+// guessing from the browser. BCP-47 tag; must be a supported locale, else ignored
+// (see src/i18n/locales.ts: en, pt-BR, nl, es, de, fr). Users can still switch.
+//
+//   window.__FDP_CONFIG__ = { defaultLocale: "nl" };
 window.__FDP_CONFIG__ = {};

@@ -20,6 +20,10 @@ RUN npm run build
 # --- runtime: nginx serving the static bundle --------------------------------
 FROM nginx:1.27-alpine AS runtime
 
+# jq: the entrypoint uses it to validate FDP_BRANDING and assemble branding from
+# discrete env vars into guaranteed-valid JSON (see 40-fdp-config.sh).
+RUN apk add --no-cache jq
+
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/fdp-headers.conf /etc/nginx/fdp-headers.conf
 COPY --from=build /app/dist /usr/share/nginx/html

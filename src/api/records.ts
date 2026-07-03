@@ -11,7 +11,7 @@
  * and normalise error envelopes — see `runSparqlQuery` for the same pattern.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 
 export interface GraphWithEtag {
@@ -25,19 +25,6 @@ function readEtag(headers: unknown): string | null {
     if (typeof value === "string") return value;
   }
   return null;
-}
-
-function normaliseError(err: unknown): never {
-  // Error bodies arrive as a JSON string (responseType: text); parse so the
-  // envelope-aware `parseFdpError` can read `code`/`message`.
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
 }
 
 /** Read a resource graph as Turtle, capturing its ETag. */

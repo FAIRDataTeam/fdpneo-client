@@ -15,10 +15,13 @@ import PrimeVue from "primevue/config";
 
 import App from "./App.vue";
 import { router } from "./router";
+import { i18n } from "./i18n";
+import { SUPPORTED_LOCALES } from "./i18n/locales";
 import { useAuthStore } from "./stores/auth";
 import { useConfigStore } from "./stores/config";
 import { configureOidc } from "./auth/userManager";
-import { applyBranding } from "./composables/useBranding";
+import { applyBranding, validateBranding } from "./composables/useBranding";
+import { runtimeBranding } from "./runtimeConfig";
 import "./styles/main.css";
 
 // CORS-only networking (TASKS 11.1): the SPA calls the FDP server cross-origin,
@@ -42,13 +45,31 @@ if (import.meta.env.DEV) {
 // the default palette (this only injects a stylesheet; it needs no Pinia/router).
 applyBranding();
 
+// Surface branding config mistakes explicitly: a typo in /config.js or
+// FDP_BRANDING is otherwise silently ignored. Explain each issue in the console
+// so a deployer sees exactly what was wrong and how to fix it.
+const brandingIssues = validateBranding(runtimeBranding());
+if (brandingIssues.length) {
+  console.warn(
+    "[fdp] Branding configuration issues (window.__FDP_CONFIG__.branding):\n" +
+      brandingIssues.map((issue) => `  • ${issue}`).join("\n"),
+  );
+}
+
 const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
 app.use(VueQueryPlugin);
+app.use(i18n);
 app.use(PrimeVue, { ripple: false });
+
+// Reflect the resolved boot locale on <html> (a11y/SEO) before mount; the locale
+// store keeps lang/dir in sync on every subsequent switch.
+const bootLocale = i18n.global.locale.value;
+document.documentElement.lang = bootLocale;
+document.documentElement.dir = SUPPORTED_LOCALES.find((l) => l.code === bootLocale)?.dir ?? "ltr";
 
 // Bootstrap sequence (order matters):
 //  1. Read `/config` so OIDC settings + feature flags come from the server, not

@@ -4,13 +4,18 @@
  * colours so the chart respects the active theme. These are the only two
  * series the server reports per day.
  */
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 import { registerCharts } from "@/charts/register";
+import { useFormat } from "@/composables/useFormat";
 import type { MetricsPoint } from "@/api/metrics";
 
 registerCharts();
+
+const { t } = useI18n();
+const { formatDate, locale } = useFormat();
 
 const props = defineProps<{
   points: MetricsPoint[];
@@ -34,34 +39,47 @@ function readTokens() {
   };
 }
 
-onMounted(readTokens);
-
 // Re-read tokens when the theme class flips so chart colours follow the theme.
-if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
-  const obs = new MutationObserver(() => readTokens());
-  obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-}
+// The observer is created on mount and disconnected on unmount — the dashboard
+// remounts charts on every range/resource change, so an undisconnected observer
+// would leak one (plus its token closure) per remount.
+let themeObserver: MutationObserver | undefined;
+
+onMounted(() => {
+  readTokens();
+  if (typeof MutationObserver !== "undefined") {
+    themeObserver = new MutationObserver(() => readTokens());
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
+});
+
+onBeforeUnmount(() => themeObserver?.disconnect());
 
 const fields = computed(() => props.fields ?? (["requests", "visitors"] as const));
 
 const series = {
-  requests: { label: "Requests", color: () => tokens.value.accent },
-  visitors: { label: "Unique visitors", color: () => tokens.value.ok },
+  requests: { label: () => t("metrics.seriesRequests"), color: () => tokens.value.accent },
+  visitors: { label: () => t("metrics.seriesVisitors"), color: () => tokens.value.ok },
 } as const;
 
-const labels = computed(() =>
-  props.points.map((p) => {
+const labels = computed(() => {
+  // Reference the active locale so labels re-format when the language switches.
+  void locale.value;
+  return props.points.map((p) => {
     const d = new Date(p.t);
     return p.t.length === 10
-      ? d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      : d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  }),
-);
+      ? formatDate(d, { month: "short", day: "numeric" })
+      : formatDate(d, { hour: "2-digit", minute: "2-digit" });
+  });
+});
 
 const chartData = computed<ChartData<"line">>(() => ({
   labels: labels.value,
   datasets: fields.value.map((f) => ({
-    label: series[f].label,
+    label: series[f].label(),
     data: props.points.map((p) => p[f]),
     borderColor: series[f].color(),
     backgroundColor: series[f].color() + "22",

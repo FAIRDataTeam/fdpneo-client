@@ -13,33 +13,36 @@
  *     including the suggested rewrite for ambiguous updates
  */
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { runSparqlQuery, type SparqlQueryResult } from "@/api/sparql";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { safeHref } from "@/composables/safeUrl";
 import { useSparqlHistoryStore } from "@/stores/sparqlHistory";
 import SparqlEditor from "@/components/sparql/SparqlEditor.vue";
 import SparqlResultsTable from "@/components/sparql/SparqlResultsTable.vue";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const history = useSparqlHistoryStore();
 
-const EXAMPLES: { label: string; query: string }[] = [
+const EXAMPLES = computed<{ label: string; query: string }[]>(() => [
   {
-    label: "All resources by type",
+    label: t("sparql.exAllByType"),
     query: "SELECT ?resource ?type WHERE { GRAPH ?resource { ?resource a ?type } } LIMIT 50",
   },
   {
-    label: "Catalogs",
+    label: t("sparql.exCatalogs"),
     query:
       "SELECT ?catalog ?title WHERE {\n  GRAPH ?catalog {\n    ?catalog a <http://www.w3.org/ns/dcat#Catalog> ;\n             <http://purl.org/dc/terms/title> ?title .\n  }\n}",
   },
   {
-    label: "Describe a record",
+    label: t("sparql.exDescribe"),
     query: "DESCRIBE <http://localhost:8000/dataset/ad-cohort-2024>",
   },
-];
+]);
 
-const query = ref(EXAMPLES[0]!.query);
+const query = ref(EXAMPLES.value[0]!.query);
 const result = ref<SparqlQueryResult | null>(null);
 const error = ref<ParsedError | null>(null);
 const running = ref(false);
@@ -80,11 +83,10 @@ function timeLabel(at: number): string {
   <section class="page">
     <header class="page__head">
       <div>
-        <div class="eyebrow mono">FDP Neo · SPARQL</div>
-        <h1>Query playground</h1>
+        <div class="eyebrow mono">{{ t("sparql.eyebrow") }}</div>
+        <h1>{{ t("sparql.heading") }}</h1>
         <p class="lede">
-          Run SPARQL against this deployment. Reads are public; updates require a
-          signed-in steward. Results are policy-filtered to what you may read.
+          {{ t("sparql.lede") }}
         </p>
       </div>
     </header>
@@ -93,14 +95,14 @@ function timeLabel(at: number): string {
       <div class="main">
         <div class="toolbar">
           <button class="btn primary" :disabled="running" @click="run">
-            {{ running ? "Running…" : "Run ▸" }}
+            {{ running ? t("sparql.running") : t("sparql.run") }}
           </button>
           <span class="hint mono">⌘/Ctrl + Enter</span>
           <div class="spacer" />
           <label class="examples">
-            <span class="sr-only">Load an example query</span>
+            <span class="sr-only">{{ t("sparql.loadExampleSr") }}</span>
             <select @change="loadExample(($event.target as HTMLSelectElement).value)">
-              <option value="" disabled selected>Examples…</option>
+              <option value="" disabled selected>{{ t("sparql.examplesPlaceholder") }}</option>
               <option v-for="ex in EXAMPLES" :key="ex.label" :value="ex.query">
                 {{ ex.label }}
               </option>
@@ -109,7 +111,7 @@ function timeLabel(at: number): string {
         </div>
 
         <div class="editor-pane">
-          <SparqlEditor v-model="query" @run="run" />
+          <SparqlEditor v-model="query" :aria-label="t('sparql.editorAria')" @run="run" />
         </div>
 
         <div class="results-pane">
@@ -119,16 +121,16 @@ function timeLabel(at: number): string {
             <p v-if="error.code" class="code mono">{{ error.code }}</p>
             <div class="error__actions">
               <button v-if="needsLogin" class="btn primary" @click="auth.login('/sparql')">
-                Sign in
+                {{ t("sparql.signIn") }}
               </button>
               <a
-                v-if="error.docsUrl"
-                :href="error.docsUrl"
+                v-if="safeHref(error.docsUrl)"
+                :href="safeHref(error.docsUrl)"
                 target="_blank"
                 rel="noopener"
                 class="btn ghost"
               >
-                Docs
+                {{ t("sparql.docs") }}
               </a>
             </div>
           </div>
@@ -141,24 +143,24 @@ function timeLabel(at: number): string {
             />
             <div v-else-if="result.kind === 'boolean'" class="panel boolean">
               <span class="boolean__value mono">{{ result.value }}</span>
-              <span class="boolean__label">ASK result</span>
+              <span class="boolean__label">{{ t("sparql.askResult") }}</span>
             </div>
             <pre v-else class="turtle mono">{{ result.body }}</pre>
           </template>
 
-          <p v-else class="placeholder">Run a query to see results.</p>
+          <p v-else class="placeholder">{{ t("sparql.placeholder") }}</p>
         </div>
       </div>
 
       <aside class="history">
         <div class="history__head">
-          <h2>History</h2>
+          <h2>{{ t("sparql.historyHeading") }}</h2>
           <button v-if="history.entries.length" class="link" @click="history.clear()">
-            Clear
+            {{ t("sparql.clear") }}
           </button>
         </div>
         <p v-if="!history.entries.length" class="history__empty">
-          Queries you run appear here (this session only).
+          {{ t("sparql.historyEmpty") }}
         </p>
         <ul v-else class="history__list">
           <li v-for="entry in history.entries" :key="entry.id">

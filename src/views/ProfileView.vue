@@ -6,8 +6,11 @@
  * (`{iss}/account`), not an in-app form. No server endpoint involved.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
+import { safeHref } from "@/composables/safeUrl";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 
 const profile = computed<Record<string, unknown>>(() => auth.user?.profile ?? {});
@@ -18,23 +21,24 @@ function claim(key: string): string {
 
 const displayName = computed(() => claim("name") || claim("preferred_username") || claim("email") || "—");
 const rows = computed(() => [
-  { label: "Name", value: claim("name") },
-  { label: "Username", value: claim("preferred_username") },
-  { label: "Email", value: claim("email") },
-  { label: "Subject (sub)", value: claim("sub"), mono: true },
+  { label: t("profile.rowName"), value: claim("name") },
+  { label: t("profile.rowUsername"), value: claim("preferred_username") },
+  { label: t("profile.rowEmail"), value: claim("email") },
+  { label: t("profile.rowSubject"), value: claim("sub"), mono: true },
 ]);
-/** Keycloak account console lives at `{issuer}/account`. */
-const accountUrl = computed(() => (claim("iss") ? `${claim("iss")}/account` : null));
+/** Keycloak account console lives at `{issuer}/account`. The issuer comes from
+ * the ID-token `iss` claim — sanitized through `safeHref` before it reaches a
+ * `:href` (returns undefined for a non-http(s) issuer, hiding the link). */
+const accountUrl = computed(() => safeHref(claim("iss") ? `${claim("iss")}/account` : undefined));
 </script>
 
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · Account</div>
-      <h1>Profile</h1>
+      <div class="eyebrow mono">{{ t("profile.eyebrow") }}</div>
+      <h1>{{ t("profile.heading") }}</h1>
       <p class="lede">
-        Your signed-in identity, from the identity provider. FDP Neo doesn't store user accounts —
-        sign-in, email, and password are managed in the IdP.
+        {{ t("profile.lede") }}
       </p>
     </header>
 
@@ -45,7 +49,7 @@ const accountUrl = computed(() => (claim("iss") ? `${claim("iss")}/account` : nu
           <div class="name">{{ displayName }}</div>
           <div class="roles">
             <span v-for="r in auth.roles" :key="r" class="chip">{{ r }}</span>
-            <span v-if="!auth.roles.length" class="muted">no roles</span>
+            <span v-if="!auth.roles.length" class="muted">{{ t("profile.noRoles") }}</span>
           </div>
         </div>
       </div>
@@ -59,9 +63,9 @@ const accountUrl = computed(() => (claim("iss") ? `${claim("iss")}/account` : nu
 
       <div class="actions">
         <a v-if="accountUrl" :href="accountUrl" target="_blank" rel="noopener noreferrer" class="btn primary">
-          Manage account ↗
+          {{ t("profile.manageAccount") }}
         </a>
-        <span class="help">Opens your identity provider's account console.</span>
+        <span class="help">{{ t("profile.manageAccountHelp") }}</span>
       </div>
     </div>
   </section>

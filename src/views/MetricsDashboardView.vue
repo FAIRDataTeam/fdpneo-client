@@ -13,7 +13,9 @@
  * collection boundary explicit.
  */
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
+import { useFormat } from "@/composables/useFormat";
 import { useMetricsOverview, useResourceMetrics } from "@/composables/useMetrics";
 import { apiBase } from "@/api/rdf";
 import type { TimeRange } from "@/api/metrics";
@@ -24,6 +26,7 @@ import GeoDistribution from "@/components/metrics/GeoDistribution.vue";
 import TimeRangePicker from "@/components/metrics/TimeRangePicker.vue";
 import PrivacyDisclosure from "@/components/metrics/PrivacyDisclosure.vue";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const range = ref<TimeRange>("30d");
 
@@ -62,12 +65,12 @@ watch(
 const focusResourceRef = computed(() => focusResource.value);
 const { data: resource } = useResourceMetrics(focusResourceRef, range);
 
-const numberFmt = new Intl.NumberFormat();
+const { formatNumber } = useFormat();
 function fmt(n: number): string {
-  return numberFmt.format(n);
+  return formatNumber(n);
 }
 function latency(ms: number | null): string {
-  return ms === null ? "—" : `${Math.round(ms)} ms`;
+  return ms === null ? "—" : t("metrics.latencyMs", { ms: Math.round(ms) });
 }
 </script>
 
@@ -75,12 +78,11 @@ function latency(ms: number | null): string {
   <section class="page">
     <header class="page__head">
       <div>
-        <div class="eyebrow mono">FDP Neo · Metrics</div>
-        <h1>Usage at a glance</h1>
-        <p class="lede">
-          Aggregate, anonymous traffic across this deployment. Click
-          <em>Privacy disclaimer</em> for the data we deliberately don't collect.
-        </p>
+        <div class="eyebrow mono">{{ t("metrics.eyebrow") }}</div>
+        <h1>{{ t("metrics.heading") }}</h1>
+        <i18n-t keypath="metrics.lede" tag="p" class="lede" scope="global">
+          <template #privacyLink><em>{{ t("metrics.ledePrivacyLink") }}</em></template>
+        </i18n-t>
       </div>
       <div class="page__controls">
         <TimeRangePicker v-model="range" />
@@ -89,51 +91,49 @@ function latency(ms: number | null): string {
     </header>
 
     <div v-if="!auth.isAuthenticated" class="signin">
-      <h2>Sign in to view metrics</h2>
-      <p>Usage metrics are available to authenticated users.</p>
-      <button class="btn primary" @click="auth.login('/metrics')">Sign in</button>
+      <h2>{{ t("metrics.signinHeading") }}</h2>
+      <p>{{ t("metrics.signinBody") }}</p>
+      <button class="btn primary" @click="auth.login('/metrics')">{{ t("metrics.signin") }}</button>
     </div>
 
-    <div v-else-if="isLoading" class="loading">Loading metrics…</div>
+    <div v-else-if="isLoading" class="loading">{{ t("metrics.loading") }}</div>
 
     <template v-else-if="overview">
       <div v-if="isEmpty" class="empty-note" role="status">
-        <strong>No activity recorded for this range yet.</strong>
+        <strong>{{ t("metrics.emptyHeading") }}</strong>
         <p>
-          Metrics are aggregated on a schedule, so recent visits can take a while
-          to appear here. On a fresh deployment, browse a few records and check
-          back later — or widen the time range.
+          {{ t("metrics.emptyBody") }}
         </p>
       </div>
 
       <section class="kpis">
-        <KpiCard label="Requests" :value="fmt(overview.kpis.requests)" />
+        <KpiCard :label="t('metrics.kpiRequests')" :value="fmt(overview.kpis.requests)" />
         <KpiCard
-          label="Unique visitors"
+          :label="t('metrics.kpiUniqueVisitors')"
           :value="fmt(overview.kpis.uniqueVisitors)"
-          hint="rotates daily"
+          :hint="t('metrics.kpiUniqueVisitorsHint')"
         />
-        <KpiCard label="Avg latency" :value="latency(overview.kpis.avgLatencyMs)" />
+        <KpiCard :label="t('metrics.kpiAvgLatency')" :value="latency(overview.kpis.avgLatencyMs)" />
         <KpiCard
-          label="4xx + 5xx"
+          :label="t('metrics.kpiErrors')"
           :value="fmt(overview.kpis.errors)"
-          hint="error responses"
+          :hint="t('metrics.kpiErrorsHint')"
         />
       </section>
 
       <section class="grid">
         <article class="panel chart-panel">
           <header class="panel__head">
-            <h2>Activity over time</h2>
-            <span class="muted small">Requests · unique visitors</span>
+            <h2>{{ t("metrics.panelActivity") }}</h2>
+            <span class="muted small">{{ t("metrics.panelActivitySub") }}</span>
           </header>
           <TimeSeriesChart :points="overview.series" />
         </article>
 
         <article class="panel">
           <header class="panel__head">
-            <h2>Where visitors are</h2>
-            <span class="muted small">Country granularity</span>
+            <h2>{{ t("metrics.panelGeo") }}</h2>
+            <span class="muted small">{{ t("metrics.panelGeoSub") }}</span>
           </header>
           <GeoDistribution :rows="overview.countries" />
         </article>
@@ -141,20 +141,20 @@ function latency(ms: number | null): string {
 
       <section class="panel">
         <header class="panel__head">
-          <h2>Most-requested resources</h2>
-          <span class="muted small">Top {{ overview.topResources.length }} in this range</span>
+          <h2>{{ t("metrics.panelTopResources") }}</h2>
+          <span class="muted small">{{ t("metrics.panelTopResourcesSub", { n: overview.topResources.length }) }}</span>
         </header>
         <TopRecordsList :rows="overview.topResources" />
       </section>
 
       <section v-if="focusResource && resource" class="panel">
         <header class="panel__head">
-          <h2>Resource detail</h2>
+          <h2>{{ t("metrics.panelResourceDetail") }}</h2>
           <select
             v-if="resourceOptions.length"
             v-model="focusResource"
             class="resource-select"
-            aria-label="Choose a resource"
+            :aria-label="t('metrics.chooseResource')"
           >
             <option v-for="o in resourceOptions" :key="o.iri" :value="o.iri">
               {{ o.label }}
@@ -162,8 +162,8 @@ function latency(ms: number | null): string {
           </select>
         </header>
         <div class="resource__summary">
-          <KpiCard label="Requests" :value="fmt(resource.requests)" />
-          <KpiCard label="Unique visitors" :value="fmt(resource.uniqueVisitors)" />
+          <KpiCard :label="t('metrics.kpiRequests')" :value="fmt(resource.requests)" />
+          <KpiCard :label="t('metrics.kpiUniqueVisitors')" :value="fmt(resource.uniqueVisitors)" />
         </div>
         <TimeSeriesChart :points="resource.series" />
       </section>

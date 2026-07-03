@@ -150,8 +150,12 @@ export const useAuthStore = defineStore("auth", () => {
         const renewed = await getUserManager().signinSilent();
         user.value = renewed;
         return renewed;
-      } catch (e) {
-        error.value = e instanceof Error ? e : new Error(String(e));
+      } catch {
+        // Silent renew runs in the background (from the 401 interceptor), so a
+        // failure here must NOT write the store-wide `error.value` — doing so
+        // surfaces a stale "renew failed" banner over unrelated views. Return
+        // null and let the caller (the interceptor) decide how to react; a
+        // genuinely expired session falls through to a normal re-login.
         return null;
       } finally {
         renewInFlight = null;

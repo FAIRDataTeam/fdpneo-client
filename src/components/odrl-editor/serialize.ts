@@ -1,7 +1,7 @@
 /**
  * Serializer: ODRL Offer model → Turtle (Phase 5, task 5.0).
  *
- * Hand-rolled and deterministic (like `shacl-editor/serialize.ts`) so the
+ * Hand-rolled and deterministic so the
  * round-trip is stable. Emits the FDP ODRL profile shape: an `odrl:Offer` with
  * `odrl:permission`/`odrl:prohibition` blank nodes, each an `odrl:action` and
  * inline `odrl:constraint [ … ]` nodes. Always declares the profile prefixes so
@@ -9,20 +9,26 @@
  */
 
 import { DEFAULT_URI } from "@/rdf/namespaces";
+import { quoteLiteral as quote } from "@/rdf/turtle";
 import type { Constraint, OfferModel, Rule } from "./model";
 import { LEFT_OPERAND_BY_ID, ODRL_PREFIXES } from "./vocab";
 
-function quote(s: string): string {
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
+/**
+ * A subject/object IRI. A prefixed name whose prefix is declared (or the default
+ * `:`) stays bare; anything else carrying a scheme (`http:`, `https:`, `urn:`,
+ * `did:`, `mailto:`, …) is wrapped in angle brackets so it round-trips as a full
+ * IRI rather than being reparsed as an undeclared `prefix:local`. A bare token
+ * with no scheme is left as-is.
+ */
+function emitIri(value: string, prefixes: Set<string>): string {
+  if (value.startsWith(":")) return value; // default-prefix CURIE
+  const curie = /^([A-Za-z][\w.-]*):/.exec(value);
+  if (curie && prefixes.has(curie[1] as string)) return value; // declared-prefix CURIE
+  return /^[A-Za-z][\w.+-]*:/.test(value) ? `<${value}>` : value;
 }
 
-/** A subject/object IRI: full IRIs get angle brackets, prefixed names stay bare. */
-function emitIri(value: string): string {
-  return /^https?:\/\//.test(value) ? `<${value}>` : value;
-}
-
-function emitRight(c: Constraint): string {
-  if (c.rightIsIri) return emitIri(c.rightOperand);
+function emitRight(c: Constraint, prefixes: Set<string>): string {
+  if (c.rightIsIri) return emitIri(c.rightOperand, prefixes);
   // dateTime operands carry the xsd:dateTime datatype; other literals are plain.
   if (LEFT_OPERAND_BY_ID[c.leftOperand]?.rightKind === "datetime") {
     return `${quote(c.rightOperand)}^^xsd:dateTime`;
@@ -30,14 +36,14 @@ function emitRight(c: Constraint): string {
   return quote(c.rightOperand);
 }
 
-function constraintLine(c: Constraint): string {
-  return `odrl:constraint [ odrl:leftOperand ${c.leftOperand} ; odrl:operator ${c.operator} ; odrl:rightOperand ${emitRight(c)} ]`;
+function constraintLine(c: Constraint, prefixes: Set<string>): string {
+  return `odrl:constraint [ odrl:leftOperand ${c.leftOperand} ; odrl:operator ${c.operator} ; odrl:rightOperand ${emitRight(c, prefixes)} ]`;
 }
 
 /** The body lines of one permission/prohibition `[ … ]` node. */
-function ruleLines(rule: Rule): string[] {
+function ruleLines(rule: Rule, prefixes: Set<string>): string[] {
   const lines = [`a odrl:${rule.kind === "permission" ? "Permission" : "Prohibition"}`, `odrl:action ${rule.action}`];
-  for (const c of rule.constraints) lines.push(constraintLine(c));
+  for (const c of rule.constraints) lines.push(constraintLine(c, prefixes));
   return lines;
 }
 
@@ -51,10 +57,14 @@ export function serializeOffer(offer: OfferModel): string {
   out.push(`@prefix : <${DEFAULT_URI}> .`);
   out.push("");
 
+  // Set of declared prefix names, so `emitIri` knows which `prefix:local` values
+  // are real CURIEs vs full IRIs (e.g. `urn:`/`did:`) that must be bracketed.
+  const prefixNames = new Set(declared.keys());
+
   // Header statements (before the rules), each `;`-terminated.
-  out.push(`${emitIri(offer.iri || ":Offer")}`);
+  out.push(`${emitIri(offer.iri || ":Offer", prefixNames)}`);
   out.push(`  a odrl:Offer ;`);
-  if (offer.assigner) out.push(`  odrl:assigner ${emitIri(offer.assigner)} ;`);
+  if (offer.assigner) out.push(`  odrl:assigner ${emitIri(offer.assigner, prefixNames)} ;`);
   if (offer.conflict) out.push(`  odrl:conflict ${offer.conflict} ;`);
 
   if (offer.rules.length === 0) {
@@ -67,7 +77,7 @@ export function serializeOffer(offer: OfferModel): string {
   offer.rules.forEach((rule, idx) => {
     const isLast = idx === offer.rules.length - 1;
     const pred = rule.kind === "permission" ? "odrl:permission" : "odrl:prohibition";
-    const lines = ruleLines(rule);
+    const lines = ruleLines(rule, prefixNames);
     out.push(`  ${pred} [`);
     lines.forEach((line, i) => {
       out.push(`    ${line}${i === lines.length - 1 ? "" : " ;"}`);

@@ -6,6 +6,13 @@
  */
 
 import { vi } from "vitest";
+import { config } from "@vue/test-utils";
+import { i18n } from "@/i18n";
+
+// Install vue-i18n into every mount so components using `useI18n()` render
+// their real (English) copy under test instead of throwing. Individual specs
+// can still switch the locale via the locale store / i18n.global.locale.
+config.global.plugins = [...(config.global.plugins ?? []), i18n];
 
 // jsdom doesn't implement matchMedia; some PrimeVue components query it.
 vi.stubGlobal("matchMedia", (query: string) => ({

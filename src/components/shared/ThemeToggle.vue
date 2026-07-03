@@ -8,17 +8,19 @@
 import { useThemeStore } from "@/stores/theme";
 import AppIcon from "./AppIcon.vue";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 const theme = useThemeStore();
+const { t } = useI18n();
 
 const label = computed(() => {
   switch (theme.mode) {
     case "light":
-      return "Light theme — click for dark";
+      return t("theme.light");
     case "dark":
-      return "Dark theme — click to follow system";
+      return t("theme.dark");
     default:
-      return "Follows system — click for light";
+      return t("theme.system");
   }
 });
 

@@ -11,12 +11,14 @@
  * server-defined keys appear automatically. Non-admins get a read-only view.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettings } from "@/composables/useSettings";
 import type { SettingValue } from "@/api/settings";
 import SettingEditor from "@/components/admin/SettingEditor.vue";
 import ResetPanel from "@/components/admin/ResetPanel.vue";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { settings, isLoading, isError } = useSettings();
 
@@ -31,21 +33,20 @@ const entries = computed<[string, SettingValue][]>(() =>
 <template>
   <main class="settings">
     <header class="hero">
-      <h1>Instance settings</h1>
+      <h1>{{ t("settingsAdmin.heading") }}</h1>
       <p class="sub">
-        Runtime configuration for this deployment. Values are validated by the
-        server; invalid changes are rejected with details.
+        {{ t("settingsAdmin.sub") }}
       </p>
       <p v-if="!auth.isAdmin" class="notice">
-        You're viewing these read-only. Editing requires an admin role.
+        {{ t("settingsAdmin.readOnlyNotice") }}
       </p>
     </header>
 
-    <div v-if="isLoading" class="state">Loading settings…</div>
+    <div v-if="isLoading" class="state">{{ t("settingsAdmin.loading") }}</div>
     <div v-else-if="isError" class="state">
-      Settings couldn't be loaded. The server returned an error.
+      {{ t("settingsAdmin.loadError") }}
     </div>
-    <div v-else-if="!entries.length" class="state">No settings are exposed.</div>
+    <div v-else-if="!entries.length" class="state">{{ t("settingsAdmin.none") }}</div>
     <div v-else class="list">
       <SettingEditor
         v-for="[key, value] in entries"

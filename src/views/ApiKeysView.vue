@@ -8,12 +8,14 @@
  * status). Revoke is per-key (the server lets admins revoke any).
  */
 import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useApiKeys } from "@/composables/useApiKeys";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import type { ApiKeyCreated } from "@/api/apiKeys";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import AppChip from "@/components/shared/AppChip.vue";
 
+const { t } = useI18n();
 const { keys, isLoading, isError, create, revoke } = useApiKeys();
 
 const label = ref("");
@@ -64,61 +66,60 @@ const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
 <template>
   <main class="tokens">
     <header class="hero">
-      <h1>Personal access tokens</h1>
-      <p class="sub">
-        Tokens authenticate scripts and CI as you. Send one as
-        <code>Authorization: Bearer fdpk_…</code>. Treat them like passwords.
-      </p>
+      <h1>{{ t("apiKeys.heading") }}</h1>
+      <i18n-t keypath="apiKeys.sub" tag="p" class="sub" scope="global">
+        <template #bearer><code>{{ t("apiKeys.subBearer") }}</code></template>
+      </i18n-t>
     </header>
 
     <!-- Copy-once panel: the only time the secret is shown. -->
     <section v-if="newKey" class="reveal" aria-live="polite">
-      <h2>Copy your new token</h2>
-      <p class="warn">This is the only time the full token is shown. Store it now — you can't see it again.</p>
+      <h2>{{ t("apiKeys.revealHeading") }}</h2>
+      <p class="warn">{{ t("apiKeys.revealWarn") }}</p>
       <div class="keyrow">
         <code class="key mono">{{ newKey.key }}</code>
-        <button class="btn primary sm" @click="copyKey">{{ copied ? "Copied" : "Copy" }}</button>
+        <button class="btn primary sm" @click="copyKey">{{ copied ? t("apiKeys.copied") : t("apiKeys.copy") }}</button>
       </div>
-      <button class="btn ghost sm" @click="dismissNewKey">Done</button>
+      <button class="btn ghost sm" @click="dismissNewKey">{{ t("apiKeys.done") }}</button>
     </section>
 
     <section class="create">
-      <h2>New token</h2>
+      <h2>{{ t("apiKeys.newTokenHeading") }}</h2>
       <form class="form" @submit.prevent="submit">
         <label class="field">
-          <span class="label">Label</span>
-          <input v-model="label" placeholder="e.g. CI pipeline" aria-label="Token label" required />
+          <span class="label">{{ t("apiKeys.labelLabel") }}</span>
+          <input v-model="label" :placeholder="t('apiKeys.labelPlaceholder')" :aria-label="t('apiKeys.labelAria')" required />
         </label>
         <label class="field">
-          <span class="label">Expires (optional)</span>
-          <input v-model="expires" type="date" aria-label="Expiry date" />
+          <span class="label">{{ t("apiKeys.expiresLabel") }}</span>
+          <input v-model="expires" type="date" :aria-label="t('apiKeys.expiryAria')" />
         </label>
         <button class="btn primary" type="submit" :disabled="!label.trim() || create.isPending.value">
-          Generate token
+          {{ t("apiKeys.generate") }}
         </button>
       </form>
       <p v-if="createError" class="error" role="alert">{{ createError.message }}</p>
     </section>
 
     <section class="list">
-      <h2>Your tokens</h2>
+      <h2>{{ t("apiKeys.yourTokensHeading") }}</h2>
       <p v-if="revokeError" class="error" role="alert">{{ revokeError.message }}</p>
-      <div v-if="isLoading" class="state">Loading…</div>
-      <div v-else-if="isError" class="state">Couldn't load your tokens.</div>
-      <div v-else-if="keys.length === 0" class="state">No tokens yet.</div>
+      <div v-if="isLoading" class="state">{{ t("apiKeys.loading") }}</div>
+      <div v-else-if="isError" class="state">{{ t("apiKeys.loadError") }}</div>
+      <div v-else-if="keys.length === 0" class="state">{{ t("apiKeys.noTokens") }}</div>
       <table v-else class="grid">
         <thead>
-          <tr><th>Label</th><th>Prefix</th><th>Created</th><th>Expires</th><th>Last used</th><th>Status</th><th /></tr>
+          <tr><th>{{ t("apiKeys.thLabel") }}</th><th>{{ t("apiKeys.thPrefix") }}</th><th>{{ t("apiKeys.thCreated") }}</th><th>{{ t("apiKeys.thExpires") }}</th><th>{{ t("apiKeys.thLastUsed") }}</th><th>{{ t("apiKeys.thStatus") }}</th><th /></tr>
         </thead>
         <tbody>
           <tr v-for="k in keys" :key="k.id">
             <td>{{ k.label }}</td>
             <td class="mono">{{ k.display_prefix }}</td>
             <td>{{ fmt(k.created_at) }}</td>
-            <td>{{ k.expires_at ? fmt(k.expires_at) : "Never" }}</td>
+            <td>{{ k.expires_at ? fmt(k.expires_at) : t("apiKeys.never") }}</td>
             <td>{{ fmt(k.last_used_at) }}</td>
             <td>
-              <AppChip :variant="k.active ? 'ok' : 'default'">{{ k.active ? "Active" : "Revoked" }}</AppChip>
+              <AppChip :variant="k.active ? 'ok' : 'default'">{{ k.active ? t("apiKeys.active") : t("apiKeys.revoked") }}</AppChip>
             </td>
             <td>
               <button
@@ -127,7 +128,7 @@ const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
                 :disabled="revoke.isPending.value"
                 @click="revoke.mutate(k.id)"
               >
-                <AppIcon name="x" :size="12" /> Revoke
+                <AppIcon name="x" :size="12" /> {{ t("apiKeys.revoke") }}
               </button>
             </td>
           </tr>

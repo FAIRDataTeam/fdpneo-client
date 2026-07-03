@@ -18,8 +18,8 @@
  * automatically when the user is signed in.
  */
 
-import { AxiosError } from "axios";
 import { http } from "./http";
+import { normaliseError } from "./errors";
 
 /** A single value in a SPARQL result row. */
 export interface SparqlValue {
@@ -99,14 +99,7 @@ export async function runSparqlQuery(query: string): Promise<SparqlQueryResult> 
   } catch (err) {
     // Error bodies come back as a JSON *string* (responseType: text); parse it
     // so the envelope-aware error handler sees an object.
-    if (err instanceof AxiosError && typeof err.response?.data === "string") {
-      try {
-        err.response.data = JSON.parse(err.response.data);
-      } catch {
-        /* leave the raw text in place */
-      }
-    }
-    throw err;
+    return normaliseError(err);
   }
 }
 

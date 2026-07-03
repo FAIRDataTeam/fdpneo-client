@@ -15,10 +15,11 @@
  * path id (`catalog/cohort`), or `""` for the repository root.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 import { anyObject, parseTurtle } from "./rdf";
 import type { components } from "./schema";
+import { translate } from "@/i18n";
 
 export type MetadataState = components["schemas"]["MetadataState"];
 export type StateTransitionResponse = components["schemas"]["StateTransitionResponse"];
@@ -35,28 +36,17 @@ export interface Transition {
 export function allowedTransitions(current: MetadataState, isAdmin: boolean): Transition[] {
   switch (current) {
     case "DRAFT":
-      return [{ to: "PUBLISHED", label: "Publish" }];
+      return [{ to: "PUBLISHED", label: translate("state.publish") }];
     case "PUBLISHED":
       return [
-        { to: "DRAFT", label: "Unpublish" },
-        { to: "ARCHIVED", label: "Archive" },
+        { to: "DRAFT", label: translate("state.unpublish") },
+        { to: "ARCHIVED", label: translate("state.archive") },
       ];
     case "ARCHIVED":
-      return isAdmin ? [{ to: "DRAFT", label: "Restore to draft" }] : [];
+      return isAdmin ? [{ to: "DRAFT", label: translate("state.restoreToDraft") }] : [];
     default:
       return [];
   }
-}
-
-function normaliseError(err: unknown): never {
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
 }
 
 /** Transition a record to `to`. Throws the server envelope (409/403/404) on failure. */

@@ -7,11 +7,13 @@
  */
 import { computed, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import { createUser, deleteUser, updateUser, type CreateUserInput, type ListUsersParams, type User } from "@/api/users";
 import { useAssignableRoles, useInvalidateUsers, useUsers } from "@/composables/useUsers";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const meId = computed(() => {
   const sub = (auth.user?.profile as Record<string, unknown> | undefined)?.sub;
@@ -72,7 +74,7 @@ const remove = useMutation({
   onError: (e) => (error.value = parseFdpError(e)),
 });
 function onDelete(u: User) {
-  if (!isSelf(u) && window.confirm(`Delete user "${u.username}"? This removes them from the IdP.`)) {
+  if (!isSelf(u) && window.confirm(t("usersAdmin.deleteConfirm", { username: u.username }))) {
     remove.mutate(u.id);
   }
 }
@@ -106,11 +108,11 @@ const create = useMutation({
 function submitCreate() {
   error.value = null;
   if (!cUsername.value.trim()) {
-    error.value = { title: "Missing username", message: "A username is required.", code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
+    error.value = { title: t("usersAdmin.errMissingUsernameTitle"), message: t("usersAdmin.errMissingUsernameMsg"), code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
     return;
   }
   if (cInvite.value && !cEmail.value.trim()) {
-    error.value = { title: "Email required", message: "An email is required to send an invite.", code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
+    error.value = { title: t("usersAdmin.errEmailRequiredTitle"), message: t("usersAdmin.errEmailRequiredMsg"), code: "client.validation", status: null, docsUrl: null, violations: [], fromServer: false };
     return;
   }
   create.mutate();
@@ -120,15 +122,14 @@ function submitCreate() {
 <template>
   <section class="page">
     <header class="head">
-      <div class="eyebrow mono">FDP Neo · Admin</div>
-      <h1>Users</h1>
-      <p class="lede">
-        Manage who can sign in and what they can do. Accounts live in the identity provider; this
-        manages their FDP <strong>roles</strong> and access. Passwords and email verification stay in the IdP.
-      </p>
+      <div class="eyebrow mono">{{ t("usersAdmin.eyebrow") }}</div>
+      <h1>{{ t("usersAdmin.heading") }}</h1>
+      <i18n-t keypath="usersAdmin.lede" tag="p" class="lede" scope="global">
+        <template #roles><strong>{{ t("usersAdmin.ledeRoles") }}</strong></template>
+      </i18n-t>
     </header>
 
-    <div v-if="!auth.isAdmin" class="notice"><p>User management requires the admin role.</p></div>
+    <div v-if="!auth.isAdmin" class="notice"><p>{{ t("usersAdmin.adminOnlyNotice") }}</p></div>
 
     <template v-else>
       <div class="toolbar">
@@ -136,11 +137,11 @@ function submitCreate() {
           class="search"
           type="search"
           :value="params.search"
-          placeholder="Search username, email, name…"
-          aria-label="Search users"
+          :placeholder="t('usersAdmin.searchPlaceholder')"
+          :aria-label="t('usersAdmin.searchAria')"
           @input="setSearch(($event.target as HTMLInputElement).value)"
         />
-        <button class="btn primary" @click="showCreate = !showCreate">{{ showCreate ? "Cancel" : "+ New user" }}</button>
+        <button class="btn primary" @click="showCreate = !showCreate">{{ showCreate ? t("usersAdmin.cancel") : t("usersAdmin.newUser") }}</button>
       </div>
 
       <div v-if="error" class="error">
@@ -150,34 +151,34 @@ function submitCreate() {
 
       <form v-if="showCreate" class="create" @submit.prevent="submitCreate">
         <div class="create__row">
-          <label class="f"><span>Username *</span><input v-model="cUsername" placeholder="jdoe" /></label>
-          <label class="f"><span>Email</span><input v-model="cEmail" type="email" placeholder="jdoe@org.example" /></label>
+          <label class="f"><span>{{ t("usersAdmin.usernameLabel") }}</span><input v-model="cUsername" :placeholder="t('usersAdmin.usernamePlaceholder')" /></label>
+          <label class="f"><span>{{ t("usersAdmin.emailLabel") }}</span><input v-model="cEmail" type="email" :placeholder="t('usersAdmin.emailPlaceholder')" /></label>
         </div>
         <div class="rolepick">
-          <span class="muted">Roles:</span>
+          <span class="muted">{{ t("usersAdmin.rolesColon") }}</span>
           <label v-for="r in roles" :key="r" class="rolechk">
             <input type="checkbox" :checked="cRoles.includes(r)" @change="toggleCreateRole(r)" /> {{ r }}
           </label>
         </div>
-        <label class="rolechk"><input v-model="cInvite" type="checkbox" /> Send invite email (set password + verify)</label>
+        <label class="rolechk"><input v-model="cInvite" type="checkbox" /> {{ t("usersAdmin.sendInvite") }}</label>
         <div>
           <button class="btn primary" type="submit" :disabled="create.isPending.value">
-            {{ create.isPending.value ? "Creating…" : "Create user" }}
+            {{ create.isPending.value ? t("usersAdmin.creating") : t("usersAdmin.createUser") }}
           </button>
         </div>
       </form>
 
-      <div v-if="isLoading" class="muted">Loading…</div>
-      <div v-else-if="isError" class="muted">Couldn't load users.</div>
+      <div v-if="isLoading" class="muted">{{ t("usersAdmin.loading") }}</div>
+      <div v-else-if="isError" class="muted">{{ t("usersAdmin.loadError") }}</div>
       <table v-else class="tbl">
         <thead>
-          <tr><th>User</th><th>Email</th><th>Roles</th><th>Status</th><th></th></tr>
+          <tr><th>{{ t("usersAdmin.thUser") }}</th><th>{{ t("usersAdmin.thEmail") }}</th><th>{{ t("usersAdmin.thRoles") }}</th><th>{{ t("usersAdmin.thStatus") }}</th><th></th></tr>
         </thead>
         <tbody>
           <template v-for="u in users" :key="u.id">
             <tr :class="{ disabled: !u.enabled }">
               <td>
-                <div class="uname">{{ u.username }}<span v-if="isSelf(u)" class="you">you</span></div>
+                <div class="uname">{{ u.username }}<span v-if="isSelf(u)" class="you">{{ t("usersAdmin.you") }}</span></div>
                 <div class="sub mono">{{ [u.firstName, u.lastName].filter(Boolean).join(" ") || "—" }}</div>
               </td>
               <td>{{ u.email || "—" }}</td>
@@ -185,13 +186,13 @@ function submitCreate() {
                 <span v-for="r in u.roles" :key="r" class="chip">{{ r }}</span>
                 <span v-if="!u.roles.length" class="muted">—</span>
               </td>
-              <td><span class="badge" :class="u.enabled ? 'on' : 'off'">{{ u.enabled ? "Enabled" : "Disabled" }}</span></td>
+              <td><span class="badge" :class="u.enabled ? 'on' : 'off'">{{ u.enabled ? t("usersAdmin.enabled") : t("usersAdmin.disabled") }}</span></td>
               <td class="actions">
                 <button class="btn sm" @click="editId === u.id ? (editId = null) : startEdit(u)">
-                  {{ editId === u.id ? "Close" : "Edit" }}
+                  {{ editId === u.id ? t("usersAdmin.close") : t("usersAdmin.edit") }}
                 </button>
-                <button class="btn sm ghost danger" :disabled="isSelf(u)" :title="isSelf(u) ? 'You can\'t delete yourself' : ''" @click="onDelete(u)">
-                  Delete
+                <button class="btn sm ghost danger" :disabled="isSelf(u)" :title="isSelf(u) ? t('usersAdmin.cantDeleteYourself') : ''" @click="onDelete(u)">
+                  {{ t("usersAdmin.delete") }}
                 </button>
               </td>
             </tr>
@@ -199,7 +200,7 @@ function submitCreate() {
               <td colspan="5">
                 <div class="editor">
                   <div class="rolepick">
-                    <span class="muted">Roles:</span>
+                    <span class="muted">{{ t("usersAdmin.rolesColon") }}</span>
                     <label v-for="r in roles" :key="r" class="rolechk">
                       <input
                         type="checkbox"
@@ -212,24 +213,24 @@ function submitCreate() {
                   </div>
                   <label class="rolechk">
                     <input type="checkbox" :checked="draftEnabled" :disabled="isSelf(u)" @change="draftEnabled = ($event.target as HTMLInputElement).checked" />
-                    Enabled
+                    {{ t("usersAdmin.enabledLabel") }}
                   </label>
-                  <span v-if="isSelf(u)" class="hint">You can't remove your own admin access or disable yourself.</span>
+                  <span v-if="isSelf(u)" class="hint">{{ t("usersAdmin.selfHint") }}</span>
                   <button class="btn primary sm" :disabled="save.isPending.value" @click="save.mutate(u.id)">
-                    {{ save.isPending.value ? "Saving…" : "Save" }}
+                    {{ save.isPending.value ? t("usersAdmin.saving") : t("usersAdmin.save") }}
                   </button>
                 </div>
               </td>
             </tr>
           </template>
-          <tr v-if="!users.length"><td colspan="5" class="muted">No users found.</td></tr>
+          <tr v-if="!users.length"><td colspan="5" class="muted">{{ t("usersAdmin.noUsers") }}</td></tr>
         </tbody>
       </table>
 
       <div v-if="pages > 1" class="pager">
-        <button class="btn sm" :disabled="page <= 1" @click="step(-1)">‹ Prev</button>
-        <span class="muted">Page {{ page }} of {{ pages }} · {{ total }} users</span>
-        <button class="btn sm" :disabled="page >= pages" @click="step(1)">Next ›</button>
+        <button class="btn sm" :disabled="page <= 1" @click="step(-1)">{{ t("usersAdmin.prev") }}</button>
+        <span class="muted">{{ t("usersAdmin.pageOf", { page, pages, total }) }}</span>
+        <button class="btn sm" :disabled="page >= pages" @click="step(1)">{{ t("usersAdmin.next") }}</button>
       </div>
     </template>
   </section>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import type { TimeRange } from "@/api/metrics";
+
+const { t } = useI18n();
 
 const props = defineProps<{ modelValue: TimeRange }>();
 const emit = defineEmits<{ (e: "update:modelValue", v: TimeRange): void }>();
@@ -17,7 +20,7 @@ function select(v: TimeRange) {
 </script>
 
 <template>
-  <div class="picker" role="radiogroup" aria-label="Time range">
+  <div class="picker" role="radiogroup" :aria-label="t('metrics.timeRangeAria')">
     <button
       v-for="opt in options"
       :key="opt.value"

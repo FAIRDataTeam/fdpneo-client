@@ -5,8 +5,10 @@
  * visible hint.
  */
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+const { t } = useI18n();
 const open = ref(false);
 </script>
 
@@ -19,23 +21,21 @@ const open = ref(false);
       aria-controls="privacy-body"
       @click="open = !open"
     >
-      <AppIcon name="shield" :size="13" /> Privacy disclaimer
+      <AppIcon name="shield" :size="13" /> {{ t("metrics.privacyTrigger") }}
       <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="11" />
     </button>
     <div v-if="open" id="privacy-body" class="body">
-      <p>
-        This dashboard renders only what the server's anonymous metrics API
-        returns. By design, the FDP does <strong>not</strong> store:
-      </p>
+      <i18n-t keypath="metrics.privacyIntro" tag="p" scope="global">
+        <template #strongNot><strong>{{ t("metrics.privacyNot") }}</strong></template>
+      </i18n-t>
       <ul>
-        <li>Per-user identifiers, IP addresses, or session correlation</li>
-        <li>SPARQL query text — only that a query happened and its latency</li>
-        <li>Cross-day unique-visitor derivations (counts rotate daily)</li>
-        <li>Referrer chains or precise geolocation finer than country/region</li>
+        <li>{{ t("metrics.privacyItem1") }}</li>
+        <li>{{ t("metrics.privacyItem2") }}</li>
+        <li>{{ t("metrics.privacyItem3") }}</li>
+        <li>{{ t("metrics.privacyItem4") }}</li>
       </ul>
       <p class="muted">
-        Anything labelled "—" below means the underlying signal is intentionally
-        not collected, not that it's missing.
+        {{ t("metrics.privacyNote") }}
       </p>
     </div>
   </div>

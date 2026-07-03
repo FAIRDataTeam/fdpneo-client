@@ -25,6 +25,7 @@ import {
   setLiterals,
   shortLabel,
 } from "./rdf";
+import { translate } from "@/i18n";
 
 /**
  * A resource type's URL prefix. Runtime-defined (ADR-0009), so this is an
@@ -68,6 +69,10 @@ export interface FieldSpec {
   nested?: FieldSpec[];
   /** rdf:type stamped on the nested blank node (from the property's sh:class). */
   nestedClass?: string;
+  /** Cardinality (from sh:minCount/sh:maxCount) — drives the repeatable editor's
+   * add/remove gating for multi-value (`keywords`/`iris`) fields. */
+  minCount?: number;
+  maxCount?: number;
   /** DASH reference editor: the value is an IRI picked from a class lookup. */
   refWidget?: "autocomplete" | "instances" | "subclass";
   /** The class (sh:class) whose instances/subclasses the reference picker offers. */
@@ -173,7 +178,7 @@ const F = {
     predicate: `${NS.dcat}keyword`,
     label: "Keywords",
     kind: "keywords",
-    help: "Comma-separated.",
+    help: "Add one value per row.",
   } as FieldSpec,
   theme: {
     key: "theme",
@@ -225,14 +230,14 @@ const F = {
     predicate: `${NS.owl}sameAs`,
     label: "Same as (IRI)",
     kind: "iris",
-    help: "Equivalent foreign persistent identifier(s). Comma-separated IRIs.",
+    help: "Equivalent foreign persistent identifier(s). Add one IRI per row.",
   } as FieldSpec,
   exactMatch: {
     key: "exactMatch",
     predicate: `${NS.skos}exactMatch`,
     label: "Exact match (IRI)",
     kind: "iris",
-    help: "Equivalent IRI(s) in another registry. Comma-separated IRIs.",
+    help: "Equivalent IRI(s) in another registry. Add one IRI per row.",
   } as FieldSpec,
 };
 
@@ -786,6 +791,12 @@ export function fieldsFromShape(
         field.label = first(p, "name") || "License";
       }
       if (required) field.required = true;
+      // Carry raw cardinality for the repeatable editor's add/remove gating.
+      if (minCount !== undefined && Number.isFinite(Number(minCount)))
+        field.minCount = Number(minCount);
+      const maxCount = first(p, "maxCount");
+      if (maxCount !== undefined && Number.isFinite(Number(maxCount)))
+        field.maxCount = Number(maxCount);
       const description = first(p, "description");
       if (description) field.help = description;
 
@@ -893,7 +904,7 @@ export function orGroupsFromShape(
         node = store.getObjects(node, rdf("rest"), null)[0];
       }
       if (!ok || keys.length < 2) continue;
-      const sig = [...keys].sort().join(" ");
+      const sig = [...keys].sort().join("\u0000");
       if (seenGroups.has(sig)) continue;
       seenGroups.add(sig);
       groups.push({ keys });
@@ -943,9 +954,9 @@ export function validateConstraints(
     });
 
     if (f.minLength != null && s.length < f.minLength)
-      return fail(`must be at least ${f.minLength} characters`);
+      return fail(translate("validation.minLength", { min: f.minLength }));
     if (f.maxLength != null && s.length > f.maxLength)
-      return fail(`must be at most ${f.maxLength} characters`);
+      return fail(translate("validation.maxLength", { max: f.maxLength }));
     if (f.pattern) {
       let re: RegExp | null = null;
       try {
@@ -953,19 +964,20 @@ export function validateConstraints(
       } catch {
         re = null; // an un-compilable pattern is left to the server
       }
-      if (re && !re.test(s)) return fail(`must match the pattern ${f.pattern}`);
+      if (re && !re.test(s))
+        return fail(translate("validation.pattern", { pattern: f.pattern }));
     }
     if (f.kind === "number") {
       const n = Number(s);
       if (Number.isFinite(n)) {
         if (f.minInclusive != null && n < f.minInclusive)
-          return fail(`must be ≥ ${f.minInclusive}`);
+          return fail(translate("validation.minInclusive", { value: f.minInclusive }));
         if (f.maxInclusive != null && n > f.maxInclusive)
-          return fail(`must be ≤ ${f.maxInclusive}`);
+          return fail(translate("validation.maxInclusive", { value: f.maxInclusive }));
         if (f.minExclusive != null && n <= f.minExclusive)
-          return fail(`must be > ${f.minExclusive}`);
+          return fail(translate("validation.minExclusive", { value: f.minExclusive }));
         if (f.maxExclusive != null && n >= f.maxExclusive)
-          return fail(`must be < ${f.maxExclusive}`);
+          return fail(translate("validation.maxExclusive", { value: f.maxExclusive }));
       }
     }
   }
@@ -977,14 +989,14 @@ export function constraintHint(f: FieldSpec): string {
   const parts: string[] = [];
   if (f.minLength != null || f.maxLength != null) {
     if (f.minLength != null && f.maxLength != null)
-      parts.push(`${f.minLength}–${f.maxLength} chars`);
-    else if (f.minLength != null) parts.push(`min ${f.minLength} chars`);
-    else parts.push(`max ${f.maxLength} chars`);
+      parts.push(translate("validation.hintCharsRange", { min: f.minLength, max: f.maxLength }));
+    else if (f.minLength != null) parts.push(translate("validation.hintCharsMin", { min: f.minLength }));
+    else parts.push(translate("validation.hintCharsMax", { max: f.maxLength }));
   }
   if (f.minInclusive != null) parts.push(`≥ ${f.minInclusive}`);
   if (f.maxInclusive != null) parts.push(`≤ ${f.maxInclusive}`);
   if (f.minExclusive != null) parts.push(`> ${f.minExclusive}`);
   if (f.maxExclusive != null) parts.push(`< ${f.maxExclusive}`);
-  if (f.pattern) parts.push(`pattern ${f.pattern}`);
+  if (f.pattern) parts.push(translate("validation.hintPattern", { pattern: f.pattern }));
   return parts.join(" · ");
 }

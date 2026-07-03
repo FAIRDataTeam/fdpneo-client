@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import type { CatalogSummary } from "@/data/sampleRecord";
 import TypeTag from "@/components/shared/TypeTag.vue";
 import AppChip from "@/components/shared/AppChip.vue";
+
+const { t } = useI18n();
 
 defineProps<{ catalog: CatalogSummary }>();
 </script>
@@ -10,7 +13,7 @@ defineProps<{ catalog: CatalogSummary }>();
   <RouterLink :to="`/records/${catalog.id}`" class="card">
     <div class="head">
       <TypeTag kind="catalog">Catalog</TypeTag>
-      <span class="count mono">{{ catalog.distributions }} records</span>
+      <span class="count mono">{{ t("catalogCard.recordCount", { n: catalog.distributions }) }}</span>
     </div>
     <h3>{{ catalog.title }}</h3>
     <p>{{ catalog.description }}</p>

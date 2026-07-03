@@ -8,15 +8,25 @@
  * change, so the parent (`SettingEditor`) saves the same JSON the textarea would.
  */
 import { reactive, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { SettingValue } from "@/api/settings";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
+const { t } = useI18n();
+
 interface SearchFilterRow {
+  /** Stable per-row id for the v-for key — never emitted (the watch maps to a
+   * clean shape). Keying by array index would bind focus/inputs to the wrong
+   * row after a mid-list remove. */
+  _id: string;
   name: string;
   label: string;
   predicate: string;
   type_filter: string | null;
 }
+
+let rowUid = 0;
+const nextRowId = (): string => `row-${rowUid++}`;
 
 // The setting value is an open object at the API boundary; we read/write the
 // concrete `{ filters: [...] }` shape with runtime guards.
@@ -30,6 +40,7 @@ const rows = reactive<SearchFilterRow[]>(
   initial.map((raw) => {
     const f = (raw ?? {}) as Record<string, unknown>;
     return {
+      _id: nextRowId(),
       name: str(f.name),
       label: str(f.label),
       predicate: str(f.predicate),
@@ -54,7 +65,7 @@ watch(
 );
 
 function add() {
-  rows.push({ name: "", label: "", predicate: "", type_filter: null });
+  rows.push({ _id: nextRowId(), name: "", label: "", predicate: "", type_filter: null });
 }
 function remove(i: number) {
   rows.splice(i, 1);
@@ -63,40 +74,40 @@ function remove(i: number) {
 
 <template>
   <div class="filters">
-    <p v-if="!rows.length" class="empty">No facets configured. Add one to expose it on the search page.</p>
+    <p v-if="!rows.length" class="empty">{{ t("settingsAdmin.facetsEmpty") }}</p>
 
-    <div v-for="(row, i) in rows" :key="i" class="row">
+    <div v-for="(row, i) in rows" :key="row._id" class="row">
       <label class="field">
-        <span class="lbl">Name</span>
-        <input v-model="row.name" :disabled="!canEdit" placeholder="theme" />
+        <span class="lbl">{{ t("settingsAdmin.facetName") }}</span>
+        <input v-model="row.name" :disabled="!canEdit" :placeholder="t('settingsAdmin.facetNamePlaceholder')" />
       </label>
       <label class="field">
-        <span class="lbl">Label</span>
-        <input v-model="row.label" :disabled="!canEdit" placeholder="Theme" />
+        <span class="lbl">{{ t("settingsAdmin.facetLabel") }}</span>
+        <input v-model="row.label" :disabled="!canEdit" :placeholder="t('settingsAdmin.facetLabelPlaceholder')" />
       </label>
       <label class="field grow">
-        <span class="lbl">Predicate (IRI)</span>
+        <span class="lbl">{{ t("settingsAdmin.facetPredicate") }}</span>
         <input
           v-model="row.predicate"
           :disabled="!canEdit"
           class="mono"
-          placeholder="http://www.w3.org/ns/dcat#theme"
+          :placeholder="t('settingsAdmin.facetPredicatePlaceholder')"
         />
       </label>
       <label class="field">
-        <span class="lbl">Type filter <span class="opt">(optional)</span></span>
+        <span class="lbl">{{ t("settingsAdmin.facetTypeFilter") }} <span class="opt">{{ t("settingsAdmin.optional") }}</span></span>
         <input
           v-model="row.type_filter"
           :disabled="!canEdit"
           class="mono"
-          placeholder="dcat:Dataset"
+          :placeholder="t('settingsAdmin.facetTypeFilterPlaceholder')"
         />
       </label>
       <button
         v-if="canEdit"
         type="button"
         class="btn ghost sm remove"
-        aria-label="Remove facet"
+        :aria-label="t('settingsAdmin.facetRemoveAria')"
         @click="remove(i)"
       >
         <AppIcon name="x" :size="12" />
@@ -104,7 +115,7 @@ function remove(i: number) {
     </div>
 
     <button v-if="canEdit" type="button" class="btn sm add" @click="add">
-      <AppIcon name="plus" :size="12" /> Add facet
+      <AppIcon name="plus" :size="12" /> {{ t("settingsAdmin.facetAdd") }}
     </button>
   </div>
 </template>

@@ -8,13 +8,16 @@
  * Each hop's node color comes from the record-kind tokens (`--t-<kind>`) via the
  * `--node` custom property, so it stays in sync with `.type-tag` and card spines.
  */
+import { useI18n } from "vue-i18n";
 import type { Crumb } from "@/composables/useAncestors";
+
+const { t } = useI18n();
 
 defineProps<{ crumbs: Crumb[] }>();
 </script>
 
 <template>
-  <nav class="lineage" aria-label="Lineage">
+  <nav class="lineage" :aria-label="t('lineageRail.ariaLabel')">
     <template v-for="(c, i) in crumbs" :key="i">
       <span v-if="i > 0" class="thread" aria-hidden="true" />
       <RouterLink

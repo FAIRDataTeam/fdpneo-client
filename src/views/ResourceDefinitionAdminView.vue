@@ -30,6 +30,9 @@ import {
 import { useSchemas } from "@/composables/useSchemas";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // Mirror the server's reserved first-path segments for fast client feedback.
 const RESERVED = new Set([
@@ -109,16 +112,25 @@ function clientError(title: string, message: string): ParsedError {
 }
 
 function validate(): ParsedError | null {
-  if (!form.urlPrefix.trim()) return clientError("Missing prefix", "A URL prefix is required.");
+  if (!form.urlPrefix.trim())
+    return clientError(t("resourceDefsAdmin.errMissingPrefixTitle"), t("resourceDefsAdmin.errMissingPrefixMsg"));
   if (RESERVED.has(form.urlPrefix.trim()))
-    return clientError("Reserved prefix", `"${form.urlPrefix}" is reserved by the server.`);
-  if (!form.name.trim()) return clientError("Missing name", "A display name is required.");
-  if (!form.schema.trim()) return clientError("Missing schema", "Point the type at a published SHACL shape IRI.");
+    return clientError(
+      t("resourceDefsAdmin.errReservedPrefixTitle"),
+      t("resourceDefsAdmin.errReservedPrefixMsg", { prefix: form.urlPrefix }),
+    );
+  if (!form.name.trim())
+    return clientError(t("resourceDefsAdmin.errMissingNameTitle"), t("resourceDefsAdmin.errMissingNameMsg"));
+  if (!form.schema.trim())
+    return clientError(t("resourceDefsAdmin.errMissingSchemaTitle"), t("resourceDefsAdmin.errMissingSchemaMsg"));
   if (!isEditing.value && prefixes.value.includes(form.urlPrefix.trim()))
-    return clientError("Already exists", `A type with prefix "${form.urlPrefix}" already exists.`);
+    return clientError(
+      t("resourceDefsAdmin.errAlreadyExistsTitle"),
+      t("resourceDefsAdmin.errAlreadyExistsMsg", { prefix: form.urlPrefix }),
+    );
   for (const c of form.children) {
     if (!c.relationUri.trim() || !c.target.trim())
-      return clientError("Incomplete child link", "Each child link needs a relation IRI and a target type.");
+      return clientError(t("resourceDefsAdmin.errIncompleteChildTitle"), t("resourceDefsAdmin.errIncompleteChildMsg"));
   }
   return null;
 }
@@ -172,7 +184,7 @@ function submit() {
 
 function confirmDelete(def: ResourceTypeDef) {
   error.value = null;
-  if (window.confirm(`Delete the "${def.name}" type? Records of this type are not removed.`)) {
+  if (window.confirm(t("resourceDefsAdmin.deleteConfirm", { name: def.name }))) {
     del.mutate(def.slug);
   }
 }
@@ -181,19 +193,17 @@ function confirmDelete(def: ResourceTypeDef) {
 <template>
   <section class="page">
     <div v-if="!auth.isAdmin" class="notice">
-      <h2>Not allowed</h2>
-      <p>Managing resource definitions requires the admin role.</p>
-      <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
+      <h2>{{ t("resourceDefsAdmin.adminOnlyTitle") }}</h2>
+      <p>{{ t("resourceDefsAdmin.adminOnlyMsg") }}</p>
+      <RouterLink to="/" class="btn ghost">{{ t("resourceDefsAdmin.backToBrowse") }}</RouterLink>
     </div>
 
     <template v-else>
       <header class="head">
-        <div class="eyebrow mono">FDP Neo · Admin</div>
-        <h1>Resource types</h1>
+        <div class="eyebrow mono">{{ t("resourceDefsAdmin.eyebrow") }}</div>
+        <h1>{{ t("resourceDefsAdmin.heading") }}</h1>
         <p class="lede">
-          The metadata types this deployment exposes. Publish a SHACL shape first,
-          then register a type that points at it; add a child link to place a type
-          under another (e.g. let Catalog hold a new Ontology type).
+          {{ t("resourceDefsAdmin.lede") }}
         </p>
       </header>
 
@@ -209,18 +219,18 @@ function confirmDelete(def: ResourceTypeDef) {
 
       <div class="toolbar">
         <button class="btn primary" :disabled="showForm && !isEditing" @click="startCreate">
-          <AppIcon name="plus" :size="13" /> New type
+          <AppIcon name="plus" :size="13" /> {{ t("resourceDefsAdmin.newType") }}
         </button>
       </div>
 
-      <div v-if="isLoading" class="notice">Loading types…</div>
+      <div v-if="isLoading" class="notice">{{ t("resourceDefsAdmin.loadingTypes") }}</div>
       <ul v-else class="types">
         <li v-for="d in defs" :key="d.slug" class="type">
           <div class="type__main">
             <div class="type__title">
               {{ d.name }}
-              <span class="chip mono">/{{ d.urlPrefix || "(root)" }}</span>
-              <span v-if="d.isRoot" class="chip muted">root</span>
+              <span class="chip mono">/{{ d.urlPrefix || t("resourceDefsAdmin.rootPrefix") }}</span>
+              <span v-if="d.isRoot" class="chip muted">{{ t("resourceDefsAdmin.root") }}</span>
             </div>
             <div class="type__schema mono">{{ d.schemaIri }}</div>
             <div v-if="d.children.length" class="type__children">
@@ -230,32 +240,32 @@ function confirmDelete(def: ResourceTypeDef) {
             </div>
           </div>
           <div class="type__actions">
-            <button class="btn sm" @click="startEdit(d)"><AppIcon name="edit" :size="12" /> Edit</button>
+            <button class="btn sm" @click="startEdit(d)"><AppIcon name="edit" :size="12" /> {{ t("resourceDefsAdmin.edit") }}</button>
             <button v-if="!d.isRoot" class="btn sm danger" @click="confirmDelete(d)">
-              <AppIcon name="x" :size="12" /> Delete
+              <AppIcon name="x" :size="12" /> {{ t("resourceDefsAdmin.delete") }}
             </button>
           </div>
         </li>
       </ul>
 
       <form v-if="showForm" class="form" @submit.prevent="submit">
-        <h2>{{ isEditing ? `Edit ${form.name}` : "New type" }}</h2>
+        <h2>{{ isEditing ? t("resourceDefsAdmin.editHeading", { name: form.name }) : t("resourceDefsAdmin.newType") }}</h2>
 
         <label class="field">
-          <span class="label">URL prefix</span>
-          <input v-model="form.urlPrefix" :disabled="isEditing" placeholder="ontology" />
+          <span class="label">{{ t("resourceDefsAdmin.urlPrefixLabel") }}</span>
+          <input v-model="form.urlPrefix" :disabled="isEditing" :placeholder="t('resourceDefsAdmin.urlPrefixPlaceholder')" />
           <span class="help mono">/{{ form.urlPrefix || "…" }}</span>
         </label>
         <label class="field">
-          <span class="label">Name</span>
-          <input v-model="form.name" :disabled="isEditing" placeholder="Ontology" />
+          <span class="label">{{ t("resourceDefsAdmin.nameLabel") }}</span>
+          <input v-model="form.name" :disabled="isEditing" :placeholder="t('resourceDefsAdmin.namePlaceholder')" />
         </label>
         <label class="field">
-          <span class="label">Schema (SHACL shape IRI)</span>
+          <span class="label">{{ t("resourceDefsAdmin.schemaLabel") }}</span>
           <input
             v-model="form.schema"
             list="published-schemas"
-            placeholder="pick a published shape, or paste an IRI"
+            :placeholder="t('resourceDefsAdmin.schemaPlaceholder')"
           />
           <datalist id="published-schemas">
             <option v-for="s in schemas" :key="s.iri" :value="s.iri">
@@ -263,24 +273,24 @@ function confirmDelete(def: ResourceTypeDef) {
             </option>
           </datalist>
           <span class="help">
-            Must be a published SHACL shape — manage them in
-            <RouterLink to="/schemas">Schemas</RouterLink>.
+            {{ t("resourceDefsAdmin.schemaHelpPre") }}
+            <RouterLink to="/schemas">{{ t("resourceDefsAdmin.schemaHelpLink") }}</RouterLink>.
           </span>
         </label>
 
         <div class="children">
           <div class="children__head">
-            <span class="label">Child links</span>
+            <span class="label">{{ t("resourceDefsAdmin.childLinks") }}</span>
             <button type="button" class="btn sm" @click="addChild">
-              <AppIcon name="plus" :size="12" /> Add child
+              <AppIcon name="plus" :size="12" /> {{ t("resourceDefsAdmin.addChild") }}
             </button>
           </div>
-          <p v-if="!form.children.length" class="help">No child links — this type holds no sub-types.</p>
+          <p v-if="!form.children.length" class="help">{{ t("resourceDefsAdmin.noChildren") }}</p>
           <div v-for="(c, i) in form.children" :key="i" class="child-row">
-            <input v-model="c.relationUri" placeholder="relation IRI (e.g. http://www.w3.org/ns/dcat#dataset)" />
-            <input v-model="c.target" list="rd-prefixes" placeholder="target prefix" />
-            <input v-model="c.title" placeholder="title (optional)" />
-            <button type="button" class="btn sm ghost" aria-label="Remove child link" @click="removeChild(i)">
+            <input v-model="c.relationUri" :placeholder="t('resourceDefsAdmin.childRelationPlaceholder')" />
+            <input v-model="c.target" list="rd-prefixes" :placeholder="t('resourceDefsAdmin.childTargetPlaceholder')" />
+            <input v-model="c.title" :placeholder="t('resourceDefsAdmin.childTitlePlaceholder')" />
+            <button type="button" class="btn sm ghost" :aria-label="t('resourceDefsAdmin.removeChildAria')" @click="removeChild(i)">
               <AppIcon name="x" :size="12" />
             </button>
           </div>
@@ -291,9 +301,9 @@ function confirmDelete(def: ResourceTypeDef) {
 
         <div class="actions">
           <button class="btn primary" type="submit" :disabled="save.isPending.value">
-            {{ save.isPending.value ? "Saving…" : isEditing ? "Save changes" : "Create type" }}
+            {{ save.isPending.value ? t("resourceDefsAdmin.saving") : isEditing ? t("resourceDefsAdmin.saveChanges") : t("resourceDefsAdmin.createType") }}
           </button>
-          <button type="button" class="btn ghost" @click="resetForm(); showForm = false">Cancel</button>
+          <button type="button" class="btn ghost" @click="resetForm(); showForm = false">{{ t("resourceDefsAdmin.cancel") }}</button>
         </div>
       </form>
     </template>

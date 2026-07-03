@@ -138,6 +138,14 @@ describe("modelFromTurtle / applyEditTurtle (read-modify-write)", () => {
     expect(many(store, DATASET, `${NS.rdf}type`)).toContain(`${NS.dcat}Dataset`);
     expect(one(store, DATASET, `${NS.dct}isPartOf`)).toBe(CATALOG);
   });
+
+  it("drops blank rows from a multi-value field on save", async () => {
+    const spec = specFor("dataset");
+    // The repeatable editor can leave empty rows; serialization must prune them.
+    const model = { ...modelFromTurtle(SEED, DATASET, spec), keywords: ["a", "", "  ", "b"] };
+    const ttl = await applyEditTurtle(SEED, DATASET, spec, model);
+    expect(many(parseTurtle(ttl), DATASET, `${NS.dcat}keyword`).sort()).toEqual(["a", "b"]);
+  });
 });
 
 describe("fieldsFromShape (SHACL → form fields, 7.5)", () => {
@@ -174,6 +182,13 @@ dcat:Dataset a sh:NodeShape ;
     expect(byKey.theme?.kind).toBe("iris"); // repeatable IRI
     expect(byKey.rights?.kind).toBe("ref"); // appended access-policy picker
     expect(byKey.rights?.source).toBe("policies");
+  });
+
+  it("carries raw cardinality (sh:minCount/sh:maxCount) for the repeatable editor", () => {
+    expect(byKey.title?.minCount).toBe(1); // sh:minCount 1
+    expect(byKey.license?.maxCount).toBe(1); // sh:maxCount 1
+    expect(byKey.keyword?.minCount).toBeUndefined(); // unbounded repeatable
+    expect(byKey.keyword?.maxCount).toBeUndefined();
   });
 
   it("returns [] when the shape isn't present (caller falls back to the static spec)", () => {

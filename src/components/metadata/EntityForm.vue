@@ -5,12 +5,17 @@
  * model. A config-driven stand-in for SHACL-rendered forms (TASKS 7.5).
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { EntityModel, EntitySpec } from "@/api/entityForms";
-import { constraintHint, detailKey, langKey, parseKeywords } from "@/api/entityForms";
+import { constraintHint, detailKey, langKey } from "@/api/entityForms";
 import { orderedLanguages, type LanguageOption } from "@/api/languages";
+import { useLocaleStore } from "@/stores/locale";
 
-// Browser language first, then English, then the rest (note #26).
-const languages = orderedLanguages();
+const { t } = useI18n();
+
+// Active UI language first, then English, then the rest (note #26).
+const locale = useLocaleStore();
+const languages = orderedLanguages(locale.rdfLang);
 function langOptions(current: string): LanguageOption[] {
   if (current && !languages.some((l) => l.code === current)) {
     return [{ code: current, name: current }, ...languages];
@@ -21,6 +26,7 @@ import { usePublishedPolicies } from "@/composables/usePolicies";
 import { usePublishedLicenses } from "@/composables/useLicenses";
 import AutocompleteInput from "./AutocompleteInput.vue";
 import ReferencePicker from "./ReferencePicker.vue";
+import RepeatableInput from "./RepeatableInput.vue";
 
 const props = defineProps<{ spec: EntitySpec }>();
 const model = defineModel<EntityModel>({ required: true });
@@ -39,9 +45,9 @@ function asText(key: string): string {
   return typeof v === "string" ? v : "";
 }
 
-function asList(key: string): string {
+function asArray(key: string): string[] {
   const v = model.value[key];
-  return Array.isArray(v) ? v.join(", ") : "";
+  return Array.isArray(v) ? v : [];
 }
 
 // <input type="datetime-local"> yields minute precision ("…T10:30"); pad to
@@ -71,7 +77,7 @@ function orLabels(keys: string[]): string {
     <label v-for="f in fields" :key="f.key" class="field">
       <span v-if="f.kind !== 'details'" class="label">
         {{ f.label }}<span v-if="f.required" class="req"> *</span>
-        <span v-if="showOrigins && f.origin" class="origin" :title="`Inherited from ${f.origin}`">{{
+        <span v-if="showOrigins && f.origin" class="origin" :title="t('entityForm.inheritedFrom', { origin: f.origin })">{{
           f.origin
         }}</span>
       </span>
@@ -106,7 +112,7 @@ function orLabels(keys: string[]): string {
         <select
           class="lang-tag"
           :value="asText(langKey(f.key))"
-          :aria-label="`${f.label} language`"
+          :aria-label="t('entityForm.langAria', { label: f.label })"
           @change="model[langKey(f.key)] = ($event.target as HTMLSelectElement).value"
         >
           <option value="">—</option>
@@ -124,13 +130,15 @@ function orLabels(keys: string[]): string {
         @input="model[f.key] = ($event.target as HTMLTextAreaElement).value"
       />
 
-      <input
+      <RepeatableInput
         v-else-if="f.kind === 'keywords' || f.kind === 'iris'"
-        type="text"
-        :value="asList(f.key)"
-        :placeholder="f.placeholder ?? (f.kind === 'iris' ? 'comma-separated IRIs' : 'comma-separated')"
-        :aria-label="f.label"
-        @input="model[f.key] = parseKeywords(($event.target as HTMLInputElement).value)"
+        :type="f.kind === 'iris' ? 'url' : 'text'"
+        :model-value="asArray(f.key)"
+        :label="f.label"
+        :placeholder="f.placeholder ?? (f.kind === 'iris' ? t('entityForm.placeholderIri') : t('entityForm.placeholderValue'))"
+        :min-count="f.minCount"
+        :max-count="f.maxCount"
+        @update:model-value="model[f.key] = $event"
       />
 
       <AutocompleteInput
@@ -149,7 +157,7 @@ function orLabels(keys: string[]): string {
           :list="`ref-${f.key}`"
           type="url"
           :value="asText(f.key)"
-          :placeholder="f.placeholder ?? 'select or paste an IRI'"
+          :placeholder="f.placeholder ?? t('entityForm.refPlaceholder')"
           :aria-label="f.label"
           @input="model[f.key] = ($event.target as HTMLInputElement).value"
         />
@@ -244,7 +252,7 @@ function orLabels(keys: string[]): string {
     </label>
 
     <p v-for="(g, i) in orGroups" :key="`or-${i}`" class="or-req">
-      At least one required: <strong>{{ orLabels(g.keys) }}</strong>
+      {{ t("entityForm.atLeastOneRequired") }} <strong>{{ orLabels(g.keys) }}</strong>
     </p>
   </div>
 </template>

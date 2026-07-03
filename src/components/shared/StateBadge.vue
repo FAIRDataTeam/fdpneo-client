@@ -5,17 +5,18 @@
  * can drop it in unconditionally.
  */
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import AppChip from "@/components/shared/AppChip.vue";
 
+const { t } = useI18n();
 const props = defineProps<{ state: string | null | undefined }>();
 
 const meta = computed(() => {
   const s = props.state?.toUpperCase();
   if (!s) return null;
-  const label = s.charAt(0) + s.slice(1).toLowerCase();
-  if (s === "PUBLISHED") return { label, variant: "ok" as const };
-  if (s === "ARCHIVED") return { label, variant: "default" as const };
-  return { label, variant: "signal" as const }; // DRAFT / anything else
+  if (s === "PUBLISHED") return { label: t("state.published"), variant: "ok" as const };
+  if (s === "ARCHIVED") return { label: t("state.archived"), variant: "default" as const };
+  return { label: t("state.draft"), variant: "signal" as const }; // DRAFT / anything else
 });
 </script>
 

@@ -9,9 +9,11 @@
  */
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import AppLogo from "@/components/shared/AppLogo.vue";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
 
@@ -47,24 +49,21 @@ async function home() {
     <div class="card">
       <AppLogo />
       <template v-if="status === 'signing-in'">
-        <h1>Signing you in…</h1>
-        <p class="muted">
-          Completing the secure handshake with your identity provider. This usually takes
-          less than a second.
-        </p>
+        <h1>{{ t("authCallback.signingIn") }}</h1>
+        <p class="muted">{{ t("authCallback.signingInBody") }}</p>
         <div class="spinner" aria-hidden="true" />
       </template>
       <template v-else>
-        <h1>That didn't work.</h1>
+        <h1>{{ t("authCallback.failedHeading") }}</h1>
         <p class="muted">
-          We couldn't finish signing you in.<template v-if="auth.error">
-            The provider reported:
+          {{ t("authCallback.failedBody") }}<template v-if="auth.error">
+            {{ t("authCallback.providerReported") }}
             <span class="mono err">{{ auth.error.message }}</span>
           </template>
         </p>
         <div class="actions">
-          <button class="btn primary" @click="retry">Try again</button>
-          <button class="btn" @click="home">Go to home</button>
+          <button class="btn primary" @click="retry">{{ t("authCallback.tryAgain") }}</button>
+          <button class="btn" @click="home">{{ t("authCallback.goHome") }}</button>
         </div>
       </template>
     </div>

@@ -1,10 +1,10 @@
 /**
- * RDF namespaces & prefixes for the visual SHACL editor (Phase 4).
+ * RDF namespaces & prefixes — the single source of base IRIs for the whole app.
  *
- * `rdf.ts` exports a minimal `NS` (rdf/dct/dcat) for the metadata surfaces; the
- * schema editor needs the SHACL/DASH/RDFS/XSD/FOAF families too. This module is
- * the single source of those IRIs and the default `@prefix` set seeded into a
- * new schema (matching the prototype's `DEFAULT_PREFIXES`).
+ * The schema editor uses the SHACL/DASH/RDFS/XSD/FOAF families; the metadata
+ * surfaces use the DCAT/DCT/LDP/OWL/SKOS families. Both draw from this one map:
+ * `api/rdf.ts` re-exports the relevant subset as `NS` so there is no second,
+ * drifting copy. Also seeds the default `@prefix` set for a new schema.
  */
 
 export interface PrefixDecl {
@@ -22,6 +22,9 @@ export const NAMESPACES = {
   dcat: "http://www.w3.org/ns/dcat#",
   dct: "http://purl.org/dc/terms/",
   foaf: "http://xmlns.com/foaf/0.1/",
+  ldp: "http://www.w3.org/ns/ldp#",
+  owl: "http://www.w3.org/2002/07/owl#",
+  skos: "http://www.w3.org/2004/02/skos/core#",
 } as const;
 
 /** The bare-colon default namespace a schema's own terms (`:DatasetShape`) live under. */

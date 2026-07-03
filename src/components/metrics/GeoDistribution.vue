@@ -2,6 +2,12 @@
 /**
  * Bar list of visitors by country. Country-granularity is the deepest the
  * server reports — finer-grained geolocation is deliberately not collected.
+ *
+ * The DB-IP credit below is a license obligation, not chrome: the server
+ * derives these geographic aggregates from the DB-IP IP-to-City Lite database,
+ * licensed CC BY 4.0, which requires visible attribution wherever the data (or
+ * results derived from it) is displayed. It lives on this component so the
+ * credit can never render without the data, or the data without the credit.
  */
 import { computed } from "vue";
 import type { CountryRow } from "@/api/metrics";
@@ -12,17 +18,29 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
 </script>
 
 <template>
-  <ul class="list">
-    <li v-for="r in rows" :key="r.code" class="row">
-      <span class="code mono">{{ r.code }}</span>
-      <span class="label">{{ r.label }}</span>
-      <span class="bar" :style="{ width: `${(r.visitors / max) * 100}%` }" />
-      <span class="count mono">{{ r.visitors }}</span>
-    </li>
-  </ul>
+  <div class="geo">
+    <ul class="list">
+      <li v-for="r in rows" :key="r.code" class="row">
+        <span class="code mono">{{ r.code }}</span>
+        <span class="label">{{ r.label }}</span>
+        <span class="bar" :style="{ width: `${(r.visitors / max) * 100}%` }" />
+        <span class="count mono">{{ r.visitors }}</span>
+      </li>
+    </ul>
+    <i18n-t keypath="metrics.geoAttribution" tag="p" class="attribution" scope="global">
+      <template #dbip>
+        <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer">DB-IP</a>
+      </template>
+    </i18n-t>
+  </div>
 </template>
 
 <style scoped>
+.geo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .list {
   list-style: none;
   padding: 0;
@@ -68,5 +86,18 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
   color: var(--ink-2);
   text-align: right;
   min-width: 32px;
+}
+/* License-required DB-IP credit (CC BY 4.0). Kept legible — secondary ink, not
+   the faintest muted — because attribution is an obligation, not chrome. */
+.attribution {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.attribution a {
+  color: var(--accent);
+  text-decoration: underline;
 }
 </style>

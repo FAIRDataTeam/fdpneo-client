@@ -9,6 +9,7 @@
  * (publication state, schemas, users, settings) and are intentionally inert.
  */
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useStewardRecords } from "@/composables/useStewardRecords";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
@@ -17,11 +18,12 @@ import StateBadge from "@/components/shared/StateBadge.vue";
 import TypeTag from "@/components/shared/TypeTag.vue";
 import type { IconName } from "@/types/record";
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const { rows, recent, isLoading } = useStewardRecords();
 
 const userName = computed(
-  () => auth.user?.profile?.name || auth.user?.profile?.email || "Steward",
+  () => auth.user?.profile?.name || auth.user?.profile?.email || t("stewardDashboard.userFallback"),
 );
 
 const filter = ref("");
@@ -38,10 +40,10 @@ const counts = computed(() => {
   const all = rows.value;
   const by = (label: string) => all.filter((r) => r.typeLabel === label).length;
   return [
-    { value: all.length, label: "Records" },
-    { value: by("Catalog"), label: "Catalogs" },
-    { value: by("Dataset"), label: "Datasets" },
-    { value: by("Distribution"), label: "Distributions" },
+    { value: all.length, label: t("stewardDashboard.countRecords") },
+    { value: by("Catalog"), label: t("stewardDashboard.countCatalogs") },
+    { value: by("Dataset"), label: t("stewardDashboard.countDatasets") },
+    { value: by("Distribution"), label: t("stewardDashboard.countDistributions") },
   ];
 });
 
@@ -49,16 +51,16 @@ const newCatalogLink = computed(
   () => `/create/catalog?parent=${encodeURIComponent(apiBase())}`,
 );
 
-const nav: { icon: IconName; label: string; active?: boolean }[] = [
-  { icon: "book", label: "My metadata", active: true },
-];
-const soon: { icon: IconName; label: string }[] = [
-  { icon: "edit", label: "Drafts" },
-  { icon: "shield", label: "Pending review" },
-  { icon: "filter", label: "Metadata schemas" },
-  { icon: "user", label: "Users" },
-  { icon: "globe", label: "Settings" },
-];
+const nav = computed<{ icon: IconName; label: string; active?: boolean }[]>(() => [
+  { icon: "book", label: t("stewardDashboard.navMyMetadata"), active: true },
+]);
+const soon = computed<{ icon: IconName; label: string }[]>(() => [
+  { icon: "edit", label: t("stewardDashboard.soonDrafts") },
+  { icon: "shield", label: t("stewardDashboard.soonPendingReview") },
+  { icon: "filter", label: t("stewardDashboard.soonSchemas") },
+  { icon: "user", label: t("stewardDashboard.soonUsers") },
+  { icon: "globe", label: t("stewardDashboard.soonSettings") },
+]);
 </script>
 
 <template>
@@ -77,7 +79,7 @@ const soon: { icon: IconName; label: string }[] = [
         </RouterLink>
       </nav>
       <hr class="hr" />
-      <div class="eyebrow">Coming soon</div>
+      <div class="eyebrow">{{ t("stewardDashboard.comingSoon") }}</div>
       <nav>
         <span v-for="n in soon" :key="n.label" class="navitem disabled" aria-disabled="true">
           <AppIcon :name="n.icon" :size="14" />
@@ -88,14 +90,14 @@ const soon: { icon: IconName; label: string }[] = [
 
     <section class="main">
       <div class="title">
-        <h1>My metadata</h1>
+        <h1>{{ t("stewardDashboard.heading") }}</h1>
         <div class="title__actions">
           <RouterLink :to="newCatalogLink" class="btn primary">
-            <AppIcon name="plus" :size="13" /> New catalog
+            <AppIcon name="plus" :size="13" /> {{ t("stewardDashboard.newCatalog") }}
           </RouterLink>
         </div>
       </div>
-      <p class="lede">Every record you can edit on this FAIR Data Point.</p>
+      <p class="lede">{{ t("stewardDashboard.lede") }}</p>
 
       <div class="kpi-strip">
         <div v-for="k in counts" :key="k.label" class="kpi">
@@ -107,20 +109,20 @@ const soon: { icon: IconName; label: string }[] = [
       <div class="toolbar">
         <div class="filter">
           <AppIcon name="search" :size="14" color="var(--muted)" />
-          <input v-model="filter" type="text" placeholder="Filter records…" aria-label="Filter records" />
+          <input v-model="filter" type="text" :placeholder="t('stewardDashboard.filterPlaceholder')" :aria-label="t('stewardDashboard.filterAria')" />
         </div>
         <div class="spacer" />
-        <span class="small muted">{{ filtered.length }} records</span>
+        <span class="small muted">{{ t("stewardDashboard.recordsCount", { n: filtered.length }) }}</span>
       </div>
 
-      <div v-if="isLoading" class="empty">Loading…</div>
+      <div v-if="isLoading" class="empty">{{ t("stewardDashboard.loading") }}</div>
       <div v-else-if="filtered.length === 0" class="empty">
-        No records {{ filter ? "match your filter" : "yet" }}.
+        {{ filter ? t("stewardDashboard.emptyMatch") : t("stewardDashboard.emptyYet") }}
       </div>
       <div v-else class="table">
         <div class="thead">
-          <span>Record</span>
-          <span>Modified</span>
+          <span>{{ t("stewardDashboard.thRecord") }}</span>
+          <span>{{ t("stewardDashboard.thModified") }}</span>
           <span />
         </div>
         <div v-for="row in filtered" :key="row.id" class="trow">
@@ -133,13 +135,13 @@ const soon: { icon: IconName; label: string }[] = [
           </div>
           <span class="small muted">{{ row.modified || "—" }}</span>
           <RouterLink :to="`/records/${row.id}/edit`" class="btn ghost sm">
-            <AppIcon name="edit" :size="13" /> Edit
+            <AppIcon name="edit" :size="13" /> {{ t("stewardDashboard.edit") }}
           </RouterLink>
         </div>
       </div>
 
       <template v-if="recent.length">
-        <h2 class="recent-title">Recently updated</h2>
+        <h2 class="recent-title">{{ t("stewardDashboard.recentlyUpdated") }}</h2>
         <ul class="recent">
           <li v-for="row in recent" :key="row.id">
             <RouterLink :to="`/records/${row.id}`" class="rtitle">{{ row.title }}</RouterLink>

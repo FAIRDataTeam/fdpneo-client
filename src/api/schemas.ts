@@ -12,7 +12,7 @@
  * (no aliases); we map them to camelCase here.
  */
 
-import { AxiosError } from "axios";
+import { normaliseError } from "./errors";
 import { http } from "./http";
 
 export interface SchemaSummary {
@@ -65,17 +65,6 @@ function toSummary(raw: RawSummary): SchemaSummary {
 
 /** Error bodies arrive as a JSON string (responseType: text); parse so the
  * envelope-aware `parseFdpError` can read `code`/`message`. */
-function normaliseError(err: unknown): never {
-  if (err instanceof AxiosError && typeof err.response?.data === "string") {
-    try {
-      err.response.data = JSON.parse(err.response.data);
-    } catch {
-      /* leave raw text */
-    }
-  }
-  throw err;
-}
-
 /** List published shapes (public). */
 export async function listSchemas(): Promise<SchemaSummary[]> {
   const res = await http.get<{ schemas?: RawSummary[] }>("/fdp-api/schemas");

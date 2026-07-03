@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { FdpRecord } from "@/data/sampleRecord";
+import { safeHref } from "@/composables/safeUrl";
 import MetaItem from "./MetaItem.vue";
 import RdfPreviewPanel from "./RdfPreviewPanel.vue";
 import RelatedList from "./RelatedList.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{ record: FdpRecord; container?: string | null; recordId?: string }>();
 
@@ -17,38 +21,39 @@ const hasIdentifiers = computed(
     props.record.sameAs.length > 0 ||
     props.record.exactMatch.length > 0,
 );
-const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
 </script>
 
 <template>
-  <aside class="sidecar" aria-label="About this record">
+  <aside class="sidecar" :aria-label="t('aboutSidecar.ariaLabel')">
     <div class="card">
-      <div class="eyebrow">About this record</div>
+      <div class="eyebrow">{{ t("aboutSidecar.heading") }}</div>
       <dl class="meta">
-        <MetaItem label="Issued">{{ record.issued }}</MetaItem>
-        <MetaItem label="Last modified">{{ record.modified }}</MetaItem>
-        <MetaItem label="Container">{{ container || "—" }}</MetaItem>
+        <MetaItem :label="t('aboutSidecar.issued')">{{ record.issued }}</MetaItem>
+        <MetaItem :label="t('aboutSidecar.lastModified')">{{ record.modified }}</MetaItem>
+        <MetaItem :label="t('aboutSidecar.container')">{{ container || "—" }}</MetaItem>
       </dl>
 
       <template v-if="hasIdentifiers">
         <hr class="hr divider" />
-        <div class="eyebrow">Identifiers</div>
+        <div class="eyebrow">{{ t("aboutSidecar.identifiers") }}</div>
         <dl class="meta">
-          <MetaItem v-if="record.identifier" label="Identifier" mono>
-            <a v-if="isUrl(record.identifier)" :href="record.identifier" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
+          <MetaItem v-if="record.identifier" :label="t('aboutSidecar.identifier')" mono>
+            <a v-if="safeHref(record.identifier)" :href="safeHref(record.identifier)" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
             <template v-else>{{ record.identifier }}</template>
           </MetaItem>
-          <MetaItem v-if="record.sameAs.length" label="Same as" mono>
+          <MetaItem v-if="record.sameAs.length" :label="t('aboutSidecar.sameAs')" mono>
             <ul class="idlist">
               <li v-for="iri in record.sameAs" :key="iri">
-                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <a v-if="safeHref(iri)" :href="safeHref(iri)" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <template v-else>{{ iri }}</template>
               </li>
             </ul>
           </MetaItem>
-          <MetaItem v-if="record.exactMatch.length" label="Exact match" mono>
+          <MetaItem v-if="record.exactMatch.length" :label="t('aboutSidecar.exactMatch')" mono>
             <ul class="idlist">
               <li v-for="iri in record.exactMatch" :key="iri">
-                <a :href="iri" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <a v-if="safeHref(iri)" :href="safeHref(iri)" target="_blank" rel="noopener noreferrer">{{ iri }}</a>
+                <template v-else>{{ iri }}</template>
               </li>
             </ul>
           </MetaItem>
@@ -59,7 +64,7 @@ const isUrl = (v: string): boolean => /^https?:\/\//i.test(v);
       <RdfPreviewPanel :record-id="recordId ?? ''" auto-open />
 
       <hr class="hr divider" />
-      <div class="eyebrow">Related</div>
+      <div class="eyebrow">{{ t("aboutSidecar.related") }}</div>
       <RelatedList :items="record.related" />
     </div>
   </aside>

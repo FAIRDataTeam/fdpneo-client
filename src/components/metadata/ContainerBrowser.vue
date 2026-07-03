@@ -6,10 +6,13 @@
  * Closes on Escape, click-outside, and after a node is selected.
  */
 import { onMounted, onUnmounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useTree } from "@/composables/useTree";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import TreeNode from "./TreeNode.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: "close"): void }>();
@@ -57,17 +60,17 @@ function onBackdropClick(e: MouseEvent) {
     class="overlay"
     role="dialog"
     aria-modal="true"
-    aria-label="Browse containers"
+    :aria-label="t('containerBrowser.ariaLabel')"
     @click="onBackdropClick"
   >
     <section ref="panelRef" class="panel">
       <header class="panel__head">
-        <h2>Containers</h2>
-        <button class="btn ghost sm" aria-label="Close" @click="emit('close')">
+        <h2>{{ t("containerBrowser.heading") }}</h2>
+        <button class="btn ghost sm" :aria-label="t('containerBrowser.close')" @click="emit('close')">
           <AppIcon name="x" :size="14" />
         </button>
       </header>
-      <div v-if="isLoading" class="loading">Loading…</div>
+      <div v-if="isLoading" class="loading">{{ t("containerBrowser.loading") }}</div>
       <div v-else-if="tree" class="tree" role="tree">
         <TreeNode :node="tree" :depth="0" :active-path="['fdp']" @navigate="navigate" />
       </div>

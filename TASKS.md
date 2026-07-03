@@ -2312,10 +2312,439 @@ deeper hierarchy can't silently lose inherited properties again.
 
 ---
 
+## 17. Authoring form: repeatable multi-value fields + reference-form ideas — planned (2026-06-16)
+
+**Motivation:** the dynamic record form renders multi-valued properties (`dcat:keyword`,
+`owl:sameAs`, `skos:exactMatch` — the `keywords`/`iris` field kinds) as a **single text
+input** whose value is `array.join(", ")`, re-parsed on every keystroke by
+`parseKeywords()` ([EntityForm.vue:127-134](src/components/metadata/EntityForm.vue#L127-L134)).
+That round-trip is lossy mid-typing: typing `foo,` parses to `["foo"]` and re-renders as
+`foo`, so the comma is eaten — the field the help text calls "Comma-separated" actively
+refuses commas. The old client
+([FAIRDataPoint-client `ShaclForm`](https://github.com/FAIRDataTeam/FAIRDataPoint-client/tree/develop/src/components/ShaclForm))
+instead renders one input per value with per-row remove (×) and an "Add" (+) button, gated
+on `sh:minCount`/`sh:maxCount`. A review of that implementation surfaced three more ideas
+worth porting (17.3–17.5), each independent of the core fix.
+
+**Key enabler:** the model/RDF layers already represent these as `string[]` end-to-end
+(`emptyModel` → `[]`, `modelFromTurtle` → `many()`, `applyModel` → `setLiterals`/`setIris`),
+and `setLiterals`/`setIris` already `.trim()` and drop blanks
+([rdf.ts:143-159](src/api/rdf.ts#L143)). So 17.1–17.2 are a **presentation-only** change —
+no serialization, parsing, or round-trip logic moves. The comma-join lives solely in the
+form widget.
+
+### 17.1 `RepeatableInput` component — core
+- New [src/components/metadata/RepeatableInput.vue](src/components/metadata/RepeatableInput.vue):
+  props `modelValue: string[]`, `type: "text" | "url"`, `label`, `placeholder?`,
+  `minCount?` (default 0), `maxCount?` (default ∞).
+- One `<input>` per entry (bound by index); a remove button per row
+  (`<AppIcon name="x">`) shown while `count > minCount`; an "Add" button below
+  (`<AppIcon name="plus">`) hidden once `count >= maxCount`. Empty array → just the Add
+  button. Emits `update:modelValue` on every edit/add/remove.
+- A11y: per-row `aria-label` `"{label} (value N)"`; remove `"Remove {label} value N"`;
+  add `"Add {label}"`.
+- Nicety (preserves the old power-user flow): a paste handler that splits comma-separated
+  pasted text into multiple rows via the existing `parseKeywords` (keeps it used + tested).
+- **Test** `RepeatableInput.spec.ts`: Add appends; remove splices the right index; Add
+  hidden at `maxCount`; remove hidden at `minCount`; emits arrays; paste splits on commas.
+
+### 17.2 Wire into `EntityForm` + carry cardinality — core
+- Replace the `keywords`/`iris` branch in `EntityForm.vue` with `<RepeatableInput
+  :type="f.kind === 'iris' ? 'url' : 'text'" …>`; delete the now-dead `asList` helper.
+- Add optional `minCount?`/`maxCount?` to `FieldSpec`; populate both from
+  `sh:minCount`/`sh:maxCount` in `fieldsFromShape` so add/remove gating is shape-accurate
+  (the `single` detection already reads `maxCount`).
+- Drop "Comma-separated" from the static `keywords`/`sameAs`/`exactMatch` help strings
+  (→ e.g. "Add one value per row.").
+- **Test**: extend `entityForms.spec.ts` to assert `fieldsFromShape` sets `minCount`/
+  `maxCount`; add a round-trip test (multi-value edit incl. a blank row → correct triples,
+  blanks dropped). New `EntityForm.spec.ts`: mount a `keywords` field, assert add/remove
+  drives the bound model. Keep the `parseKeywords` test.
+
+### 17.3 `sh:group` sectioning + `sh:order` ordering — enhancement
+- The reference groups fields into titled sections (`sh:group` → `<h2>` + comment) and
+  sorts by `sh:order`; neo renders a flat list sorted title→description→alpha with `origin`
+  badges. Read `sh:group` (PropertyGroup `rdfs:label`/`rdfs:comment`) and `sh:order` in
+  `fieldsFromShape`; render grouped sections in `EntityForm`, falling back to the current
+  flat+sorted layout when a shape declares neither (so nothing regresses for the bundled
+  DCAT shapes). `sh:order` becomes the primary sort key, current rank the tiebreaker.
+- **Decide:** whether `origin` badges and `sh:group` sections coexist or the group
+  subsumes origin grouping. **Verify** the server `/spec` actually serves `sh:group`/
+  `sh:order` before building UI on them; if absent, this is a server-coordinated change.
+- **Test**: a shape with two groups + orders yields ordered sections; a shape with neither
+  renders the existing flat layout unchanged.
+
+### 17.4 Per-field server-validation annotation — enhancement
+- Today a failed save shows one banner with a flat `violations` list
+  ([EntityCreateView.vue:162-167](src/views/EntityCreateView.vue#L162)). The reference maps
+  the SHACL validation report (`focusNode` + `resultPath` → field) and shows the message
+  inline under the offending control. Map server violations to `FieldSpec.key` by predicate
+  (`resultPath`) and render the message beneath that field in `EntityForm`; keep the banner
+  for node-level / unmapped violations. Show a field's error only once it's dirty (touched),
+  per the reference, to avoid shouting on first paint.
+- Depends on `parseFdpError` violations carrying the `resultPath`/predicate — **confirm**
+  the server error shape includes it; if not, coordinate the server change.
+- **Test**: a violation with a known path annotates that field; an unmapped one stays in the
+  banner.
+
+### 17.5 Live Turtle preview on the authoring form — optional
+- The reference offers a collapsible "View RDF" turtle preview on the form. Neo shows RDF
+  panels on record/detail surfaces but not while authoring. Add a collapsible read-only
+  `TurtleEditor` (already used by `LicensesView`) to `EntityCreateView`/`EntityEditView`
+  fed by `buildCreateTurtle`/`applyEditTurtle`, so authors see exactly what will be saved.
+- **Test**: editing a field updates the previewed Turtle.
+
+### 17.6 Gate
+- `npm run lint && npm run typecheck && npm run test:unit` green; live-verify add/remove on
+  a dataset's Keywords (create form is steward-gated — verify signed in, or via the
+  component test if anon redirect blocks headless).
+
+**Sequencing:** 17.1–17.2 are the requested fix and ship together. 17.3–17.5 are
+independent follow-ons (each its own PR); 17.3 and 17.4 may need a server-spec/error-shape
+confirmation first — surface that before building, per the repo's "don't improvise
+underspecified contracts" rule.
+
+---
+
+## 18. Internationalization — multilingual UI (vue-i18n) — ✅ COMPLETE (infra + shell 2026-06-30; full 18.7 extraction 2026-07-01)
+
+**Motivation:** the client was English-only — every user-facing string hardcoded in
+`.vue` templates, `<script setup>` blocks, and a few `.ts` modules. This phase answers the
+long-standing "Internationalization scope for v1" open question (CLAUDE.md) and lets a user
+switch the UI language at runtime. **Launch languages:** English (`en`, baseline),
+Brazilian Portuguese (`pt-BR`), Dutch (`nl`), Spanish (`es`), German (`de`), French (`fr`).
+
+**Decisions (agreed with the maintainer):**
+- **Rollout:** build the full i18n infrastructure + all 6 locale bundles now; fully convert
+  the **app shell** + 2 flagship views this phase. The remaining ~75 views/components follow
+  in tracked sub-passes (18.7) using the identical `useI18n()` pattern.
+- **Translations:** all 5 non-English bundles are machine-authored and **flagged for
+  native-speaker review** (FAIR/RDF terms — catalog, schema, SHACL, IRI, steward).
+- **RDF labels:** the chosen UI locale also drives RDF-literal language preference
+  (`useLabels` / `api/languages.ts`) — one coherent language choice.
+- **No browser storage** (CLAUDE.md): locale is in-memory, defaulted from
+  `navigator.language` each load (mirrors the `theme` store). A deployer can pin a default
+  via `/config.js` (`defaultLocale`). Server-profile persistence is a future option.
+
+**New dependency:** `vue-i18n@^11` — the standard Vue 3 i18n library; clears the CLAUDE.md
+"don't add a dep casually" bar (no existing primitive solves UI translation).
+
+### 18.1 i18n core + locale catalog — ✅
+- `src/i18n/index.ts` (`createI18n`, `legacy: false`, `en` fallback; `translate`/`hasMessage`
+  helpers for non-component `.ts` modules), `src/i18n/locales.ts` (`SUPPORTED_LOCALES`
+  endonyms, `matchSupportedLocale`, `resolveInitialLocale`), `runtimeConfig.ts`
+  `defaultLocale` + `runtimeDefaultLocale()`.
+
+### 18.2 Locale message bundles — ✅
+- `src/i18n/messages/{en,pt-BR,nl,es,de,fr}.ts`. `en.ts` is the source of truth and exports
+  the `Messages` type; the other five are typed `: Messages` (compile-time key parity) and
+  flagged machine-authored. Named interpolation + plural (`a | b`) forms.
+
+### 18.3 Locale store + switcher — ✅
+- `src/stores/locale.ts` (in-memory; `setLocale` updates i18n locale, `<html lang/dir>`, and
+  exposes `rdfLang`). `src/components/shared/LanguageSwitcher.vue` in `AppHeader` beside
+  `ThemeToggle` (endonym menu, globe trigger, keyboard-navigable, i18n `aria-label`).
+- Wire `app.use(i18n)` in `main.ts` (sets `<html lang/dir>` on boot); add `defaultLocale`
+  to `public/config.js`. PrimeVue locale dictionary is **deferred** — no locale-bearing
+  PrimeVue widgets (Calendar/Paginator/Dialog) are in use, so it would be dead code today;
+  add it when one lands. **Test** `LanguageSwitcher.spec.ts`.
+
+### 18.4 Convert the app shell — ✅
+- `App.vue`, `AppHeader`, `AppFooter`, `UserMenu`, `ThemeToggle` (computed switch → keyed),
+  `AppErrorBoundary`, `NotFoundView`, `AuthCallbackView`.
+
+### 18.5 Centralized errors + validation — ✅
+- `api/errorMessages.ts` (21 codes → `errors.*` keys via `translate`/`hasMessage`, keeping
+  the server-message fallback) and the parameterized `validateConstraints` messages in
+  `api/entityForms.ts` (`validation.*`).
+
+### 18.6 Flagship views + locale-aware formatting + RDF coordination — ✅
+- Convert `MetadataBrowseView` and `SearchView` (incl. plural results count). Route
+  `MetricsDashboardView` number formatting and `TimeSeriesChart` date/time formatting through
+  the active locale. `useLabels` passes `rdfLang` into `fetchLabels` + the `queryKeys.labels`
+  key (`api/queries.ts`); `orderedLanguages()` (`api/languages.ts`) orders by the active UI
+  locale first.
+
+### 18.7 Remaining surfaces — 🔄 in progress, batched (each its own commit)
+Same `useI18n()` + namespaced-keys pattern as the shell (18.4–18.6); ~50 surfaces, worked in
+coherent batches. **SHACL editor is NOT here** — replaced via Phase 19 (its own translations).
+- ✅ **Batch 1 — Schema-admin chrome** (`SchemaEditorView`, 2026-07-01): `schemaAdmin.*`
+  namespace across all 6 bundles; list/id/actions/testbed/errors converted (lede + test-help
+  use `<i18n-t>` for embedded markup). Gate green (494 tests, parity holds).
+- ✅ **Batch 2 — ODRL editor** (`OdrlComposer`, `PolicyEditorView`, `OdrlPreview`, 2026-07-01):
+  `odrl.*` namespace (~42 keys) across all 6 bundles — policy-view chrome, composer field
+  labels/placeholders/buttons, preview banners (plural + `<i18n-t>` for the lede's
+  `Offers`/`dct:rights` markup). Vocab-derived labels (actions/operators/operands from
+  `vocab.ts`) left as a separate concern. Gate green (494 tests).
+- ✅ **Batch 3 — Admin** (`UsersAdminView`, `ResourceDefinitionAdminView`, `SettingsView`,
+  `SettingEditor`, `ResetPanel`, `AutocompleteSourcesEditor`, `SearchFiltersEditor`, 2026-07-01):
+  three namespaces added across all 6 bundles — `usersAdmin.*` (~38 keys), `resourceDefsAdmin.*`
+  (~44 keys), `settingsAdmin.*` (~55 keys, spans the settings view + all four editor components).
+  Client-side validation error titles/messages, confirm dialogs, table/pager, and structured
+  facet/autocomplete editors converted; `ResetPanel` danger-zone uses `<i18n-t>` for the
+  `cannot be undone`/token markup. Literal `{ … }` in JSON/SPARQL hint strings escaped as
+  `{'{'} … {'}'}` for the vue-i18n compiler. Gate green (494 tests, parity holds).
+- ✅ **Batch 4 — Metrics** (`MetricsDashboardView`, `TimeRangePicker`, `PrivacyDisclosure`,
+  `TimeSeriesChart`, `GeoDistribution`, `TopRecordsList`, 2026-07-01): `metrics.*` namespace
+  (~40 keys) across all 6 bundles — dashboard chrome/KPIs/panels/empty+signin states, chart
+  series + axis labels (locale-reactive via `label: () => t(...)`), privacy disclosure (`<i18n-t>`
+  for the emphasised `not`), DB-IP geo attribution (`<i18n-t>` slot keeps the brand link),
+  top-resources stat labels, time-range aria. `KpiCard` stays presentational (labels passed in).
+  Units (`4xx + 5xx`, `ms`, `24h/7d/30d/90d`) and brand names kept. Gate green (494 tests).
+- ✅ **Batch 5 — Account + Appearance** (`ProfileView`, `ApiKeysView`, `AppearanceView`, 2026-07-01):
+  `profile.*` (~10 keys), `apiKeys.*` (~30 keys), `appearance.*` (~40 keys) across all 6 bundles.
+  Profile rows/labels, API-key create/reveal/table/status, appearance identity+colour+preview+export
+  panels. `<i18n-t>` used for embedded `<code>`/`<strong>`/`<a>` markup (Bearer header, `/config.js`,
+  `data:`/`img-src`, the multi-slot Docker hint, sample link). AppearanceView aliases i18n as `tr`
+  because `t` is its brandable-token loop variable. `BRANDABLE_TOKEN_LABELS` (from `useBranding.ts`)
+  left as-is — vocab-style token names, same deferral as ODRL vocab labels. `token`/`jeton` follows
+  each locale's existing choice (fr uses *jeton*; pt/es/de/nl keep *token*). Gate green (494 tests).
+- ✅ **Batch 6 — Metadata authoring** (`EntityForm`, `RepeatableInput`, `AboutSidecar`,
+  `EntityCreateView`, `EntityEditView`, `RepositoryEditView`, 2026-07-01): `entityForm.*` (6),
+  `repeatableInput.*` (5), `aboutSidecar.*` (10) and a shared `entityAuthor.*` (~45) across all 6
+  bundles — the three authoring views share validation/notice/save strings via one namespace.
+  `<i18n-t>` for the draft-hint `<strong>`, the edit-view `<span class="mono">{id}</span>`. Also
+  extended `validation.*` with 4 constraint-hint keys and routed `constraintHint()` in
+  `entityForms.ts` through the existing `translate()` helper (was raw "chars"/"pattern").
+  Spec-derived field labels/placeholders and constraint messages stay dynamic (already localised
+  via `validation.*`). Type names (`spec.label`) interpolated as-is — dropped the English-only
+  `.toLowerCase()` since casing rules differ per language. steward kept. Gate green (494 tests).
+- ✅ **Batch 7 — Metadata display** (`RecordDetailView`, `StewardDashboardView`, `PropList`,
+  `RdfGraphView`, `RdfGraphOverlay`, `RdfPreviewPanel`, `ContainerBrowser`, `SecondaryNav`,
+  `RecordHero`, `LineageRail`, `CatalogCard`, `StateBadge`, 2026-07-01): 11 namespaces
+  (`state`, `stewardDashboard`, `recordDetail`, `rdfGraph`, `containerBrowser`, `secondaryNav`,
+  `rdfPreview`, `propList`, `recordHero`, `lineageRail`, `catalogCard`) across all 6 bundles.
+  Also routed `state.ts` `allowedTransitions()` labels + `StateBadge` through i18n (`state.*`).
+  Kept in English (server/canonical vocabulary): RDF format names (Turtle/JSON-LD/…), the graph
+  legend's four class names (Repository/Catalog/Dataset/Distribution — mirror server typeLabels),
+  and `CatalogCard`'s TypeTag. Dropped `.toLowerCase()` on `newChild`. Renamed two `v-for="t"`
+  loop vars (PropList/RecordDetail) to avoid shadowing the i18n `t`. German disambiguates
+  Records→"Datensätze" vs Datasets→"Datasets". steward kept. Gate green (494 tests).
+- ✅ **Batch 8 — SPARQL + Licenses + Attributions** (`SparqlPlaygroundView`, `SparqlEditor`,
+  `SparqlResultsTable`, `LicensesView`, `AttributionsView`, 2026-07-01): `sparql.*` (~21),
+  `licenses.*` (~28), `attributions.*` (~10) across all 6 bundles. Example-query labels made
+  reactive (EXAMPLES → computed); `<i18n-t>` for the licenses lede (`dct:license` code +
+  Policies link). DB-IP attribution `use` text localised (name/license/URL kept). SPARQL/RDF/
+  Turtle/ASK/dct:*/CC BY/Apache-2.0 kept. steward kept. Gate green (494 tests).
+- **18.7 COMPLETE** — all 8 batches landed; every editor-independent surface is now
+  multilingual across en + pt-BR/nl/es/de/fr. Phase 18 i18n is fully rolled out.
+
+### 18.8 Gate — ✅ (lint + typecheck + 428 unit tests green; build OK)
+- `npm run lint && npm run typecheck && npm run test:unit` green; `i18n.spec.ts` +
+  `locales.spec.ts` + `locale.spec.ts` + `LanguageSwitcher.spec.ts` (26 new tests) assert
+  key parity, resolution precedence, and switching. Still **TODO** (manual): switch each of the 6
+  languages → shell/footer/menu/404/error states change, `<html lang>` updates, reload
+  reverts to browser language, `defaultLocale` in `/config.js` boots in that locale, and a
+  German UI issues `GET /labels?...&lang=de`.
+
+**Sequencing:** 18.1–18.2 done; 18.3 unblocks the visible switcher; 18.4–18.6 are the
+this-phase extraction; 18.7 is explicitly out of this phase.
+
+---
+
+## 19. Integrate the "Contour" visual SHACL editor — ✅ complete (2026-07-01)
+
+**Motivation:** a separate, feature-rich standalone editor ("Contour", sibling repo —
+Vue 3 + n3, no Vue Flow/Pinia/router, custom i18n, builds single-file) is more complete at
+SHACL modeling than the in-client editor and is **already translated to the same 6
+languages**. Rather than translate the current editor in 18.7 (throwaway) we replace its
+engine with Contour's and graft on the FDP-specific integration. Decision: **Option A**
+(adopt Contour's engine), recorded after a feature inventory of both + a file-level design.
+
+**Sourcing:** the two repos stay **independent projects** — we **copy** the needed
+functionality from Contour into the client (vendoring) and adapt it here; **no npm package,
+submodule, or iframe link, and no changes to Contour itself.** Copied files carry a header
+crediting Contour + the source commit so a future re-sync is traceable. Contour continues to
+ship as its own standalone app.
+
+**Key facts driving the design:**
+- **Clean Turtle boundary.** [SchemaEditorView.vue](src/views/SchemaEditorView.vue) is a
+  lifecycle host whose entire server contract is Turtle strings: `getSchemaTurtle(id)` in,
+  `putSchema(id, turtle)` out, `validateSample(id, sample)` → `SchemaViolation[]`, plus the
+  schema list/slug/protected/delete logic. Contour's engine is also Turtle-in/out, so the
+  host + server wiring stay; the editor *body* is swapped underneath.
+- **Multi-shape mismatch (the crux).** FDP's model ([model.ts](src/components/shacl-editor/model.ts))
+  is genuinely multi-shape (`SchemaDocument { shapes: ShapeModel[] }`) and `parse.spec.ts`
+  exercises it; the Vue Flow canvas (inter-shape edges + resource-type ghost nodes) depends
+  on it. Contour ([../Contour/src/types.ts](../Contour/src/types.ts)) is primary-shape +
+  flat `nestedShapes[]` (with a designed-but-inactive `ShapesDoc` peer model). **Resolution:
+  keep FDP's `shapes[]` as the document wrapper; use Contour's richer per-shape `Field`
+  engine inside it.**
+- **Contour `Field` is richer:** language-tagged `sh:name`/`sh:description` (+ translations),
+  field-level `sh:or` (`orTypes`), `sh:inversePath`, `sh:message`/`sh:severity`, tagged
+  `sh:in` (literal vs IRI). These are the features we gain.
+- **i18n is compatible:** Contour's nested messages, `{name}` interpolation and `{one,other}`
+  plurals map 1:1 to vue-i18n. Work = normalize tags (`nl-NL→nl`, `es-ES→es`, `de-DE→de`,
+  `fr-FR→fr`; `en`/`pt-BR` already match), namespace under `schemaEditor.*`, swap Contour's
+  `useI18n` for vue-i18n's, and **drop its `localStorage`** (draft/recent/`contour.locale`) —
+  CLAUDE.md forbids storage; server is source of truth.
+- **Canvas (revised after 19.2b — decided with the maintainer):** now that Contour's own
+  `Canvas` (field workbench) + `GraphView` (RDF graph overview) are ported, the editor
+  **uses Contour's surfaces and FDP's Vue Flow `ShaclCanvas`/`graph.ts` are retired** (19.6).
+  The two FDP-only features — resource-type ghost nodes + server-violation badges on the
+  graph — become **tracked follow-ups** layered onto Contour's `GraphView` (19.8), not
+  blockers. This dissolves the original 19.3 (no `buildShapeGraph` adapter needed).
+- **Multi-shape:** Contour's engine already handles multiple peer top-level `sh:NodeShape`s —
+  `parseShacl` keeps the first as primary and the rest in `nestedShapes[]`, and `generateShacl`
+  re-emits them; round-trip is covered by the ported specs. So no wrapper is required either.
+
+### 19.1 i18n merge groundwork — ✅ (2026-06-30)
+- Vendored Contour's 6 bundles to `src/i18n/messages/schema-editor/` (tag-normalized
+  `nl-NL→nl`/`es-ES→es`/`de-DE→de`/`fr-FR→fr`; provenance header @ Contour `4117ff2`),
+  composed into the one `vue-i18n` instance under `schemaEditor.*`
+  ([src/i18n/index.ts](src/i18n/index.ts)). Compile-time parity via a typed
+  `Record<EditorLocale, EditorMessages>` (typecheck confirmed Contour's translations are
+  complete) + runtime parity/empty/plural-shape spec.
+- **Refinement vs plan:** rather than rewrite ~300 component call sites, added a thin
+  `useI18n` **shim** at
+  [src/components/shacl-editor/contour/composables/useI18n.ts](src/components/shacl-editor/contour/composables/useI18n.ts)
+  presenting Contour's API (`t`/`plural`/`locale`) but backed by the single instance +
+  locale store (auto-prefixes `schemaEditor.`, resolves `{one,other}` plurals via `tm`).
+  Vendored components (19.2) keep their `../composables/useI18n` import unchanged.
+- Gate green: lint + typecheck + 444 unit tests (16 new). No UI wired yet.
+
+**Port style (decided):** adopt Contour's behaviours as **first-class FDP code held to the
+full strict config** — no tsconfig carve-out. **Hybrid:** copy-then-adapt the intricate RDF
+engine faithfully (keep its logic + tests, satisfy the strict flags); re-port UI/state/
+styling into client idioms (19.2b+). The two extra strict flags (`noUncheckedIndexedAccess`,
+`exactOptionalPropertyTypes`) that Contour didn't use are satisfied with behavior-preserving
+`!` at checked index sites + `?: T | undefined` on the model's optional props.
+
+### 19.2a Port the engine — ✅ (2026-07-01)
+- Vendored `types.ts`, `shacl.ts` (parse/generate + F4 adapters), `rdf.ts`, `data.ts`,
+  `validation.ts`, `jsonld.ts`, `composables/{useSchema,useDrag}.ts` into
+  `src/components/shacl-editor/contour/` (provenance header @ `4117ff2`); conformed to the
+  full strict config. The i18n shim (19.1) stays importing `@/i18n` (no cycle under one
+  program). Contour's 9 model specs ported and passing (parse/generate/roundtrip/
+  preservation/useSchema/validation/shapes.adapter/jsonld) — 133 engine tests.
+- Gate green: lint + typecheck + 573 unit tests. No components/CSS yet (19.2b), nothing wired
+  into the live editor (19.4).
+
+### 19.2b Re-port the editor components — ✅ (2026-07-01)
+- Vendored all 14 components to `contour/components/` (`Canvas`/`Inspector`/`Palette`/
+  `FieldCard`/`FieldInput`/`FormPreview`/`PreviewField`/`OrTypesEditor`/`TranslationsEditor`/
+  `InValuesEditor`/`PrefixEditor`/`GraphView`/`Icon`/`WidgetIcon`), conformed to the full
+  strict config (a handful of `!` at checked index sites; `FieldCard`'s widget computed
+  defaults to `TextFieldEditor`). They keep the `useI18n` shim import.
+- **CSS:** ported Contour's single 1845-line `style.css` → `contour/editor.css`, generated by
+  `scope-css.mjs`: every selector prefixed under a `.contour-editor` root (so Contour's
+  generic classes — `.btn`, `.field`, `.canvas` — don't collide with the app), Contour's
+  `:root` dropped and replaced by a **token bridge** mapping its names to the client's design
+  tokens (theme-aware; dark mode follows). Colliding token names (`--font-mono`,
+  `--shadow-1/2`) are omitted so they inherit the client's globals.
+- **Deviations from the plan (pragmatic, flagged):** (1) kept Contour's self-contained
+  `Icon`/`WidgetIcon` rather than remapping ~13 call sites to `AppIcon` (risk/effort; the
+  visual result is equivalent — can migrate later). (2) One **scoped stylesheet** rather than
+  per-component `<style scoped>` blocks — achieves the same isolation + theming without
+  shredding 1845 lines by hand (lower regression risk); components stay faithful copies. A
+  one-line eslint override turns off `vue/multi-word-component-names` for the vendored
+  components (single-word names by origin). Dropped `marked`/font deps (not needed).
+- Not wired into the live editor yet (19.4 renders these under a `.contour-editor` root and
+  imports `editor.css`). Gate green: lint + typecheck + 573 tests + build.
+
+### 19.3 Multi-shape + canvas — ✅ dissolved by the canvas decision (2026-07-01)
+- No `buildShapeGraph` adapter (Vue Flow retired). No document wrapper: Contour's engine
+  already parses/round-trips multiple peer shapes (primary + `nestedShapes[]`), verified by
+  the ported round-trip/adapter specs. The editor renders through Contour's own surfaces.
+
+### 19.4a Encapsulated `ContourEditor.vue` — ✅ (2026-07-01)
+- Built [contour/ContourEditor.vue](src/components/shacl-editor/contour/ContourEditor.vue):
+  Contour's editor body (visual workbench Palette·Canvas·Inspector / SHACL-code tab / form
+  preview + RDF `GraphView` overlay + issues strip + undo/redo), under a `.contour-editor`
+  root that imports `editor.css`, driven by Contour's `useSchema`. Contour's app chrome
+  (file I/O, examples, recent, draft autosave, language menu) is intentionally omitted.
+- **Code tab uses the client's Monaco `TurtleEditor`** (client-idiomatic) instead of porting
+  Contour's ~200-line textarea autocomplete; edits parse → `load` back into the store.
+- Added `load(schema)` to the ported `useSchema` store (replaces the doc + resets history) so
+  the host can open a different server schema. Exposes `loadTurtle(ttl)` / `getTurtle()`.
+- Standalone + green (typecheck + lint + 575 tests); not yet wired into `SchemaEditorView`.
+
+### 19.4b Wire into `SchemaEditorView` + server — ✅ code-complete (2026-07-01)
+- [SchemaEditorView.vue](src/views/SchemaEditorView.vue) rewritten: the three old tab bodies
+  (ShaclCanvas/FormDesigner/ShaclFormPreview + Monaco + tidy) are replaced by a single
+  `<ContourEditor ref>`. Kept the FDP lifecycle: schema list, id/slug, save/delete, protected
+  handling, and the server sample-validation testbed. `load(id)` → `getSchemaTurtle` →
+  `editorRef.loadTurtle`; `onSave` → `editorRef.getTurtle()` → `putSchema`. Editor handle typed
+  explicitly (the component instance type widens to `any`). Old editor imports/undo/tidy/parse
+  state removed; dead tab CSS dropped.
+- Gate green: lint + typecheck + 575 tests + build (the SchemaEditorView chunk now bundles the
+  editor + its scoped CSS). **⚠ Not yet exercised in a browser** — there are no component/E2E
+  tests that mount the editor in the view, so rendering, styling, drag-drop, and the live
+  server save/validate round-trip are **unverified** until 19.7 (manual/dev-server check).
+- Deferred to 19.8: mapping the testbed's server violations back onto editor fields (the old
+  canvas badge behaviour) — for now they show in the result panel as before.
+
+### 19.5 No storage / locale self-management — ✅ confirmed clean (2026-07-01)
+- Audited the vendored `contour/` tree: **no `localStorage`/`sessionStorage`** (the only match
+  is a comment in the `useI18n` shim noting what we left out), **no** Contour locale
+  self-management (`detectInitial`/`navigator.language`/`contour.locale` — the shim + client
+  locale store own it), and `usePersistence`/Contour's `App.vue` (draft autosave, recent) were
+  never copied in. CLAUDE.md's no-browser-storage rule holds.
+- No dead deps to prune: nothing imports `marked`/`@fontsource/*` and neither is in the client
+  `package.json` — the port added only `vue-i18n`. Nothing to change.
+
+### 19.6 Retire old editor internals — ✅ (2026-07-01)
+- Deleted the orphaned old editor (nothing live imported it after 19.4b): components
+  `ShaclCanvas`/`ShapeNodeCard` (Vue Flow), `FormDesigner`/`FieldCard`/`FieldInspector`/
+  `GroupInspector`/`SchemaInspector`/`WidgetPalette`/`ShaclFormPreview`; engine
+  `model`/`parse`/`serialize`/`mutations`/`graph`/`widgets`/`preview`/`violations`/`status`/
+  `factories`/`dragImage`; the `shaclEditor` Pinia store; and all their specs (~81 tests).
+- **Kept** `TurtleEditor.vue` (shared Monaco wrapper — used by the new editor, ODRL preview,
+  and Licenses). Removed the now-unused `@vue-flow/{core,background,controls}` deps + the
+  vite `vendor-flow` chunk rule; fixed two stale ODRL doc comments that referenced deleted
+  files.
+- Gate green: lint + typecheck + build + 494 tests. Editor surface is now solely the vendored
+  Contour editor.
+
+### 19.7 Gate + live verify — ✅ PASS (2026-07-01)
+- Gate green (lint + typecheck + 575 tests + build). **Live-verified** against the running
+  fdpneo stack via Playwright (dev server on `:5173` — the CORS/OIDC-allowed origin; admin
+  OIDC login through Keycloak):
+  - ✅ editor renders natively in the FDP shell, themed via the scoped `.contour-editor` +
+    token bridge (no leaking/unstyled CSS); Visual/SHACL-code(Monaco)/Form-Preview tabs + Graph.
+  - ✅ schema list loads; loading `dataset` (a real server schema) populates the editor.
+  - ✅ **save (PUT) → 200**, **sample-validate (POST /validate) → 200 "Conforms"**,
+    delete → 204 — full server round-trip.
+  - ✅ header language switch also translates the editor (DE: `Visueller Editor` / `SHACL-Code`
+    / `Formularvorschau`).
+- **Bug found + fixed during verify:** the ported serializer emits `:`/`rdfs:`/`dash:`-namespaced
+  terms (minted group IRIs, group labels, editor widgets), but parsing a schema whose Turtle
+  omits those `@prefix` lines (the starter, hand-written schemas) produced Turtle with unbound
+  prefixes → server 400 `"Prefix ':' not bound"`. Fixed in `ContourEditor` via
+  `ensureRequiredPrefixes()` — merges any missing `DEFAULT_PREFIXES` on load/parse (existing
+  declarations win). Re-verified: save now 200. **(This fix is uncommitted.)**
+
+### 19.8 Deferred FDP-only editor features — ✅ (2026-07-01)
+The two features the old Vue Flow canvas had, re-added onto Contour's surfaces.
+- **Server-validation → field annotation.** `ContourEditor` takes a `violations` prop (from the
+  testbed's `POST /validate`), maps each `resultPath` to the matching field by CURIE, and passes
+  a per-field map through `Canvas` → `FieldCard`, which renders an inline warning + red border.
+  Live-verified: a sample missing `dct:title` flags the `dct:title` field with "Less than 1
+  values on …".
+- **Resource-type ghost nodes.** `SchemaEditorView` derives `{classIri,label}` from
+  `useResourceTypes` (`specFor`) → `ContourEditor` → `GraphView`, which renders dashed/italic
+  ghost nodes for registered types no shape here targets (CURIE-normalized match). Live-verified:
+  the graph shows Catalog/Dataset/DataService/Distribution/FAIRDataPoint as ghosts.
+- **Bug caught by the thorough test + fixed:** `GraphView` uses `<Teleport to="body">`, which
+  moved the overlay outside the `.contour-editor` root so the scoped `editor.css` never reached
+  it (overlay rendered unstyled/collapsed — a latent 19.2b defect). Fixed by wrapping the
+  teleported content in a `.contour-editor` div.
+- **Thorough live test** (Playwright, admin OIDC, against the running stack): add-widget (via
+  palette) ✅, undo ✅, publish (PUT 200) ✅, failing-sample validate → field badge ✅, graph
+  overlay + ghost nodes ✅, language→DE translates editor ✅, delete (204) ✅. Gate: lint +
+  typecheck + 494 tests + build green. **(19.8 changes uncommitted.)**
+
+**Sequencing:** 19.1 is independent (do first). 19.2→19.3→19.4 are the core swap and land
+together or as a tight series behind the existing editor until 19.4 flips it. 19.5–19.6 are
+cleanup once 19.4 is proven; 19.7 gates the phase (**done**). 19.8 is optional polish. The
+editor-independent 18.7 surfaces can proceed in parallel since they don't touch the editor.
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13
   (`design/proposal-specimen-archive.html` + tokens.css extraction).
 - Accessibility audit pass once visual surfaces stabilize.
-- Internationalization — not in scope for v1 but the messaging layer should
-  not block it.
+- ~~Internationalization — not in scope for v1~~ — now in progress as **Phase 18**
+  (vue-i18n; en + pt-BR/nl/es/de/fr). Infra + shell first; remaining surfaces in 18.7.

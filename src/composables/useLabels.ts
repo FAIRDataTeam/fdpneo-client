@@ -14,13 +14,17 @@ import { computed, type Ref } from "vue";
 import { queryKeys } from "@/api/queries";
 import { fetchLabels, type LabelMap } from "@/api/labels";
 import { shortLabel } from "@/api/rdf";
+import { useLocaleStore } from "@/stores/locale";
 
 export function useLabels(iris: Ref<string[]>) {
+  const locale = useLocaleStore();
   const wanted = computed(() => [...new Set(iris.value.filter(Boolean))].sort());
 
+  // Request literals in the active UI language (e.g. dct:title@de), keyed on it
+  // so a language switch refetches; the server falls back to untagged literals.
   const query = useQuery({
-    queryKey: computed(() => queryKeys.labels(wanted.value)),
-    queryFn: () => fetchLabels(wanted.value),
+    queryKey: computed(() => queryKeys.labels(wanted.value, locale.rdfLang)),
+    queryFn: () => fetchLabels(wanted.value, locale.rdfLang),
     enabled: computed(() => wanted.value.length > 0),
     staleTime: 5 * 60_000,
     retry: false,

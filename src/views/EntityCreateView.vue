@@ -8,6 +8,7 @@
  * is already taken (it requires `If-Match` to overwrite), so we can't clobber.
  */
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { apiBase } from "@/api/rdf";
@@ -23,8 +24,10 @@ import { useEntityShape } from "@/composables/useEntityShape";
 import { useResourceTypes } from "@/composables/useResourceTypes";
 import { useCreateRecord, recordExists } from "@/composables/useRecordMutations";
 import { parseFdpError, type ParsedError } from "@/api/errors";
+import { slugify } from "@/utils/slug";
 import EntityForm from "@/components/metadata/EntityForm.vue";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -67,20 +70,13 @@ watch(
   { immediate: true },
 );
 
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 const effectiveSlug = computed(() => slugify(slug.value || String(model.value.title ?? "")));
 
 async function submit() {
   if (!spec.value || submitting.value) return;
   const titleVal = String(model.value.title ?? "").trim();
   if (!titleVal) {
-    error.value = clientError("Title is required", "Give the new record a title.");
+    error.value = clientError(t("entityAuthor.errTitleRequired"), t("entityAuthor.errTitleRequiredCreate"));
     return;
   }
   // "At least one of" (sh:or) groups — provide a value for at least one member.
@@ -89,17 +85,17 @@ async function submit() {
     const labels = missing[0]!.keys.map(
       (k) => spec.value!.fields.find((f) => f.key === k)?.label ?? k,
     );
-    error.value = clientError("At least one required", `Provide at least one of: ${labels.join(", ")}.`);
+    error.value = clientError(t("entityAuthor.errAtLeastOneTitle"), t("entityAuthor.errAtLeastOneMsg", { labels: labels.join(", ") }));
     return;
   }
   const bad = validateConstraints(spec.value, model.value);
   if (bad) {
-    error.value = clientError(`${bad.label} is invalid`, `${bad.label} ${bad.message}.`);
+    error.value = clientError(t("entityAuthor.errInvalidTitle", { label: bad.label }), t("entityAuthor.errInvalidMsg", { label: bad.label, message: bad.message }));
     return;
   }
   const s = effectiveSlug.value;
   if (!s) {
-    error.value = clientError("Invalid id", "Could not derive a valid id from the title; set one explicitly.");
+    error.value = clientError(t("entityAuthor.errInvalidIdTitle"), t("entityAuthor.errInvalidIdMsg"));
     return;
   }
   const path = `${spec.value.prefix}/${s}`;
@@ -107,7 +103,7 @@ async function submit() {
   error.value = null;
   try {
     if (await recordExists(path)) {
-      error.value = clientError("Id already taken", `A record already exists at /${path}. Choose a different id.`);
+      error.value = clientError(t("entityAuthor.errIdTakenTitle"), t("entityAuthor.errIdTakenMsg", { path }));
       return;
     }
     const iri = `${apiBase()}/${path}`;
@@ -129,33 +125,35 @@ function clientError(title: string, message: string): ParsedError {
 <template>
   <section class="page">
     <div v-if="!auth.isSteward" class="notice">
-      <h2>Not allowed</h2>
-      <p>Creating metadata requires the steward role.</p>
-      <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
+      <h2>{{ t("entityAuthor.notAllowedTitle") }}</h2>
+      <p>{{ t("entityAuthor.createNotAllowedMsg") }}</p>
+      <RouterLink to="/" class="btn ghost">{{ t("entityAuthor.backToBrowse") }}</RouterLink>
     </div>
 
     <div v-else-if="!type" class="notice">
-      <h2>Unknown type</h2>
-      <p>"{{ route.params.type }}" is not a creatable resource type.</p>
-      <RouterLink to="/" class="btn ghost">Back to browse</RouterLink>
+      <h2>{{ t("entityAuthor.unknownTypeTitle") }}</h2>
+      <p>{{ t("entityAuthor.createUnknownTypeMsg", { type: String(route.params.type) }) }}</p>
+      <RouterLink to="/" class="btn ghost">{{ t("entityAuthor.backToBrowse") }}</RouterLink>
     </div>
 
-    <div v-else-if="shapeLoading || !spec" class="notice">Loading form…</div>
+    <div v-else-if="shapeLoading || !spec" class="notice">{{ t("entityAuthor.loadingForm") }}</div>
 
     <template v-else>
       <header class="head">
-        <div class="eyebrow mono">FDP Neo · New {{ spec.label }}</div>
-        <h1>Create {{ spec.label.toLowerCase() }}</h1>
-        <p v-if="parentIri" class="lede mono">in {{ parentIri }}</p>
-        <p class="draft-hint">Saved as a <strong>draft</strong> — publish it when ready from the record page.</p>
+        <div class="eyebrow mono">{{ t("entityAuthor.createEyebrow", { type: spec.label }) }}</div>
+        <h1>{{ t("entityAuthor.createHeading", { type: spec.label }) }}</h1>
+        <p v-if="parentIri" class="lede mono">{{ t("entityAuthor.createParent", { parent: parentIri }) }}</p>
+        <i18n-t keypath="entityAuthor.draftHint" tag="p" class="draft-hint" scope="global">
+          <template #draft><strong>{{ t("entityAuthor.draftWord") }}</strong></template>
+        </i18n-t>
       </header>
 
       <form class="form" @submit.prevent="submit">
         <EntityForm v-model="model" :spec="spec" />
 
         <label class="field">
-          <span class="label">Id (slug)</span>
-          <input v-model="slug" type="text" :placeholder="effectiveSlug || 'auto from title'" aria-label="Identifier slug" />
+          <span class="label">{{ t("entityAuthor.idSlugLabel") }}</span>
+          <input v-model="slug" type="text" :placeholder="effectiveSlug || t('entityAuthor.idSlugPlaceholderAuto')" :aria-label="t('entityAuthor.idSlugAria')" />
           <span class="help mono">/{{ spec.prefix }}/{{ effectiveSlug || "…" }}</span>
         </label>
 
@@ -171,9 +169,9 @@ function clientError(title: string, message: string): ParsedError {
 
         <div class="actions">
           <button class="btn primary" type="submit" :disabled="submitting">
-            {{ submitting ? "Creating…" : `Create ${spec.label.toLowerCase()}` }}
+            {{ submitting ? t("entityAuthor.creating") : t("entityAuthor.createButton", { type: spec.label }) }}
           </button>
-          <RouterLink to="/" class="btn ghost">Cancel</RouterLink>
+          <RouterLink to="/" class="btn ghost">{{ t("entityAuthor.cancel") }}</RouterLink>
         </div>
       </form>
     </template>

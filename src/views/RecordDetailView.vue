@@ -8,6 +8,7 @@
  * lives in EntityEditView.vue.
  */
 import { computed, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useRecord } from "@/composables/useRecord";
 import { useAncestors } from "@/composables/useAncestors";
@@ -23,11 +24,13 @@ import RecordHero from "@/components/metadata/RecordHero.vue";
 import StatStrip from "@/components/metadata/StatStrip.vue";
 import SectionTitle from "@/components/shared/SectionTitle.vue";
 import PropList from "@/components/metadata/PropList.vue";
+import RecordSummaryCard from "@/components/metadata/RecordSummaryCard.vue";
 import DistributionList from "@/components/metadata/DistributionList.vue";
 import AboutSidecar from "@/components/metadata/AboutSidecar.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 import { useChildRecords } from "@/composables/useChildRecords";
 
+const { t } = useI18n();
 const route = useRoute();
 const auth = useAuthStore();
 const { typeForId, childSpecs } = useResourceTypes();
@@ -84,12 +87,11 @@ function changeState(to: MetadataState) {
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">Loading record…</div>
+  <div v-if="isLoading" class="loading">{{ t("recordDetail.loading") }}</div>
   <div v-else-if="isError || !record" class="error">
-    <h2>This record isn't available.</h2>
+    <h2>{{ t("recordDetail.unavailableTitle") }}</h2>
     <p>
-      It may not exist — or it may be unpublished. Draft and archived records are
-      only visible to their owner or an admin; signing in may reveal it.
+      {{ t("recordDetail.unavailableBody") }}
     </p>
   </div>
   <template v-else>
@@ -100,42 +102,37 @@ function changeState(to: MetadataState) {
           <StateBadge :state="state" />
           <template v-if="auth.isSteward">
             <button
-              v-for="t in transitions"
-              :key="t.to"
+              v-for="tr in transitions"
+              :key="tr.to"
               class="btn sm"
               :disabled="transition.isPending.value"
-              @click="changeState(t.to)"
+              @click="changeState(tr.to)"
             >
-              {{ t.label }}
+              {{ tr.label }}
             </button>
           </template>
         </div>
         <p v-if="transitionError" class="state-error" role="alert">{{ transitionError.message }}</p>
         <div v-if="auth.isSteward && entityType" class="steward-actions">
           <RouterLink :to="`/records/${id}/edit`" class="btn sm">
-            <AppIcon name="edit" :size="12" /> Edit
+            <AppIcon name="edit" :size="12" /> {{ t("recordDetail.edit") }}
           </RouterLink>
           <RouterLink v-for="c in childCreateLinks" :key="c.to" :to="c.to" class="btn sm">
-            <AppIcon name="plus" :size="12" /> New {{ c.label.toLowerCase() }}
+            <AppIcon name="plus" :size="12" /> {{ t("recordDetail.newChild", { label: c.label }) }}
           </RouterLink>
         </div>
         <RecordHero :record="record" />
         <StatStrip :record="record" />
-        <SectionTitle>Properties</SectionTitle>
+        <SectionTitle>{{ t("recordDetail.sectionProperties") }}</SectionTitle>
         <PropList :record="record" />
         <template v-if="childRecords.length">
-          <SectionTitle>Contents</SectionTitle>
-          <ul class="contents">
-            <li v-for="c in childRecords" :key="c.id">
-              <RouterLink :to="`/records/${c.id}`" class="content-link">
-                <span class="content-label">{{ c.label }}</span>
-                <span class="content-type mono">{{ c.typeLabel }}</span>
-              </RouterLink>
-            </li>
-          </ul>
+          <SectionTitle>{{ t("recordDetail.sectionContents") }}</SectionTitle>
+          <div class="contents">
+            <RecordSummaryCard v-for="c in childRecords" :key="c.id" :record="c" />
+          </div>
         </template>
         <template v-if="record.distributions.length">
-          <SectionTitle>Distributions</SectionTitle>
+          <SectionTitle>{{ t("recordDetail.sectionDistributions") }}</SectionTitle>
           <DistributionList :distributions="record.distributions" />
         </template>
       </div>
@@ -158,37 +155,15 @@ function changeState(to: MetadataState) {
   min-width: 0;
 }
 .contents {
-  list-style: none;
-  margin: 0 0 8px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 8px;
 }
-.content-link {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
-  text-decoration: none;
-  color: var(--ink);
-}
-.content-link:hover {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
-}
-.content-label {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 14px;
-}
-.content-type {
-  font-size: 11px;
-  color: var(--muted);
+@media (max-width: 640px) {
+  .contents {
+    grid-template-columns: 1fr;
+  }
 }
 .state-row {
   display: flex;
