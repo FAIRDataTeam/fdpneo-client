@@ -23,6 +23,14 @@ const nl: Messages = {
     signIn: "Inloggen",
     create: "Aanmaken",
     deploymentFallback: "FAIR Data Point",
+    nav: {
+      ariaLabel: "Hoofdnavigatie",
+      browse: "Bladeren",
+      search: "Zoeken",
+      schemas: "Schema's",
+      policies: "Beleid",
+      metrics: "Statistieken",
+    },
   },
   footer: {
     appearance: "Weergave",
@@ -150,6 +158,11 @@ const nl: Messages = {
     metaConformsTo: "Voldoet aan",
     metaLicense: "Licentie",
     metaLicenseValue: "CC BY 4.0 · open metadata",
+    containers: "Containers",
+    containersAria: "Containerboom",
+    breadcrumbAria: "Kruimelpad",
+    aboutAria: "Over",
+    countOf: "{shown} van {total}",
   },
   search: {
     queryAria: "Zoekopdracht",

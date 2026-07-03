@@ -25,14 +25,14 @@ const stats = [
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
+  border-bottom: 1px solid var(--fair-separator);
   padding: 16px 0;
   margin-bottom: 36px;
 }
 .stat {
   padding: 0 12px;
-  border-right: 1px solid var(--line);
+  border-right: 1px solid var(--fair-separator);
 }
 .stat:last-child {
   border-right: 0;
@@ -40,24 +40,25 @@ const stats = [
 .value {
   font-size: 28px;
   line-height: 1;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   margin-bottom: 4px;
 }
 .value.mono {
-  font-family: var(--font-mono);
+  font-family: var(--fair-font-mono);
   font-size: 22px;
 }
 .value.serif {
-  font-family: var(--font-serif);
-  font-weight: 400;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-semibold);
+  letter-spacing: var(--fair-tracking-tight);
 }
 .label {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 10px;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-medium);
+  font-size: var(--fair-text-xs);
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
+  letter-spacing: var(--fair-tracking-eyebrow);
+  color: var(--fair-text-muted);
 }
 </style>

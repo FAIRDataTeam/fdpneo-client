@@ -22,6 +22,14 @@ const es: Messages = {
     signIn: "Iniciar sesión",
     create: "Crear",
     deploymentFallback: "FAIR Data Point",
+    nav: {
+      ariaLabel: "Principal",
+      browse: "Navegar",
+      search: "Buscar",
+      schemas: "Esquemas",
+      policies: "Políticas",
+      metrics: "Métricas",
+    },
   },
   footer: {
     appearance: "Apariencia",
@@ -149,6 +157,11 @@ const es: Messages = {
     metaConformsTo: "Conforme a",
     metaLicense: "Licencia",
     metaLicenseValue: "CC BY 4.0 · metadatos abiertos",
+    containers: "Contenedores",
+    containersAria: "Árbol de contenedores",
+    breadcrumbAria: "Ruta de navegación",
+    aboutAria: "Acerca de",
+    countOf: "{shown} de {total}",
   },
   search: {
     queryAria: "Consulta de búsqueda",

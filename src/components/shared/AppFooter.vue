@@ -63,15 +63,15 @@ const serverTitle = computed(() => {
 
 <style scoped>
 footer {
-  padding: 20px 28px;
-  border-top: 1px solid var(--line);
+  padding: 20px var(--fair-gutter);
+  border-top: 1px solid var(--fair-border);
   display: flex;
   gap: 18px;
   align-items: center;
   justify-content: space-between;
-  color: var(--muted);
-  font-size: 12px;
-  background: var(--surface);
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-sm);
+  background: var(--fair-surface);
 }
 .left,
 .right {

@@ -2741,6 +2741,102 @@ editor-independent 18.7 surfaces can proceed in parallel since they don't touch 
 
 ---
 
+## Phase 20 — FAIR Ecosystem re-skin (P1–P5) (2026-07-03)
+
+Restyle the client from the "Specimen Archive" theme (Phase 13) onto the shared **FAIR
+Ecosystem** design system: flat cool-slate surfaces, teal "node" accent, IBM Plex type,
+the node-and-edge graph motif. A **re-skin, not a rebuild** — IA, routes, and the stack
+(Vue 3 + PrimeVue + Vue Flow) stay; only the visual language changes.
+
+**Authoritative plan:** [`docs/design_handoff_fair_ecosystem/MIGRATION.md`](docs/design_handoff_fair_ecosystem/MIGRATION.md)
+— scope (§1), foundations (§3), token crosswalk (§4), PrimeVue theming (§5),
+per-surface→file mapping (§6), UX improvements (§7), and the phased plan + definition of
+done (§8). Visual references (light & dark) live in that folder's `reference/`. The phase
+labels below (P1–P5) are §8's; this section just tracks their status.
+
+### P1 — Foundations — ✅ done (2026-07-03)
+- Copied the FAIR token package into the app: `fair-tokens/` → [`src/styles/fair-tokens/`](src/styles/fair-tokens/)
+  and `theme-and-bridge.css` → [`src/styles/`](src/styles/); rewrote
+  [`src/styles/tokens.css`](src/styles/tokens.css) to `@import` the five FAIR layers
+  (fonts/colors/typography/spacing/effects) + the **v2→FAIR alias bridge** (so existing
+  component CSS referencing `--paper`/`--ink`/`--accent` keeps compiling — retired per
+  surface in P5). Kept the custom-property *names* stable so `useBranding` white-labeling
+  still works.
+- **Fonts:** swapped [`index.html`](index.html) to IBM Plex Sans (400/500/600/700) + IBM
+  Plex Mono; removed Fraunces / Hanken Grotesk / Spline Sans. No serif display tier —
+  headings are IBM Plex Sans bold with `-0.02em` tracking ([`main.css`](src/styles/main.css)).
+- **Atmosphere removed:** deleted the paper grain (`body::before`) + accent vignette
+  (`body::after`) from `main.css`. Backgrounds are solid cool slate.
+- **Tool accent:** `data-tool="fdp"` on the [`App.vue`](src/App.vue) shell → `--tool-accent`
+  resolves to FDP teal.
+- **Dark mode:** cool-slate palette via the bridge file; existing `.theme-dark` toggle
+  unchanged; ink-fill trap handled by its `.pbtn` rule.
+- **Gate green:** lint + typecheck + 340 unit tests + build. **Verified live** (rebuilt the
+  Docker `client` image, recreated the container, headless Chromium against the running
+  stack): body font = IBM Plex Sans, `data-tool="fdp"`, FAIR tokens in the served bundle,
+  no grain, 0 console errors.
+- **Two fixes landed alongside** (found during live verification, committed separately):
+  (1) the RDF graph visualizer collapsed to a single node for the repository root — a
+  trailing-slash mismatch on the root IRI ([`RdfPreviewPanel.vue`](src/components/metadata/RdfPreviewPanel.vue)
+  + `iriToId` bare-base handling in [`rdf.ts`](src/api/rdf.ts)); (2) the root node
+  mis-classified as Dataset — added the `fdp:` namespace + `fdp:FAIRDataPoint`/`fdp:Repository`
+  → `fdp` kind in `TYPE_MAP` ([`rdf.ts`](src/api/rdf.ts), [`namespaces.ts`](src/rdf/namespaces.ts)).
+
+### P2 — Shell + browse + record detail — ✅ mostly done (2026-07-03)
+The everyday consumer/steward path. Delivered, verified live (headless Chromium against the
+running stack, light + dark, 0 console errors) and shipped in the rebuilt Docker image:
+- **App shell:** [`AppHeader`](src/components/shared/AppHeader.vue) rebuilt — node-and-edge
+  glyph + "FAIR Data Point" wordmark ([`AppLogo`](src/components/shared/AppLogo.vue)), primary
+  **tab nav** (Browse · Search · Schemas · Policies · Metrics, active tab teal-underlined,
+  feature-gated), search pill, sticky, tokens migrated. Footer, `App.vue`, `UserMenu` migrated.
+  Added `header.nav.*` i18n keys to all 6 locales.
+- **Metadata browse (2a):** [`MetadataBrowseView`](src/views/MetadataBrowseView.vue) rebuilt as
+  three panes — persistent **container tree** (left, `TreeNode`, built from the public catalog
+  listing so it populates for anonymous visitors) · center (breadcrumb + type eyebrow + bold
+  title + lede + actions + type-spined [`CatalogCard`](src/components/metadata/CatalogCard.vue)s +
+  "N of N") · **working sidecar** (right). Retired the serif hero.
+- **Record detail:** [`RecordHero`](src/components/metadata/RecordHero.vue) (serif→IBM Plex bold),
+  [`StatStrip`](src/components/metadata/StatStrip.vue), [`PropList`](src/components/metadata/PropList.vue),
+  [`AboutSidecar`](src/components/metadata/AboutSidecar.vue), and the view itself migrated.
+- **Working sidecar:** [`RdfPreviewPanel`](src/components/metadata/RdfPreviewPanel.vue) (heaviest;
+  removed the `#fff`/`#b00` hard-coded hexes) + [`RdfGraphOverlay`](src/components/metadata/RdfGraphOverlay.vue)
+  migrated. Gate: lint + typecheck + 497 tests green.
+
+**Deferred (follow-ups within P2):**
+- **"Access — in effect" card** on record detail (plain-language ODRL summary + inheritance
+  note) — a net-new feature, not yet built.
+- Record detail keeps its `SecondaryNav` breadcrumb + on-demand container browser rather than
+  the persistent tree; align if desired.
+- Tree shows repo → catalogs; deeper member nesting isn't eager (the `/page` read-extension is
+  policy-gated → empty for anonymous). Revisit for authed drill-in.
+- Shared primitives still on the alias bridge (`SecondaryNav`, `TypeTag`, `AppChip`, `StateBadge`,
+  `RecordSummaryCard`, `DistributionRow`, `MetaItem`, global `.btn` in `main.css`) — bridge keeps
+  them correct; full name migration lands with the P5 bridge retirement.
+- Removed the header deployment host label + inline "advanced search" link (per mockup);
+  `/advanced-search` still routable.
+
+### P3 — Search + SPARQL unify — ⬜ todo
+One surface, two modes via a Text search / SPARQL toggle; facet rail, result rows, in-memory
+SPARQL history. Fold the standalone playground into Search; keep `/sparql` as a deep-link.
+See MIGRATION §6 (Search + SPARQL row).
+
+### P4 — SHACL + ODRL editors — ⬜ todo
+Skin the Vue Flow canvas as the node-and-edge language (shape = node, `sh:node` = arrowed
+edge, dot-grid canvas, dashed ghost nodes); ODRL plain-language composer. The most custom
+work. See MIGRATION §6 (SHACL editor, ODRL editor rows).
+
+### P5 — Metrics + admin, then retire the bridge — ⬜ todo
+KPI row / time-series / country bars / top-resources (charts use `--tool-accent`); admin
+sub-nav + DataTable. Then **retire the v2→FAIR alias bridge** and delete dead
+Specimen-Archive CSS (definition of done: no `--paper`/`--ink`/… aliases, only
+`--fair-*` / `--tool-*`). See MIGRATION §6 (Metrics, Admin rows) + §8.
+
+**Definition of done (per surface, from MIGRATION §8):** no Fraunces/Hanken/Spline; no
+grain/vignette; no hard-coded hexes (only `--fair-*` / `--tool-*`); light & dark both pass
+AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified.
+
+---
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13

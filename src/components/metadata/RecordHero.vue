@@ -38,26 +38,24 @@ defineProps<{ record: FdpRecord }>();
   flex-wrap: wrap;
 }
 .version {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 h1 {
   margin: 0 0 10px;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-optical-sizing: auto;
-  font-size: 30px;
-  line-height: 1.15;
-  letter-spacing: -0.008em;
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-bold);
+  font-size: var(--fair-text-3xl);
+  line-height: var(--fair-leading-tight);
+  letter-spacing: var(--fair-tracking-display);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 0 0 24px;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  letter-spacing: 0.005em;
+  font-size: var(--fair-text-md);
+  line-height: var(--fair-leading-normal);
+  color: var(--fair-text);
 }
 </style>

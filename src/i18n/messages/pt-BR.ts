@@ -23,6 +23,14 @@ const ptBR: Messages = {
     signIn: "Entrar",
     create: "Criar",
     deploymentFallback: "FAIR Data Point",
+    nav: {
+      ariaLabel: "Principal",
+      browse: "Navegar",
+      search: "Buscar",
+      schemas: "Esquemas",
+      policies: "Políticas",
+      metrics: "Métricas",
+    },
   },
   footer: {
     appearance: "Aparência",
@@ -150,6 +158,11 @@ const ptBR: Messages = {
     metaConformsTo: "Conforme a",
     metaLicense: "Licença",
     metaLicenseValue: "CC BY 4.0 · metadados abertos",
+    containers: "Contêineres",
+    containersAria: "Árvore de contêineres",
+    breadcrumbAria: "Trilha de navegação",
+    aboutAria: "Sobre",
+    countOf: "{shown} de {total}",
   },
   search: {
     queryAria: "Consulta de busca",

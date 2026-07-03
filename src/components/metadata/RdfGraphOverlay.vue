@@ -72,16 +72,16 @@ onUnmounted(() => {
   display: grid;
   place-items: center;
   padding: 32px;
-  background: color-mix(in srgb, var(--ink) 38%, transparent);
+  background: color-mix(in srgb, var(--fair-ink-darker) 38%, transparent);
   backdrop-filter: blur(3px);
 }
 .panel {
   width: min(1180px, 100%);
   height: min(760px, 100%);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-4, 18px);
-  background: var(--surface);
-  box-shadow: var(--shadow-2);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-xl);
+  background: var(--fair-surface);
+  box-shadow: var(--fair-shadow-4);
   overflow: hidden;
   outline: none;
   display: flex;

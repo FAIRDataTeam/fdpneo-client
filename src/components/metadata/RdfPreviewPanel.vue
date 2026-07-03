@@ -232,14 +232,14 @@ onMounted(() => {
   border: 0;
   padding: 0;
   cursor: pointer;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .label {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 12px;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-medium);
+  font-size: var(--fair-text-sm);
   line-height: 1;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .body {
   display: flex;
@@ -257,22 +257,22 @@ onMounted(() => {
   gap: 4px;
   height: 26px;
   padding: 0 9px;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  font-family: var(--fair-font-sans);
+  font-size: var(--fair-text-xs);
+  font-weight: var(--fair-weight-medium);
+  color: var(--fair-text);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-pill);
   cursor: pointer;
 }
 .chip:hover:not(:disabled) {
-  border-color: var(--ink-2);
+  border-color: var(--fair-text-muted);
 }
 .chip.on {
-  color: var(--accent-ink, #fff);
-  background: var(--accent, var(--ink-2));
-  border-color: var(--accent, var(--ink-2));
+  color: var(--fair-text-on-dark);
+  background: var(--tool-accent);
+  border-color: var(--tool-accent);
 }
 .chip:disabled {
   opacity: 0.55;
@@ -280,25 +280,25 @@ onMounted(() => {
 }
 .graph-chip {
   margin-left: auto;
-  color: var(--accent);
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
+  color: var(--tool-accent);
+  border-color: var(--fair-node-soft);
+  background: var(--tool-accent-tint);
 }
 .graph-chip:hover {
-  border-color: var(--accent);
+  border-color: var(--tool-accent);
 }
 .panel {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2, 6px);
-  background: var(--paper-deep, var(--surface-2));
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-code-bg);
   overflow: hidden;
 }
 .bar {
   display: flex;
   gap: 4px;
   padding: 6px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
+  border-bottom: 1px solid var(--fair-border);
+  background: var(--fair-highlight);
 }
 .mini {
   display: inline-flex;
@@ -306,56 +306,56 @@ onMounted(() => {
   gap: 4px;
   height: 24px;
   padding: 0 8px;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2, 6px);
+  font-family: var(--fair-font-sans);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
   cursor: pointer;
 }
 .mini:hover {
-  border-color: var(--ink-2);
+  border-color: var(--fair-text-muted);
 }
 .code {
   margin: 0;
   padding: 12px 14px;
   max-height: 320px;
   overflow: auto;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--fair-font-mono);
   font-size: 11.5px;
   line-height: 1.65;
-  color: var(--ink-2);
+  color: var(--fair-text);
   white-space: pre;
   tab-size: 2;
 }
 /* syntax tinting — kept subtle so the RDF reads as an authored artifact. */
 .code .tok-cmt {
-  color: var(--muted-2);
+  color: var(--fair-text-light);
   font-style: italic;
 }
 .code .tok-iri {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 .code .tok-str {
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .code .tok-kw {
-  color: var(--accent-deep);
+  color: var(--fair-node-darker);
   font-weight: 600;
 }
 .code .tok-pname {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .panel:has(.graph) {
   padding: 12px;
 }
 .hint {
   margin: 0;
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 .hint.err {
-  color: var(--danger, #b00);
+  color: var(--fair-danger);
 }
 </style>

@@ -24,6 +24,14 @@ const fr: Messages = {
     signIn: "Se connecter",
     create: "Créer",
     deploymentFallback: "FAIR Data Point",
+    nav: {
+      ariaLabel: "Principale",
+      browse: "Parcourir",
+      search: "Rechercher",
+      schemas: "Schémas",
+      policies: "Politiques",
+      metrics: "Métriques",
+    },
   },
   footer: {
     appearance: "Apparence",
@@ -151,6 +159,11 @@ const fr: Messages = {
     metaConformsTo: "Conforme à",
     metaLicense: "Licence",
     metaLicenseValue: "CC BY 4.0 · métadonnées ouvertes",
+    containers: "Conteneurs",
+    containersAria: "Arborescence des conteneurs",
+    breadcrumbAria: "Fil d'Ariane",
+    aboutAria: "À propos",
+    countOf: "{shown} sur {total}",
   },
   search: {
     queryAria: "Requête de recherche",

@@ -27,28 +27,28 @@ defineProps<{ catalog: CatalogSummary }>();
 .card {
   position: relative;
   display: block;
-  padding: 22px 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  padding: 20px 22px 20px 24px;
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   text-decoration: none;
   color: inherit;
-  transition: border-color 120ms ease;
+  transition: border-color var(--fair-transition);
 }
-/* type-color spine (Phase 13.4): vertically inset so it never clips the rounded
-   corners or the focus ring. Catalog cards are always the catalog kind. */
+/* type-color spine: vertically inset so it never clips the rounded corners or
+   the focus ring. Catalog cards are always the catalog kind. */
 .card::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 12px;
-  bottom: 12px;
+  top: 10px;
+  bottom: 10px;
   width: 3px;
-  border-radius: 3px;
+  border-radius: var(--fair-radius-sm);
   background: var(--t-catalog);
 }
 .card:hover {
-  border-color: var(--line-strong);
+  border-color: var(--tool-accent);
 }
 .head {
   display: flex;
@@ -57,24 +57,25 @@ defineProps<{ catalog: CatalogSummary }>();
   margin-bottom: 10px;
 }
 .count {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
 }
 h3 {
   margin: 0 0 6px;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 22px;
-  line-height: 1.2;
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-semibold);
+  font-size: var(--fair-text-lg);
+  line-height: 1.25;
+  letter-spacing: var(--fair-tracking-tight);
+  color: var(--fair-text-strong);
 }
 p {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--muted);
+  font-size: var(--fair-text-base);
+  line-height: var(--fair-leading-normal);
+  color: var(--fair-text-muted);
 }
 .keywords {
   display: flex;

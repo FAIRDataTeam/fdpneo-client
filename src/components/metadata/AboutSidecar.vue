@@ -76,20 +76,20 @@ const hasIdentifiers = computed(
 }
 .card {
   padding: 20px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   position: sticky;
-  top: 80px;
+  top: calc(var(--fair-header-h) + 16px);
 }
 .eyebrow {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 11px;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-medium);
+  font-size: var(--fair-text-xs);
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  letter-spacing: var(--fair-tracking-eyebrow);
+  color: var(--fair-text-muted);
   margin-bottom: 14px;
 }
 .meta {
@@ -109,7 +109,7 @@ const hasIdentifiers = computed(
 }
 .idlist a,
 .meta a {
-  color: var(--accent, var(--ink-2));
+  color: var(--tool-accent, var(--fair-text));
   text-decoration: none;
   overflow-wrap: anywhere;
 }

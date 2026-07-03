@@ -20,6 +20,14 @@ const en = {
     signIn: "Sign in",
     create: "Create",
     deploymentFallback: "FAIR Data Point",
+    nav: {
+      ariaLabel: "Primary",
+      browse: "Browse",
+      search: "Search",
+      schemas: "Schemas",
+      policies: "Policies",
+      metrics: "Metrics",
+    },
   },
   footer: {
     appearance: "Appearance",
@@ -145,6 +153,11 @@ const en = {
     metaConformsTo: "Conforms to",
     metaLicense: "License",
     metaLicenseValue: "CC BY 4.0 · open metadata",
+    containers: "Containers",
+    containersAria: "Container tree",
+    breadcrumbAria: "Breadcrumb",
+    aboutAria: "About",
+    countOf: "{shown} of {total}",
   },
   search: {
     queryAria: "Search query",

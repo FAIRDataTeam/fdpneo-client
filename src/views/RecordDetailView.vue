@@ -149,7 +149,7 @@ function changeState(to: MetadataState) {
   grid-template-columns: minmax(0, 760px) 320px;
   gap: 60px;
   justify-content: center;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .column {
   min-width: 0;
@@ -174,8 +174,8 @@ function changeState(to: MetadataState) {
 }
 .state-error {
   margin: 0 0 12px;
-  color: var(--signal);
-  font-size: 13px;
+  color: var(--fair-danger);
+  font-size: var(--fair-text-base);
 }
 .steward-actions {
   display: flex;
@@ -192,13 +192,14 @@ function changeState(to: MetadataState) {
 .error {
   padding: 80px 40px;
   text-align: center;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .error h2 {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 28px;
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-bold);
+  font-size: var(--fair-text-3xl);
+  letter-spacing: var(--fair-tracking-display);
+  color: var(--fair-text-strong);
   margin: 0 0 8px;
 }
 

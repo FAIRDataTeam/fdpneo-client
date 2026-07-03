@@ -1,7 +1,7 @@
 /**
  * Smoke test for the root shell.
  *
- * The shell wraps a header (with the FDP Neo lockup, deployment name, search,
+ * The shell wraps a header (FDP glyph + wordmark, primary tab nav, search,
  * theme toggle and Sign in) and a router outlet. This test verifies the basic
  * wiring is intact.
  */
@@ -14,18 +14,18 @@ import { VueQueryPlugin } from "@tanstack/vue-query";
 import App from "./App.vue";
 
 describe("App", () => {
-  it("renders the brand lockup, deployment name, and a sign-in affordance", async () => {
+  it("renders the brand lockup, primary nav, and a sign-in affordance", async () => {
+    const stub = { template: "<div/>" };
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [
-        { path: "/", name: "browse", component: { template: "<div/>" } },
-        { path: "/search", name: "search", component: { template: "<div/>" } },
-        {
-          path: "/advanced-search",
-          name: "advanced-search",
-          component: { template: "<div/>" },
-        },
-        { path: "/dashboard", name: "dashboard", component: { template: "<div/>" } },
+        { path: "/", name: "browse", component: stub },
+        { path: "/search", name: "search", component: stub },
+        { path: "/advanced-search", name: "advanced-search", component: stub },
+        { path: "/schemas", name: "schemas", component: stub },
+        { path: "/policies", name: "policies", component: stub },
+        { path: "/metrics", name: "metrics", component: stub },
+        { path: "/dashboard", name: "dashboard", component: stub },
       ],
     });
     await router.push("/");
@@ -35,12 +35,11 @@ describe("App", () => {
       global: { plugins: [createPinia(), router, VueQueryPlugin] },
     });
 
-    expect(wrapper.text()).toContain("FAIR");
-    expect(wrapper.text()).toContain("DATA POINT");
-    expect(wrapper.text()).toContain("neo");
-    // Deployment name comes from the repository record's dct:title; with no
-    // server reachable in the test it falls back to the neutral default.
+    // Wordmark (FAIR Ecosystem lockup — no more "DATA POINT" / "neo").
     expect(wrapper.text()).toContain("FAIR Data Point");
+    // Primary tab navigation.
+    expect(wrapper.text()).toContain("Browse");
+    expect(wrapper.text()).toContain("Schemas");
     expect(wrapper.text()).toContain("Sign in");
   });
 });

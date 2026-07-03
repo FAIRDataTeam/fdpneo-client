@@ -46,8 +46,8 @@ watchEffect(() => applyFaviconFromLogo(faviconUrl.value));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
 }
 .main {
   flex: 1;

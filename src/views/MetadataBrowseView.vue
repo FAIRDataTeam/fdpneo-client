@@ -1,208 +1,247 @@
 <script setup lang="ts">
 /**
- * Repository landing — the FDP root.
+ * Repository landing — the FDP root (browse direction 2a).
  *
- * Hero block (eyebrow + serif title + lede + info card) on top, catalog grid
- * below. Reuses the same primitives as the record detail.
+ * Three panes: a persistent container tree (left) · the repository's own
+ * metadata + its catalogs as type-spined cards (center) · the reusable working
+ * sidecar (right). The tree is schema-driven (useTree → whatever container types
+ * the deployment profile declares); selecting a node navigates to its record.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { useCatalogs } from "@/composables/useCatalogs";
 import { useRepository } from "@/composables/useRepository";
 import { useAuthStore } from "@/stores/auth";
-import { sampleDeployment } from "@/data/sampleRecord";
+import { sampleDeployment, type TreeNode as TreeNodeData } from "@/data/sampleRecord";
 import { apiBase } from "@/api/rdf";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
+import TreeNode from "@/components/metadata/TreeNode.vue";
 import MetaItem from "@/components/metadata/MetaItem.vue";
 import RdfPreviewPanel from "@/components/metadata/RdfPreviewPanel.vue";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const { t } = useI18n();
+const router = useRouter();
 const auth = useAuthStore();
 const { data: repo } = useRepository();
-const newCatalogLink = computed(
-  () => `/create/catalog?parent=${encodeURIComponent(apiBase())}`,
-);
 const { data: catalogs, isLoading } = useCatalogs();
+
+const newCatalogLink = computed(() => `/create/catalog?parent=${encodeURIComponent(apiBase())}`);
 const repoTitle = computed(() => repo.value?.title || sampleDeployment.name);
 const repoDescription = computed(() => repo.value?.description || "");
 const catalogCount = computed(() => catalogs.value?.length ?? 0);
-const totalRecords = computed(() =>
-  (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0),
-);
+const totalRecords = computed(() => (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0));
+
+// Persistent container tree: repository root → its catalogs. Built from the
+// public catalog listing rather than the policy-gated `/page` extension so it
+// populates for anonymous visitors too. (Deeper member nesting appears when you
+// open a container.)
+const treeData = computed<TreeNodeData>(() => ({
+  id: "",
+  label: repoTitle.value,
+  count: catalogCount.value,
+  children: (catalogs.value ?? []).map((c) => ({
+    id: c.id,
+    label: c.title,
+    count: c.distributions,
+  })),
+}));
+
+// The root is the active node; selecting a child container opens its record.
+function navigate(id: string) {
+  if (!id) void router.push("/");
+  else void router.push(`/records/${id}`);
+}
 </script>
 
 <template>
-  <section class="hero">
-    <div class="hero__inner">
-      <div class="hero__copy">
-        <div class="eyebrow mono">{{ t("metadata.eyebrow") }}</div>
+  <div class="browse">
+    <!-- Left: persistent container tree -->
+    <aside class="pane tree-pane" :aria-label="t('metadata.containersAria')">
+      <div class="eyebrow mono">{{ t("metadata.containers") }}</div>
+      <div v-if="isLoading" class="pane-hint">{{ t("common.loading") }}</div>
+      <div v-else class="tree" role="tree">
+        <TreeNode :node="treeData" :depth="0" :active-path="['']" @navigate="navigate" />
+      </div>
+    </aside>
+
+    <!-- Center: the repository record + its catalogs -->
+    <section class="center">
+      <nav class="crumbs" :aria-label="t('metadata.breadcrumbAria')">
+        <span class="crumb current">{{ repoTitle }}</span>
+      </nav>
+      <div class="type-eyebrow mono">{{ t("metadata.eyebrow") }}</div>
+      <div class="title-row">
         <h1>{{ repoTitle }}</h1>
-        <p v-if="repoDescription">{{ repoDescription }}</p>
-        <p v-else>{{ t("metadata.defaultDescription") }}</p>
-        <RouterLink v-if="auth.isSteward" to="/repository/edit" class="btn sm edit-repo">
+        <RouterLink v-if="auth.isSteward" to="/repository/edit" class="btn sm">
           <AppIcon name="edit" :size="12" /> {{ t("metadata.editRepository") }}
         </RouterLink>
       </div>
-      <aside class="hero__card">
-        <MetaItem :label="t('metadata.metaCatalogs')">{{
-          t("metadata.metaCatalogsValue", { catalogs: catalogCount, records: totalRecords })
-        }}</MetaItem>
-        <div class="gap" />
-        <MetaItem :label="t('metadata.metaConformsTo')" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
-        <div class="gap" />
-        <MetaItem :label="t('metadata.metaLicense')">{{ t("metadata.metaLicenseValue") }}</MetaItem>
-        <div class="gap" />
-        <RdfPreviewPanel record-id="" />
-      </aside>
-    </div>
-  </section>
+      <p class="lede">{{ repoDescription || t("metadata.defaultDescription") }}</p>
 
-  <section class="catalogs">
-    <div class="catalogs__inner">
-      <div class="catalogs__head">
+      <div class="section-head">
         <h2>{{ t("metadata.catalogsHeading") }}</h2>
         <RouterLink v-if="auth.isSteward" :to="newCatalogLink" class="btn sm new-catalog">
           <AppIcon name="plus" :size="12" /> {{ t("metadata.newCatalog") }}
         </RouterLink>
-        <div class="sort">
-          <span>{{ t("metadata.sortMostRecent") }}</span>
-          <AppIcon name="chevron-d" :size="12" />
-        </div>
+        <span class="count mono">{{
+          t("metadata.countOf", { shown: catalogCount, total: catalogCount })
+        }}</span>
       </div>
-      <div v-if="isLoading" class="loading">{{ t("common.loading") }}</div>
-      <div v-else class="grid">
+      <div v-if="isLoading" class="pane-hint">{{ t("common.loading") }}</div>
+      <div v-else class="list">
         <CatalogCard v-for="c in catalogs" :key="c.id" :catalog="c" />
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Right: working sidecar -->
+    <aside class="pane sidecar-pane" :aria-label="t('metadata.aboutAria')">
+      <MetaItem :label="t('metadata.metaCatalogs')">{{
+        t("metadata.metaCatalogsValue", { catalogs: catalogCount, records: totalRecords })
+      }}</MetaItem>
+      <div class="gap" />
+      <MetaItem :label="t('metadata.metaConformsTo')" mono>FDP Spec 1.2 · DCAT-AP 3.0</MetaItem>
+      <div class="gap" />
+      <MetaItem :label="t('metadata.metaLicense')">{{ t("metadata.metaLicenseValue") }}</MetaItem>
+      <div class="gap" />
+      <RdfPreviewPanel record-id="" />
+    </aside>
+  </div>
 </template>
 
 <style scoped>
-.hero {
-  padding: 44px 80px 28px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
-.hero__inner {
-  max-width: 1080px;
-  margin: 0 auto;
+.browse {
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 60px;
-  align-items: end;
+  grid-template-columns: 248px minmax(0, 1fr) 340px;
+  align-items: start;
+  min-height: 0;
+}
+
+/* Panes */
+.pane {
+  padding: 24px 20px;
+  min-height: 100%;
+}
+.tree-pane {
+  border-right: 1px solid var(--fair-separator);
+  background: var(--fair-bg);
+  position: sticky;
+  top: var(--fair-header-h);
+  align-self: stretch;
+}
+.sidecar-pane {
+  border-left: 1px solid var(--fair-separator);
+  background: var(--fair-bg);
 }
 .eyebrow {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
+  letter-spacing: var(--fair-tracking-eyebrow);
+  margin-bottom: 14px;
 }
-.hero__copy h1 {
-  margin: 0 0 12px;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-optical-sizing: auto;
-  font-size: 44px;
-  line-height: 1.08;
-  letter-spacing: -0.012em;
-  color: var(--ink);
+.pane-hint {
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-base);
+  padding: 8px 4px;
 }
-.hero__copy p {
+
+/* Center */
+.center {
+  padding: 28px var(--fair-gutter) 48px;
+  min-width: 0;
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-muted);
+  margin-bottom: 14px;
+}
+.crumb.current {
+  color: var(--fair-text);
+}
+.type-eyebrow {
+  font-size: var(--fair-text-sm);
+  color: var(--tool-accent);
+  letter-spacing: var(--fair-tracking-tight);
+  margin-bottom: 6px;
+}
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.title-row h1 {
   margin: 0;
-  font-family: var(--font-sans);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 560px;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-bold);
+  font-size: var(--fair-text-display);
+  line-height: var(--fair-leading-tight);
+  letter-spacing: var(--fair-tracking-display);
+  color: var(--fair-text-strong);
 }
-.edit-repo {
-  margin-top: 16px;
+.lede {
+  margin: 12px 0 0;
+  font-family: var(--fair-font-sans);
+  font-size: var(--fair-text-md);
+  line-height: var(--fair-leading-normal);
+  color: var(--fair-text);
+  max-width: 60ch;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 36px 0 16px;
+}
+.section-head h2 {
+  margin: 0;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-semibold);
+  font-size: var(--fair-text-sm);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: var(--fair-tracking-eyebrow);
+  color: var(--fair-text-muted);
+}
+.new-catalog {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-.hero__card {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--paper);
+.count {
+  margin-left: auto;
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-light);
+}
+.list {
+  display: grid;
+  gap: 14px;
 }
 .gap {
   height: 12px;
 }
-.hero__card-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 14px;
-}
-.hero__card-actions .btn {
-  flex: 1;
-  justify-content: center;
-}
 
-.catalogs {
-  padding: 36px 80px;
-  flex: 1;
-}
-.catalogs__inner {
-  max-width: 1080px;
-  margin: 0 auto;
-}
-.catalogs__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.new-catalog {
-  margin-left: auto;
-  margin-right: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.catalogs__head h2 {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 13px;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-.sort {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 12px;
-  color: var(--muted);
-}
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-.loading {
-  padding: 40px;
-  color: var(--muted);
-  text-align: center;
-}
-
-@media (max-width: 1000px) {
-  .hero,
-  .catalogs {
-    padding-left: 32px;
-    padding-right: 32px;
+@media (max-width: 1100px) {
+  .browse {
+    grid-template-columns: 220px minmax(0, 1fr);
   }
-  .hero__inner {
+  .sidecar-pane {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .browse {
     grid-template-columns: 1fr;
   }
-  .grid {
-    grid-template-columns: 1fr;
+  .tree-pane {
+    display: none;
   }
 }
 </style>

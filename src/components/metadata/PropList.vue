@@ -86,6 +86,6 @@ const themeChips = computed(() =>
   flex-wrap: wrap;
 }
 .accent {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 </style>

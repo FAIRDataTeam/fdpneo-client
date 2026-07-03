@@ -211,16 +211,16 @@ onUnmounted(() => {
 .avatar {
   width: 32px;
   height: 32px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-radius: var(--fair-radius-pill);
+  background: var(--tool-accent-tint);
+  color: var(--tool-accent);
   display: grid;
   place-items: center;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 12px;
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-semibold);
+  font-size: var(--fair-text-sm);
   line-height: 1;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   cursor: pointer;
   padding: 0;
 }
@@ -229,10 +229,10 @@ onUnmounted(() => {
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  box-shadow: var(--shadow-2);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  box-shadow: var(--fair-shadow-3);
   padding: 6px;
   display: grid;
   gap: 2px;
@@ -242,15 +242,15 @@ onUnmounted(() => {
   padding: 8px 10px 6px;
 }
 .identity__name {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--ink);
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-medium);
+  font-size: var(--fair-text-base);
+  color: var(--fair-text-strong);
   line-height: 1.3;
 }
 .identity__email {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--fair-text-xs);
+  color: var(--fair-text-muted);
   margin-top: 2px;
 }
 .hr {
@@ -264,16 +264,16 @@ onUnmounted(() => {
   padding: 8px 10px;
   background: transparent;
   border: 0;
-  border-radius: var(--r-1);
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--ink-2);
+  border-radius: var(--fair-radius-sm);
+  font-family: var(--fair-font-sans);
+  font-weight: var(--fair-weight-medium);
+  font-size: var(--fair-text-base);
+  color: var(--fair-text);
   text-align: left;
   cursor: pointer;
 }
 .item:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--fair-highlight);
+  color: var(--fair-text-strong);
 }
 </style>
