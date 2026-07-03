@@ -146,15 +146,15 @@ function onPaste(e: ClipboardEvent, i: number) {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--muted);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-muted);
   cursor: pointer;
 }
 .remove:hover {
-  color: var(--signal);
-  border-color: var(--signal);
+  color: var(--fair-warning);
+  border-color: var(--fair-warning);
 }
 .add {
   align-self: flex-start;
@@ -162,16 +162,16 @@ function onPaste(e: ClipboardEvent, i: number) {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--r-2);
+  border: 1px dashed var(--fair-border);
+  border-radius: var(--fair-radius-md);
   background: none;
-  color: var(--accent);
-  font-family: var(--font-sans);
+  color: var(--tool-accent);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
   cursor: pointer;
 }
 .add:hover {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
+  border-color: var(--fair-node-soft);
+  background: var(--tool-accent-tint);
 }
 </style>

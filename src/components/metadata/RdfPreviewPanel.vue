@@ -153,7 +153,7 @@ function openTab() {
       @click="open = !open"
     >
       <span class="label">{{ t("rdfPreview.heading") }}</span>
-      <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="14" color="var(--muted)" />
+      <AppIcon :name="open ? 'chevron-d' : 'chevron-r'" :size="14" color="var(--fair-text-muted)" />
     </button>
 
     <div v-if="open" id="rdf-body" class="body">

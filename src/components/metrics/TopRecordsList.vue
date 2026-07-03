@@ -34,9 +34,9 @@ defineProps<{ rows: TopResourceRow[] }>();
   padding: 0;
   margin: 0;
   display: grid;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   overflow: hidden;
 }
 .row {
@@ -45,14 +45,14 @@ defineProps<{ rows: TopResourceRow[] }>();
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
 }
 .row:last-child {
   border-bottom: 0;
 }
 .rank {
   font-size: 11px;
-  color: var(--muted-2);
+  color: var(--fair-text-light);
 }
 .meta {
   display: flex;
@@ -61,34 +61,34 @@ defineProps<{ rows: TopResourceRow[] }>();
   min-width: 0;
 }
 .title {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
   line-height: 1.35;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .title:hover {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 .stat {
   text-align: right;
 }
 .stat__value {
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .stat__label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 10px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin-top: 2px;
 }
 </style>

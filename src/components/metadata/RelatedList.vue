@@ -30,19 +30,19 @@ defineProps<{ items: Related[] }>();
 }
 .type {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 2px;
 }
 .title {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
   line-height: 1.35;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .item:hover .title {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 </style>

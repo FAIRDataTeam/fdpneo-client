@@ -23,19 +23,32 @@ const props = defineProps<{
   fields?: Array<"requests" | "visitors">;
 }>();
 
-const tokens = ref({ ink: "#14181F", muted: "#6b7280", line: "#e6e2d8", accent: "#2D5B89", ok: "#2F7A4A", signal: "#B5532A" });
+// FAIR token fallbacks (used only if a custom property can't be read).
+// `tooltipBg` reads --fair-ink-darker, which stays dark in both themes, so the
+// white tooltip text keeps contrast (unlike --fair-text-strong, which flips
+// light in dark mode — the ink-fill trap).
+const tokens = ref({
+  ink: "#1f2733",
+  muted: "#6b7480",
+  line: "#e8ecf1",
+  accent: "#0e857f",
+  ok: "#2e7d32",
+  signal: "#8a6d00",
+  tooltipBg: "#141b24",
+});
 
 function readTokens() {
   if (typeof document === "undefined") return;
   const cs = window.getComputedStyle(document.documentElement);
   const read = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
   tokens.value = {
-    ink: read("--ink", tokens.value.ink),
-    muted: read("--muted", tokens.value.muted),
-    line: read("--line", tokens.value.line),
-    accent: read("--accent", tokens.value.accent),
-    ok: read("--ok", tokens.value.ok),
-    signal: read("--signal", tokens.value.signal),
+    ink: read("--fair-text-strong", tokens.value.ink),
+    muted: read("--fair-text-muted", tokens.value.muted),
+    line: read("--fair-separator", tokens.value.line),
+    accent: read("--tool-accent", tokens.value.accent),
+    ok: read("--fair-success", tokens.value.ok),
+    signal: read("--fair-warning", tokens.value.signal),
+    tooltipBg: read("--fair-ink-darker", tokens.value.tooltipBg),
   };
 }
 
@@ -115,7 +128,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => ({
       labels: { color: tokens.value.ink, font: { size: 12 }, boxWidth: 12, boxHeight: 12 },
     },
     tooltip: {
-      backgroundColor: tokens.value.ink,
+      backgroundColor: tokens.value.tooltipBg,
       titleColor: "#fff",
       bodyColor: "#fff",
       padding: 10,

@@ -129,7 +129,7 @@ function remove(i: number) {
 .empty {
   margin: 0;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .row {
   display: flex;
@@ -137,9 +137,9 @@ function remove(i: number) {
   align-items: flex-end;
   flex-wrap: wrap;
   padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--paper);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
 }
 .field {
   display: flex;
@@ -156,7 +156,7 @@ function remove(i: number) {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .opt {
   text-transform: none;
@@ -164,13 +164,13 @@ function remove(i: number) {
   font-weight: 400;
 }
 input {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
   padding: 7px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
-  background: var(--surface);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-sm);
+  background: var(--fair-surface);
+  color: var(--fair-text-strong);
 }
 input.mono {
   font-family: var(--font-mono, monospace);

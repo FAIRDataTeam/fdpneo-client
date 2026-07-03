@@ -108,7 +108,7 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 
       <div class="toolbar">
         <div class="filter">
-          <AppIcon name="search" :size="14" color="var(--muted)" />
+          <AppIcon name="search" :size="14" color="var(--fair-text-muted)" />
           <input v-model="filter" type="text" :placeholder="t('stewardDashboard.filterPlaceholder')" :aria-label="t('stewardDashboard.filterAria')" />
         </div>
         <div class="spacer" />
@@ -163,16 +163,16 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .side .eyebrow {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin-bottom: 12px;
 }
 .side nav {
@@ -182,16 +182,16 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 .side .hr {
   margin: 20px 0;
   border: 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
 }
 .navitem {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border-radius: var(--r-2);
-  color: var(--ink-2);
-  font-family: var(--font-sans);
+  border-radius: var(--fair-radius-md);
+  color: var(--fair-text);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
@@ -199,11 +199,11 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   cursor: pointer;
 }
 .navitem.active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--tool-accent-tint);
+  color: var(--tool-accent);
 }
 .navitem.disabled {
-  color: var(--muted-2);
+  color: var(--fair-text-light);
   cursor: default;
 }
 .label {
@@ -218,11 +218,11 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 }
 .title h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
   line-height: 1.1;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .title__actions {
   display: flex;
@@ -235,8 +235,8 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 }
 .lede {
   margin: 6px 0 22px;
-  color: var(--muted);
-  font-family: var(--font-sans);
+  color: var(--fair-text-muted);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 14px;
   line-height: 1.55;
@@ -247,27 +247,27 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   padding: 20px 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   margin-bottom: 28px;
 }
 .kpi__value {
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
   line-height: 1;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   margin-bottom: 6px;
 }
 .kpi__label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 
 .toolbar {
@@ -282,9 +282,9 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   gap: 8px;
   padding: 0 12px;
   height: 34px;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
   flex: 1;
   max-width: 320px;
 }
@@ -292,9 +292,9 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   border: 0;
   outline: 0;
   background: transparent;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   width: 100%;
 }
 .spacer {
@@ -304,21 +304,21 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   font-size: 12px;
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .empty {
   padding: 48px;
   text-align: center;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  color: var(--fair-text-muted);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
 }
 
 .table {
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   overflow: hidden;
 }
 .thead,
@@ -330,18 +330,18 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   align-items: center;
 }
 .thead {
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--line);
-  font-family: var(--font-sans);
+  background: var(--fair-highlight);
+  border-bottom: 1px solid var(--fair-separator);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .trow {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
 }
 .trow:last-child {
   border-bottom: 0;
@@ -356,16 +356,16 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 }
 .rtitle {
   display: block;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 14px;
   line-height: 1.3;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   margin-top: 3px;
   text-decoration: none;
 }
 .rtitle:hover {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 .trow .btn {
   display: inline-flex;
@@ -375,20 +375,20 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
 
 .recent-title {
   margin: 28px 0 12px;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .recent {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   overflow: hidden;
 }
 .recent li {
@@ -397,7 +397,7 @@ const soon = computed<{ icon: IconName; label: string }[]>(() => [
   justify-content: space-between;
   gap: 14px;
   padding: 12px 18px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
 }
 .recent li:last-child {
   border-bottom: 0;

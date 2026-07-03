@@ -52,14 +52,14 @@ const open = ref(false);
   height: 28px;
   padding: 0 10px;
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--fair-separator);
   border-radius: 999px;
-  font: 500 12px/1 var(--font-sans);
-  color: var(--ink-2);
+  font: 500 12px/1 var(--fair-font-sans);
+  color: var(--fair-text);
   cursor: pointer;
 }
 .trigger:hover {
-  background: var(--surface-2);
+  background: var(--fair-highlight);
 }
 .body {
   position: absolute;
@@ -67,15 +67,15 @@ const open = ref(false);
   right: 0;
   width: 360px;
   padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  box-shadow: var(--shadow-2);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  box-shadow: var(--fair-shadow-2);
   z-index: 20;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 12px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .body p {
   margin: 0 0 8px;
@@ -87,6 +87,6 @@ const open = ref(false);
   gap: 4px;
 }
 .body .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>

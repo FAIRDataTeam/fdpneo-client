@@ -37,23 +37,23 @@ beforeEach(() => {
 describe("applyBranding", () => {
   it("injects allowlisted light + dark overrides and ignores unknown keys", () => {
     setBranding({
-      theme: { "--accent": "#7a1f2b", "--nope": "#000" },
-      themeDark: { "--accent": "#e08aa0" },
+      theme: { "--tool-accent": "#7a1f2b", "--nope": "#000" },
+      themeDark: { "--tool-accent": "#e08aa0" },
     });
     applyBranding();
 
     const css = brandingStyle()?.textContent ?? "";
     expect(css).toContain(":root {");
-    expect(css).toContain("--accent: #7a1f2b;");
+    expect(css).toContain("--tool-accent: #7a1f2b;");
     expect(css).toContain(".theme-dark {");
-    expect(css).toContain("--accent: #e08aa0;");
+    expect(css).toContain("--tool-accent: #e08aa0;");
     // Non-allowlisted key dropped.
     expect(css).not.toContain("--nope");
   });
 
   it("is a no-op (and removes a stale element) when no theme overrides are set", () => {
     // Seed a stale element, then apply empty branding.
-    setBranding({ theme: { "--accent": "#123456" } });
+    setBranding({ theme: { "--tool-accent": "#123456" } });
     applyBranding();
     expect(brandingStyle()).not.toBeNull();
 
@@ -124,20 +124,20 @@ describe("applyFaviconFromLogo", () => {
 
 describe("setBrandingPreview", () => {
   it("overlays a draft as the active branding and clears back to deployed", () => {
-    setBranding({ theme: { "--accent": "#deployed" } });
+    setBranding({ theme: { "--tool-accent": "#deployed" } });
     applyBranding();
-    expect(brandingStyle()?.textContent).toContain("--accent: #deployed;");
+    expect(brandingStyle()?.textContent).toContain("--tool-accent: #deployed;");
     expect(brandingPreviewActive.value).toBe(false);
 
-    setBrandingPreview({ theme: { "--accent": "#preview" } });
+    setBrandingPreview({ theme: { "--tool-accent": "#preview" } });
     expect(brandingPreviewActive.value).toBe(true);
-    expect(brandingStyle()?.textContent).toContain("--accent: #preview;");
+    expect(brandingStyle()?.textContent).toContain("--tool-accent: #preview;");
     // The preview replaces the deployed overrides for the session.
     expect(brandingStyle()?.textContent).not.toContain("#deployed");
 
     setBrandingPreview(null);
     expect(brandingPreviewActive.value).toBe(false);
-    expect(brandingStyle()?.textContent).toContain("--accent: #deployed;");
+    expect(brandingStyle()?.textContent).toContain("--tool-accent: #deployed;");
   });
 
   it("makes useBranding accessors reflect the live preview", () => {
@@ -156,7 +156,7 @@ describe("brandingConfigSnippet", () => {
       orgName: "  Erasmus MC  ",
       logoUrl: " /logo.svg ",
       logoUrlDark: "   ",
-      theme: { "--accent": " #7a1f2b ", "--nope": "#000", "--blank": "  " },
+      theme: { "--tool-accent": " #7a1f2b ", "--nope": "#000", "--blank": "  " },
       themeDark: {},
     });
 
@@ -164,7 +164,7 @@ describe("brandingConfigSnippet", () => {
     expect(snippet).toContain("branding:");
     expect(snippet).toContain('"orgName": "Erasmus MC"');
     expect(snippet).toContain('"logoUrl": "/logo.svg"');
-    expect(snippet).toContain('"--accent": "#7a1f2b"');
+    expect(snippet).toContain('"--tool-accent": "#7a1f2b"');
     // Dropped: empty logoUrlDark, unknown/blank tokens, empty themeDark.
     expect(snippet).not.toContain("logoUrlDark");
     expect(snippet).not.toContain("--nope");
@@ -177,14 +177,14 @@ describe("brandingConfigSnippet", () => {
     const end = snippet.lastIndexOf(",\n};");
     const parsed = JSON.parse(snippet.slice(start, end).trim()) as BrandingConfig;
     expect(parsed.orgName).toBe("Erasmus MC");
-    expect(parsed.theme?.["--accent"]).toBe("#7a1f2b");
+    expect(parsed.theme?.["--tool-accent"]).toBe("#7a1f2b");
   });
 
   it("emits a single-line FDP_BRANDING env var of valid JSON", () => {
     const line = brandingEnvValue({
       orgName: "Acme",
       logoUrl: "  ",
-      theme: { "--accent": "#7a1f2b", "--nope": "#000" },
+      theme: { "--tool-accent": "#7a1f2b", "--nope": "#000" },
     });
 
     expect(line.startsWith("FDP_BRANDING='")).toBe(true);
@@ -194,7 +194,7 @@ describe("brandingConfigSnippet", () => {
     const json = line.slice("FDP_BRANDING='".length, -1);
     const parsed = JSON.parse(json) as BrandingConfig;
     expect(parsed.orgName).toBe("Acme");
-    expect(parsed.theme?.["--accent"]).toBe("#7a1f2b");
+    expect(parsed.theme?.["--tool-accent"]).toBe("#7a1f2b");
     expect(parsed.logoUrl).toBeUndefined(); // blank dropped
     expect(parsed.theme?.["--nope"]).toBeUndefined(); // non-allowlisted dropped
   });
@@ -208,7 +208,7 @@ describe("validateBranding", () => {
       validateBranding({
         orgName: "Acme",
         logoUrl: "/logo.svg",
-        theme: { "--accent": "#2d5b89", "--signal": "rgb(45 91 137)" },
+        theme: { "--tool-accent": "#2d5b89", "--fair-warning": "rgb(45 91 137)" },
       }),
     ).toEqual([]);
   });
@@ -229,14 +229,14 @@ describe("validateBranding", () => {
   });
 
   it("explains a color value that doesn't look like a CSS color", () => {
-    const issues = validateBranding({ theme: { "--accent": "ff0000" } }); // missing #
+    const issues = validateBranding({ theme: { "--tool-accent": "ff0000" } }); // missing #
     expect(issues.some((i) => i.includes("doesn't look like a CSS color"))).toBe(true);
   });
 
   it("flags wrong value types", () => {
     expect(validateBranding({ orgName: 5 })[0]).toMatch(/must be a string/);
     expect(validateBranding({ theme: "x" })[0]).toMatch(/must be an object/);
-    expect(validateBranding({ theme: { "--accent": 1 } })[0]).toMatch(/must be a string color/);
+    expect(validateBranding({ theme: { "--tool-accent": 1 } })[0]).toMatch(/must be a string color/);
   });
 });
 

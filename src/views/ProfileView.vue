@@ -81,29 +81,29 @@ const accountUrl = computed(() => safeHref(claim("iss") ? `${claim("iss")}/accou
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .card {
   margin-top: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -120,15 +120,15 @@ h1 {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--accent-soft);
-  color: var(--accent, var(--ink));
+  background: var(--tool-accent-tint);
+  color: var(--accent, var(--fair-text-strong));
   font-weight: 600;
   font-size: 20px;
 }
 .name {
   font-size: 18px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .roles {
   display: flex;
@@ -140,8 +140,8 @@ h1 {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--muted);
+  background: var(--fair-highlight);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -153,14 +153,14 @@ h1 {
 }
 dt {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 dd {
   margin: 0;
   font-size: 14px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   word-break: break-all;
 }
 .actions {
@@ -171,13 +171,13 @@ dd {
 }
 .help {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 12px;
 }
 .mono {
-  font-family: var(--font-mono);
+  font-family: var(--fair-font-mono);
 }
 </style>

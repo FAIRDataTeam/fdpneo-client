@@ -269,39 +269,39 @@ function orLabels(keys: string[]): string {
   gap: 6px;
 }
 .label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .req {
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .origin {
   margin-left: 8px;
   padding: 1px 7px;
   border-radius: 999px;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 10px;
   letter-spacing: 0.02em;
   text-transform: none;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
+  color: var(--tool-accent);
+  background: var(--tool-accent-tint);
+  border: 1px solid var(--fair-node-soft);
 }
 input,
 textarea,
 select {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   width: 100%;
   box-sizing: border-box;
 }
@@ -310,7 +310,7 @@ textarea {
 }
 .help {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .lang-row {
   display: flex;
@@ -325,8 +325,8 @@ textarea {
   flex: none;
 }
 .details {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
   padding: 12px 14px;
   margin: 0;
   display: flex;
@@ -334,23 +334,23 @@ textarea {
   gap: 12px;
 }
 .details legend {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 600;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   padding: 0 6px;
 }
 .or-req {
   margin: 0;
   font-size: 12px;
-  color: var(--ink-2);
+  color: var(--fair-text);
   padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--r-1);
-  background: var(--surface-2);
+  border: 1px solid var(--fair-separator);
+  border-left: 3px solid var(--tool-accent);
+  border-radius: var(--fair-radius-sm);
+  background: var(--fair-highlight);
 }
 .or-req strong {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 </style>

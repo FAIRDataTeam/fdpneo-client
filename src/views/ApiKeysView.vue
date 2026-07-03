@@ -153,7 +153,7 @@ const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
   margin: 0 0 6px;
 }
 .sub {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin: 0;
 }
 .sub code {
@@ -167,13 +167,13 @@ section h2 {
   margin: 0 0 12px;
 }
 .reveal {
-  border: 1px solid var(--ok);
-  background: var(--ok-soft);
-  border-radius: var(--r-3);
+  border: 1px solid var(--fair-success);
+  background: var(--fair-success-tint);
+  border-radius: var(--fair-radius-lg);
   padding: 18px;
 }
 .warn {
-  color: var(--signal);
+  color: var(--fair-warning);
   font-size: 13px;
   margin: 0 0 12px;
 }
@@ -187,9 +187,9 @@ section h2 {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
+  background: var(--fair-bg);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
   padding: 10px 12px;
   font-size: 13px;
   white-space: nowrap;
@@ -209,24 +209,24 @@ section h2 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .field input {
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 9px 12px;
 }
 .error {
-  color: var(--signal);
+  color: var(--fair-warning);
   font-size: 13px;
   margin: 10px 0 0;
 }
 .state {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   padding: 20px 0;
 }
 .grid {
@@ -238,13 +238,13 @@ section h2 {
 .grid td {
   text-align: left;
   padding: 10px 8px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
 }
 .grid th {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-weight: 500;
 }
 .grid .btn {

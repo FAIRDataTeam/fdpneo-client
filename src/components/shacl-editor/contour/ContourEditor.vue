@@ -317,8 +317,8 @@ defineExpose({ loadTurtle, getTurtle });
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  border-bottom: 1px solid var(--fair-separator);
+  background: var(--fair-surface);
 }
 .ce-tab {
   display: inline-flex;
@@ -327,15 +327,15 @@ defineExpose({ loadTurtle, getTurtle });
   padding: 6px 12px;
   border: 0;
   background: transparent;
-  border-radius: var(--r-1);
+  border-radius: var(--fair-radius-sm);
   font: inherit;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   cursor: pointer;
 }
 .ce-tab.active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--tool-accent-tint);
+  color: var(--tool-accent);
 }
 .ce-tabs__spacer {
   flex: 1;
@@ -352,9 +352,9 @@ defineExpose({ loadTurtle, getTurtle });
 .ce-code__error {
   margin: 0 0 8px;
   padding: 8px 12px;
-  border-radius: var(--r-2);
-  background: var(--signal-soft);
-  color: var(--signal);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
   font-size: 13px;
 }
 .ce-code__editor {
@@ -366,9 +366,9 @@ defineExpose({ loadTurtle, getTurtle });
 }
 .ce-issues {
   padding: 8px 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
   font-size: 12px;
-  color: var(--signal);
+  color: var(--fair-warning);
   display: flex;
   align-items: center;
   gap: 6px;

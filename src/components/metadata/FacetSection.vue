@@ -34,13 +34,13 @@ const emit = defineEmits<{ (e: "toggle", value: string): void }>();
   margin-bottom: 24px;
 }
 .title {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin-bottom: 10px;
 }
 .items {
@@ -52,36 +52,36 @@ const emit = defineEmits<{ (e: "toggle", value: string): void }>();
   align-items: center;
   gap: 10px;
   padding: 6px 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 13px;
   line-height: 1;
-  color: var(--ink-2);
+  color: var(--fair-text);
   cursor: pointer;
 }
 .item.on {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .box {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
+  border: 1px solid var(--fair-border);
+  background: var(--fair-surface);
   display: grid;
   place-items: center;
   color: #fff;
   cursor: pointer;
 }
 .item.on .box {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--tool-accent);
+  background: var(--tool-accent);
 }
 .label {
   flex: 1;
 }
 .count {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>

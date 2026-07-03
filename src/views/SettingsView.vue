@@ -76,19 +76,19 @@ const entries = computed<[string, SettingValue][]>(() =>
   margin: 0 0 6px;
 }
 .sub {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin: 0;
 }
 .notice {
   margin-top: 12px;
   padding: 10px 12px;
-  border-radius: var(--r-2);
-  background: var(--surface-2);
-  color: var(--ink-2);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-highlight);
+  color: var(--fair-text);
   font-size: 13px;
 }
 .state {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   padding: 24px 0;
 }
 .list {

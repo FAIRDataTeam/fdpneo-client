@@ -1,64 +1,25 @@
 /*
- * FAIR Ecosystem — dark palette + v2→FAIR alias bridge.
+ * FAIR Ecosystem — dark palette + record-kind (--t-*) tokens.
  *
- * Import order in src/styles/tokens.css (or main.css):
- *   @import "./fair-tokens/fonts.css";
- *   @import "./fair-tokens/colors.css";
- *   @import "./fair-tokens/typography.css";
- *   @import "./fair-tokens/spacing.css";
- *   @import "./fair-tokens/effects.css";
- *   @import "./theme-and-bridge.css";   <-- this file, last
+ * Imported last in src/styles/tokens.css (after the fair-tokens layers).
  *
- * The bridge lets existing FDPneo component CSS (which references --paper, --ink,
- * --accent, etc.) keep compiling against FAIR values, so P1 reskins the whole app
- * at once. Retire the bridge per surface as you migrate component CSS to the
- * --fair-* / --tool-* names directly (see MIGRATION.md §8, P5).
+ * The transitional v2→FAIR alias bridge that this file used to carry was retired
+ * in P5, once every surface's CSS moved to the --fair-* / --tool-* names. What
+ * remains is permanent: the cool-slate dark palette and the record-kind color
+ * system. (Filename kept to avoid churning the import; it's no longer a bridge.)
  */
 
-/* ---- v2 → FAIR alias bridge (transitional) ---- */
+/* ---- Record-kind colors → per-tool accent family (MIGRATION.md §4) ----
+   Kept intentionally: drives type tags, card spines, and graph nodes. The
+   linked-data *accent* stays teal ecosystem-wide; these hues differentiate
+   record kinds only. */
 :root {
-  --paper:        var(--fair-bg);
-  --paper-deep:   var(--fair-canvas);
-  --surface:      var(--fair-surface);
-  --surface-2:    var(--fair-highlight);
-  --line:         var(--fair-separator);
-  --line-strong:  var(--fair-border);
-  --ink:          var(--fair-text-strong);
-  --ink-2:        var(--fair-text);
-  --muted:        var(--fair-text-muted);
-  --muted-2:      var(--fair-text-light);
-
-  --accent:       var(--tool-accent);
-  --accent-deep:  var(--fair-node-darker);
-  --accent-soft:  var(--tool-accent-tint);
-  --accent-line:  var(--fair-node-soft);
-
-  --signal:       var(--fair-warning);
-  --signal-soft:  var(--fair-warning-tint);
-  --ok:           var(--fair-success);
-  --ok-soft:      var(--fair-success-tint);
-  --warn:         var(--fair-warning);
-  --warn-soft:    var(--fair-warning-tint);
-
-  --font-sans:    var(--fair-font-sans);
-  --font-serif:   var(--fair-font-sans);   /* serif display retired */
-  --font-mono:    var(--fair-font-mono);
-
-  --r-1: var(--fair-radius-sm);
-  --r-2: var(--fair-radius-md);
-  --r-3: var(--fair-radius-lg);
-  --r-4: var(--fair-radius-xl);
-
-  --shadow-1: var(--fair-shadow-1);
-  --shadow-2: var(--fair-shadow-2);
-
-  /* record-kind colors → per-tool accent family (see MIGRATION.md §4) */
-  --t-fdp:          var(--fair-ink);
-  --t-catalog:      var(--tool-fdp);
-  --t-dataset:      var(--tool-directory);
+  --t-fdp: var(--fair-ink);
+  --t-catalog: var(--tool-fdp);
+  --t-dataset: var(--tool-directory);
   --t-distribution: var(--tool-station);
-  --t-biobank:      var(--tool-framework);
-  --t-publication:  var(--tool-identifier);
+  --t-biobank: var(--tool-framework);
+  --t-publication: var(--tool-identifier);
 }
 
 /* ---- Dark mode (cool-slate) ---- */

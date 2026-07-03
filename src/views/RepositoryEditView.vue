@@ -189,31 +189,31 @@ async function save() {
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 24px;
   font-size: 14px;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .notice {
   padding: 40px 0;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .notice h2 {
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   margin: 0 0 6px;
 }
 .form {
@@ -222,25 +222,25 @@ h1 {
   gap: 16px;
 }
 .error {
-  border: 1px solid var(--signal);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-warning);
+  border-radius: var(--fair-radius-md);
   padding: 12px 14px;
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .error strong {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .violations {
   margin: 8px 0 0;
   padding-left: 18px;
 }
 .hint {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 12px;
 }
 .ok {
-  color: var(--ok);
+  color: var(--fair-success);
   font-size: 13px;
 }
 .actions {

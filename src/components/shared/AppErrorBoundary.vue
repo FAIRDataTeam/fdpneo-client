@@ -102,15 +102,15 @@ function goHome() {
   display: grid;
   place-items: center;
   padding: 60px 20px;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .card {
   max-width: 560px;
   width: 100%;
   padding: 32px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -119,34 +119,34 @@ function goHome() {
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  background: var(--signal-soft);
-  color: var(--signal);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
   display: grid;
   place-items: center;
 }
 h1 {
   margin: 6px 0 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 28px;
   line-height: 1.2;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .message {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .violations {
   margin: 6px 0 0;
   padding: 12px 14px;
   list-style: none;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-highlight);
   display: grid;
   gap: 8px;
 }
@@ -154,22 +154,22 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .path {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .docs {
   margin: 0;
   font-size: 13px;
 }
 .docs a {
-  color: var(--accent);
+  color: var(--tool-accent);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -182,7 +182,7 @@ h1 {
 .meta {
   margin: 4px 0 0;
   font-size: 11px;
-  color: var(--muted-2);
+  color: var(--fair-text-light);
   display: flex;
   gap: 4px;
 }

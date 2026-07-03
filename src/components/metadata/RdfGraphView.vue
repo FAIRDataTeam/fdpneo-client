@@ -277,10 +277,10 @@ const viewBox = computed(() => `${view.x} ${view.y} ${view.w} ${view.h}`);
       >
         <defs>
           <marker id="g-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="var(--line-strong)" />
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--fair-border)" />
           </marker>
           <marker id="g-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--tool-accent)" />
           </marker>
         </defs>
 
@@ -339,72 +339,72 @@ const viewBox = computed(() => `${view.x} ${view.y} ${view.w} ${view.h}`);
 .graph-shell { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .gbar {
   display: flex; align-items: center; gap: 10px; padding: 12px 18px; flex: none;
-  border-bottom: 1px solid var(--line); background: var(--surface);
+  border-bottom: 1px solid var(--fair-separator); background: var(--fair-surface);
 }
 .ftitle-wrap { min-width: 0; }
-.eyebrow { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
-.ftitle { font-family: var(--font-serif); font-weight: 500; font-size: 19px; line-height: 1.1; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
-.firi { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+.eyebrow { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fair-text-muted); }
+.ftitle { font-family: var(--fair-font-sans); font-weight: 500; font-size: 19px; line-height: 1.1; color: var(--fair-text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+.firi { font-size: 11px; color: var(--fair-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
 .spacer { flex: 1; }
 .layers { display: flex; gap: 8px; margin-right: 6px; }
 .toggle {
   display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 9px; cursor: pointer;
-  font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--muted);
-  background: var(--surface); border: 1px solid var(--line-strong);
+  font-family: var(--fair-font-sans); font-size: 12px; font-weight: 600; color: var(--fair-text-muted);
+  background: var(--fair-surface); border: 1px solid var(--fair-border);
 }
-.toggle .sw { width: 28px; height: 15px; border-radius: 999px; background: var(--line-strong); position: relative; flex: none; transition: background 0.2s; }
-.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--surface); transition: transform 0.2s; }
+.toggle .sw { width: 28px; height: 15px; border-radius: 999px; background: var(--fair-border); position: relative; flex: none; transition: background 0.2s; }
+.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--fair-surface); transition: transform 0.2s; }
 .toggle .dotk { width: 9px; height: 9px; border-radius: 3px; flex: none; }
-.toggle.rel .dotk { background: var(--accent); }
-.toggle.attr .dotk { background: var(--signal); }
-.toggle.on { color: var(--ink); }
-.toggle.on.rel { border-color: var(--accent-line); }
-.toggle.on.rel .sw { background: var(--accent); }
-.toggle.on.attr { border-color: color-mix(in srgb, var(--signal) 45%, var(--line-strong)); }
-.toggle.on.attr .sw { background: var(--signal); }
+.toggle.rel .dotk { background: var(--tool-accent); }
+.toggle.attr .dotk { background: var(--fair-warning); }
+.toggle.on { color: var(--fair-text-strong); }
+.toggle.on.rel { border-color: var(--fair-node-soft); }
+.toggle.on.rel .sw { background: var(--tool-accent); }
+.toggle.on.attr { border-color: color-mix(in srgb, var(--fair-warning) 45%, var(--fair-border)); }
+.toggle.on.attr .sw { background: var(--fair-warning); }
 .toggle.on .sw::after { transform: translateX(13px); }
 .iconbtn { width: 32px; padding: 0; justify-content: center; }
 
-.canvas-wrap { position: relative; flex: 1; min-height: 0; background: var(--paper); }
+.canvas-wrap { position: relative; flex: 1; min-height: 0; background: var(--fair-bg); }
 .canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
 .canvas:active { cursor: grabbing; }
 
-.edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; transition: stroke 0.2s, opacity 0.2s; }
+.edge { fill: none; stroke: var(--fair-border); stroke-width: 1.4; transition: stroke 0.2s, opacity 0.2s; }
 .edge.attr { stroke-width: 1.1; stroke-dasharray: 2 4; opacity: 0.85; }
-.edge.hot { stroke: var(--accent); stroke-width: 2; }
+.edge.hot { stroke: var(--tool-accent); stroke-width: 2; }
 .edge.dim { opacity: 0.14; }
-.edge-label { font-family: var(--font-mono); font-size: 10px; fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
-.edge-label.hot { fill: var(--accent); }
+.edge-label { font-family: var(--fair-font-mono); font-size: 10px; fill: var(--fair-text-muted); paint-order: stroke; stroke: var(--fair-bg); stroke-width: 4px; stroke-linejoin: round; }
+.edge-label.hot { fill: var(--tool-accent); }
 .edge-label.dim { opacity: 0.14; }
 
 .node { cursor: pointer; }
 .node.dim { opacity: 0.14; }
 .node .halo { fill: var(--c-soft); opacity: 0; }
 .node.focus .halo { opacity: 1; }
-.node .disc { fill: var(--surface); stroke: var(--c); stroke-width: 2.5; transition: stroke-width 0.15s; }
+.node .disc { fill: var(--fair-surface); stroke: var(--c); stroke-width: 2.5; transition: stroke-width 0.15s; }
 .node.focus .disc { fill: var(--c); }
 .node:hover .disc { stroke-width: 3.5; }
-.node .glyph { fill: var(--c); font-family: var(--font-mono); font-size: 11px; font-weight: 500; text-anchor: middle; dominant-baseline: central; text-transform: uppercase; pointer-events: none; }
-.node.focus .glyph { fill: var(--paper); }
-.node .nlabel { font-family: var(--font-sans); font-weight: 600; font-size: 12.5px; fill: var(--ink-2); text-anchor: middle; paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
-.node.focus .nlabel { font-family: var(--font-serif); font-weight: 500; font-size: 15px; fill: var(--ink); }
+.node .glyph { fill: var(--c); font-family: var(--fair-font-mono); font-size: 11px; font-weight: 500; text-anchor: middle; dominant-baseline: central; text-transform: uppercase; pointer-events: none; }
+.node.focus .glyph { fill: var(--fair-bg); }
+.node .nlabel { font-family: var(--fair-font-sans); font-weight: 600; font-size: 12.5px; fill: var(--fair-text); text-anchor: middle; paint-order: stroke; stroke: var(--fair-bg); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+.node.focus .nlabel { font-family: var(--fair-font-sans); font-weight: 500; font-size: 15px; fill: var(--fair-text-strong); }
 
 .attrtag.dim { opacity: 0.14; }
-.attrtag rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
-.attrtag .apred { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.04em; fill: var(--muted); text-transform: uppercase; dominant-baseline: central; }
-.attrtag .aval { font-family: var(--font-mono); font-size: 11.5px; dominant-baseline: central; }
-.attrtag.lit .aval { fill: var(--signal); }
-.attrtag.iri .aval { fill: var(--accent); }
+.attrtag rect { fill: var(--fair-surface); stroke: var(--fair-border); stroke-width: 1; }
+.attrtag .apred { font-family: var(--fair-font-mono); font-size: 9px; letter-spacing: 0.04em; fill: var(--fair-text-muted); text-transform: uppercase; dominant-baseline: central; }
+.attrtag .aval { font-family: var(--fair-font-mono); font-size: 11.5px; dominant-baseline: central; }
+.attrtag.lit .aval { fill: var(--fair-warning); }
+.attrtag.iri .aval { fill: var(--tool-accent); }
 
 .legend {
   position: absolute; left: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 5px;
-  padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(8px); box-shadow: var(--shadow-2);
+  padding: 11px 13px; border: 1px solid var(--fair-separator); border-radius: 12px;
+  background: color-mix(in srgb, var(--fair-surface) 88%, transparent); backdrop-filter: blur(8px); box-shadow: var(--fair-shadow-2);
 }
-.legend h4 { margin: 6px 0 3px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; }
+.legend h4 { margin: 6px 0 3px; font-family: var(--fair-font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fair-text-light); font-weight: 700; }
 .legend h4:first-child { margin-top: 0; }
-.lrow { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-2); }
+.lrow { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--fair-text); }
 .sw-rec { width: 11px; height: 11px; border-radius: 4px; border: 2px solid currentColor; flex: none; }
-.sw-tag { width: 13px; height: 9px; border-radius: 3px; border: 1px solid var(--line-strong); background: var(--surface); flex: none; }
-.empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+.sw-tag { width: 13px; height: 9px; border-radius: 3px; border: 1px solid var(--fair-border); background: var(--fair-surface); flex: none; }
+.empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--fair-text-muted); font-size: 13px; }
 </style>

@@ -107,50 +107,50 @@ const dataSources = computed<Attribution[]>(() => [
   display: flex;
   flex-direction: column;
   gap: 28px;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
   max-width: 620px;
 }
 .block {
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   padding: 20px 22px;
 }
 .block__title {
   margin: 0 0 14px;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .block__lede {
   margin: 0 0 14px;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .facts {
   margin: 0;
@@ -163,27 +163,27 @@ h1 {
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
   padding-top: 8px;
 }
 .fact dt {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .fact dd {
   margin: 0;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   text-align: right;
 }
 .copyright {
   margin: 14px 0 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .sources {
   list-style: none;
@@ -194,7 +194,7 @@ h1 {
   gap: 14px;
 }
 .source {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--fair-separator);
   padding-top: 12px;
 }
 .source:first-child {
@@ -208,20 +208,20 @@ h1 {
   flex-wrap: wrap;
 }
 .source__name {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 15px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--tool-accent);
   text-decoration: underline;
 }
 .source__license {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-2);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  color: var(--fair-text);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-sm);
   padding: 2px 7px;
   text-decoration: none;
 }
@@ -229,10 +229,10 @@ h1 {
   margin: 6px 0 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 @media (max-width: 720px) {
   .page {

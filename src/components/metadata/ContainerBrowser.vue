@@ -92,10 +92,10 @@ function onBackdropClick(e: MouseEvent) {
   width: min(360px, 90vw);
   max-height: 100vh;
   overflow: auto;
-  background: var(--surface);
-  border-right: 1px solid var(--line);
+  background: var(--fair-surface);
+  border-right: 1px solid var(--fair-separator);
   padding: 18px 14px 30px;
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--fair-shadow-2);
 }
 .panel__head {
   display: flex;
@@ -105,17 +105,17 @@ function onBackdropClick(e: MouseEvent) {
 }
 .panel__head h2 {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .loading {
   padding: 10px 8px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 13px;
 }
 </style>

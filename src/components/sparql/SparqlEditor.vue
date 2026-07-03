@@ -165,8 +165,8 @@ onBeforeUnmount(() => {
 .editor {
   height: 100%;
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
   overflow: hidden;
 }
 </style>

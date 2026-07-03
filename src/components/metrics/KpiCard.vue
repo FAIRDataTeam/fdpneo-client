@@ -50,44 +50,44 @@ function deltaText(): string {
 <style scoped>
 .card {
   padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 .label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .value {
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
   line-height: 1;
-  color: var(--ink);
+  color: var(--fair-text-strong);
   margin-top: 2px;
 }
 .delta {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 11px;
   line-height: 1;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .delta.up {
-  color: var(--ok);
+  color: var(--fair-success);
 }
 .delta.down {
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .hint {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>

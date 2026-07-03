@@ -63,7 +63,7 @@ const distributionCount = computed(() => {
   grid-template-columns: 1fr auto;
   gap: 14px;
   padding: 18px 0 18px 16px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
   text-decoration: none;
   color: inherit;
 }
@@ -92,30 +92,30 @@ const distributionCount = computed(() => {
 }
 .match {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 h3 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 19px;
   line-height: 1.25;
   letter-spacing: 0.005em;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .hl {
-  background: var(--signal-soft);
-  color: var(--signal);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
   padding: 0 2px;
   border-radius: 2px;
 }
 p {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 13px;
   line-height: 1.55;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   max-width: 680px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -133,11 +133,11 @@ p {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 .card:hover h3 {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 </style>

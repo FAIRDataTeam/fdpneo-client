@@ -246,23 +246,23 @@ function submitCreate() {
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
   max-width: 660px;
 }
 .toolbar {
@@ -275,19 +275,19 @@ h1 {
   flex: 1;
 }
 input {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 9px 11px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   box-sizing: border-box;
 }
 .create {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -306,7 +306,7 @@ input {
 }
 .f span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .f input {
   width: 100%;
@@ -322,7 +322,7 @@ input {
   align-items: center;
   gap: 5px;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .tbl {
   width: 100%;
@@ -334,13 +334,13 @@ input {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
 }
 .tbl td {
   padding: 10px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
   vertical-align: top;
 }
 tr.disabled td {
@@ -355,21 +355,21 @@ tr.disabled td {
 .you {
   font-size: 10px;
   text-transform: uppercase;
-  background: var(--accent-soft);
-  color: var(--accent, var(--ink));
+  background: var(--tool-accent-tint);
+  color: var(--accent, var(--fair-text-strong));
   padding: 1px 6px;
   border-radius: 999px;
 }
 .sub {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .chip {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--muted);
+  background: var(--fair-highlight);
+  color: var(--fair-text-muted);
   margin-right: 4px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -380,12 +380,12 @@ tr.disabled td {
   border-radius: 999px;
 }
 .badge.on {
-  background: var(--ok-soft);
-  color: var(--ok);
+  background: var(--fair-success-tint);
+  color: var(--fair-success);
 }
 .badge.off {
-  background: var(--signal-soft);
-  color: var(--signal);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
 }
 .actions {
   display: flex;
@@ -393,7 +393,7 @@ tr.disabled td {
   justify-content: flex-end;
 }
 .editrow td {
-  background: var(--surface-2);
+  background: var(--fair-highlight);
 }
 .editor {
   display: flex;
@@ -403,7 +403,7 @@ tr.disabled td {
 }
 .hint {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .pager {
   display: flex;
@@ -413,23 +413,23 @@ tr.disabled td {
 }
 .notice,
 .error {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
   padding: 12px 14px;
   font-size: 13px;
 }
 .notice {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .error {
-  border-color: var(--signal);
+  border-color: var(--fair-warning);
   margin-bottom: 12px;
 }
 .btn.danger {
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 13px;
 }
 </style>

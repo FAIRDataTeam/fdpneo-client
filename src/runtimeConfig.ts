@@ -33,7 +33,7 @@ export interface BrandingConfig {
   faviconUrl?: string;
   /** Optional dark-theme favicon variant; falls back to `faviconUrl`. */
   faviconUrlDark?: string;
-  /** Light-theme token overrides, e.g. `{ "--accent": "#7a1f2b" }`. */
+  /** Light-theme token overrides, e.g. `{ "--tool-accent": "#7a1f2b" }`. */
   theme?: Record<string, string>;
   /** Dark-theme token overrides. */
   themeDark?: Record<string, string>;

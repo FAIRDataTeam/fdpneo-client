@@ -59,7 +59,7 @@ defineProps<{ crumbs: Crumb[] }>();
   width: 22px;
   height: 2px;
   flex: none;
-  background: linear-gradient(90deg, var(--line-strong), var(--line-strong));
+  background: linear-gradient(90deg, var(--fair-border), var(--fair-border));
   border-radius: 2px;
 }
 .hop {
@@ -67,7 +67,7 @@ defineProps<{ crumbs: Crumb[] }>();
   align-items: center;
   gap: 9px;
   min-width: 0;
-  color: var(--ink-2);
+  color: var(--fair-text);
   text-decoration: none;
 }
 .node {
@@ -75,8 +75,8 @@ defineProps<{ crumbs: Crumb[] }>();
   height: 13px;
   flex: none;
   border-radius: 4px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 2px var(--node, var(--muted));
+  background: var(--fair-surface);
+  box-shadow: inset 0 0 0 2px var(--node, var(--fair-text-muted));
 }
 .hop.current .node {
   background: var(--node);
@@ -90,11 +90,11 @@ defineProps<{ crumbs: Crumb[] }>();
   line-height: 1.1;
 }
 .kind {
-  font-family: var(--font-mono);
+  font-family: var(--fair-font-mono);
   font-size: 9.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--node, var(--muted));
+  color: var(--node, var(--fair-text-muted));
   font-weight: 500;
 }
 .label {
@@ -102,14 +102,14 @@ defineProps<{ crumbs: Crumb[] }>();
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 a.hop:hover .label {
-  color: var(--accent);
+  color: var(--tool-accent);
   text-decoration: underline;
 }
 .hop.current .label {
-  color: var(--ink);
+  color: var(--fair-text-strong);
   font-weight: 600;
 }
 /* The current (last) hop's label may be long; let it shrink/ellipsize first. */

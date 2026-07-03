@@ -46,30 +46,30 @@ function activeBranding(): BrandingConfig {
  * signal, the paper/surface grounds, and ink. Unknown keys are ignored.
  */
 export const BRANDABLE_TOKENS: readonly string[] = [
-  "--accent",
-  "--accent-deep",
-  "--accent-soft",
-  "--accent-line",
-  "--signal",
-  "--signal-soft",
-  "--paper",
-  "--paper-deep",
-  "--surface",
-  "--ink",
+  "--tool-accent",
+  "--fair-node-darker",
+  "--tool-accent-tint",
+  "--fair-node-soft",
+  "--fair-warning",
+  "--fair-warning-tint",
+  "--fair-bg",
+  "--fair-canvas",
+  "--fair-surface",
+  "--fair-text-strong",
 ];
 
 /** Human-readable labels for the brandable tokens, for the Appearance editor UI. */
 export const BRANDABLE_TOKEN_LABELS: Readonly<Record<string, string>> = {
-  "--accent": "Accent",
-  "--accent-deep": "Accent (deep)",
-  "--accent-soft": "Accent (soft)",
-  "--accent-line": "Accent (line)",
-  "--signal": "Signal",
-  "--signal-soft": "Signal (soft)",
-  "--paper": "Paper (background)",
-  "--paper-deep": "Paper (deep)",
-  "--surface": "Surface",
-  "--ink": "Ink (text)",
+  "--tool-accent": "Accent",
+  "--fair-node-darker": "Accent (deep)",
+  "--tool-accent-tint": "Accent (soft)",
+  "--fair-node-soft": "Accent (line)",
+  "--fair-warning": "Signal",
+  "--fair-warning-tint": "Signal (soft)",
+  "--fair-bg": "Background",
+  "--fair-canvas": "Background (sunken)",
+  "--fair-surface": "Surface",
+  "--fair-text-strong": "Text",
 };
 
 const STYLE_ELEMENT_ID = "fdp-branding";

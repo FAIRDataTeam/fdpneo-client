@@ -320,7 +320,7 @@ async function copySnippet(): Promise<void> {
   margin: 0 0 6px;
 }
 .sub {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin: 0;
   max-width: 70ch;
 }
@@ -330,24 +330,24 @@ async function copySnippet(): Promise<void> {
   gap: 6px;
   margin-top: 12px;
   padding: 8px 12px;
-  border-radius: var(--r-2);
-  background: var(--surface-2);
-  color: var(--ink-2);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-highlight);
+  color: var(--fair-text);
   font-size: 13px;
 }
 .issues {
   margin-bottom: 20px;
   padding: 12px 16px;
-  border: 1px solid var(--signal);
+  border: 1px solid var(--fair-warning);
   border-radius: var(--r-2, 6px);
-  background: var(--signal-soft);
-  color: var(--ink);
+  background: var(--fair-warning-tint);
+  color: var(--fair-text-strong);
 }
 .issues__head {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .issues__list {
   margin: 8px 0 0;
@@ -369,9 +369,9 @@ async function copySnippet(): Promise<void> {
   }
 }
 .panel {
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-3, 10px);
-  background: var(--surface);
+  background: var(--fair-surface);
   padding: 18px 20px;
 }
 .panel h2 {
@@ -385,7 +385,7 @@ async function copySnippet(): Promise<void> {
 .field__label {
   display: block;
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
   margin-bottom: 4px;
 }
 .field input,
@@ -393,15 +393,15 @@ async function copySnippet(): Promise<void> {
   width: 100%;
   box-sizing: border-box;
   padding: 7px 9px;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   font: inherit;
 }
 .hint {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   margin: 8px 0 0;
 }
 .tokens {
@@ -417,13 +417,13 @@ async function copySnippet(): Promise<void> {
 }
 .token__label {
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .token__swatch {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
   background: none;
   cursor: pointer;
@@ -439,7 +439,7 @@ async function copySnippet(): Promise<void> {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 .preview__lockup {
   margin-bottom: 16px;
@@ -454,30 +454,30 @@ async function copySnippet(): Promise<void> {
   padding: 8px 14px;
   border: none;
   border-radius: var(--r-2, 6px);
-  background: var(--accent);
-  color: var(--paper);
+  background: var(--tool-accent);
+  color: var(--fair-bg);
   font: inherit;
   cursor: pointer;
 }
 .sample-signal {
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--signal-soft);
-  color: var(--signal);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
   font-size: 13px;
   font-weight: 600;
 }
 .sample-surface {
   flex-basis: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
-  background: var(--paper-deep);
-  color: var(--ink);
+  background: var(--fair-canvas);
+  color: var(--fair-text-strong);
   font-size: 14px;
 }
 .sample-surface a {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 .export__head {
   display: flex;
@@ -496,25 +496,25 @@ async function copySnippet(): Promise<void> {
 }
 .seg {
   display: inline-flex;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
   overflow: hidden;
 }
 .seg__btn {
   padding: 6px 12px;
   border: none;
-  background: var(--paper);
-  color: var(--ink-2);
+  background: var(--fair-bg);
+  color: var(--fair-text);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
 }
 .seg__btn + .seg__btn {
-  border-left: 1px solid var(--accent-line);
+  border-left: 1px solid var(--fair-node-soft);
 }
 .seg__btn--on {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--tool-accent-tint);
+  color: var(--tool-accent);
   font-weight: 600;
 }
 .btn {
@@ -522,26 +522,26 @@ async function copySnippet(): Promise<void> {
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   font: inherit;
   cursor: pointer;
 }
 .btn--primary {
-  background: var(--accent);
-  color: var(--paper);
-  border-color: var(--accent);
+  background: var(--tool-accent);
+  color: var(--fair-bg);
+  border-color: var(--tool-accent);
 }
 .export__code {
   width: 100%;
   box-sizing: border-box;
   padding: 12px;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--fair-node-soft);
   border-radius: var(--r-2, 6px);
-  background: var(--paper-deep);
-  color: var(--ink);
+  background: var(--fair-canvas);
+  color: var(--fair-text-strong);
   font-size: 12px;
   line-height: 1.5;
   resize: vertical;

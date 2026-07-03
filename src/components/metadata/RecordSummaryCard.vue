@@ -37,9 +37,9 @@ defineProps<{ record: ChildRecordRow }>();
   position: relative;
   display: block;
   padding: 22px 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   text-decoration: none;
   color: inherit;
   transition: border-color 120ms ease;
@@ -55,10 +55,10 @@ defineProps<{ record: ChildRecordRow }>();
   bottom: 12px;
   width: 3px;
   border-radius: 3px;
-  background: var(--spine, var(--accent));
+  background: var(--spine, var(--tool-accent));
 }
 .card:hover {
-  border-color: var(--line-strong);
+  border-color: var(--fair-border);
 }
 .head {
   display: flex;
@@ -69,26 +69,26 @@ defineProps<{ record: ChildRecordRow }>();
 }
 .count {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 h3 {
   margin: 0 0 6px;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 22px;
   line-height: 1.2;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .card:hover h3 {
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 p {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 13px;
   line-height: 1.55;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

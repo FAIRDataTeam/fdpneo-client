@@ -22,12 +22,12 @@ defineSlots<{ default: () => unknown; action?: () => unknown }>();
 }
 h4 {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   line-height: 1;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>

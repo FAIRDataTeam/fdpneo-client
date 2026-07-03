@@ -2878,11 +2878,35 @@ on the accent fill — fine in light mode, but low-contrast in dark mode where `
 light teal. A handful of on-accent `#fff` literals remain in the vendored editor.css for the same
 reason. Fix by giving graph-node label text a contrast-aware token.
 
-### P5 — Metrics + admin, then retire the bridge — ⬜ todo
-KPI row / time-series / country bars / top-resources (charts use `--tool-accent`); admin
-sub-nav + DataTable. Then **retire the v2→FAIR alias bridge** and delete dead
-Specimen-Archive CSS (definition of done: no `--paper`/`--ink`/… aliases, only
-`--fair-*` / `--tool-*`). See MIGRATION §6 (Metrics, Admin rows) + §8.
+### P5 — Metrics + admin, then retire the bridge — ✅ done (2026-07-03)
+Verified live (metrics in light + dark, browse regression pixel-identical, 0 console errors);
+shipped in the rebuilt image. **This completes the P1–P5 FAIR Ecosystem re-skin.**
+- **Metrics:** [`TimeSeriesChart`](src/components/metrics/TimeSeriesChart.vue) repointed to read
+  FAIR token names via `getComputedStyle` (was `--accent`/`--ok`/… → now `--tool-accent`/
+  `--fair-success`/…), FAIR fallbacks, and a stable dark `tooltipBg` (`--fair-ink-darker`) to
+  dodge the ink-fill trap; MutationObserver still re-colors on the dark toggle. KPI cards,
+  country bars (teal `--tool-accent`), top-resources, privacy hints — all migrated.
+- **Bridge retirement (the headline):** swept **all 45 remaining files** (724 refs) from the v2
+  aliases to their exact FAIR targets — a zero-visual-change, bridge-parity migration — including
+  `main.css` utility classes (`.btn`, `.chip`, `.input`, `.tree`, `.code`, `.type-tag`, focus
+  ring) and the admin views. Then removed the v2→FAIR alias block from
+  [`theme-and-bridge.css`](src/styles/theme-and-bridge.css); what remains is permanent (dark
+  palette, `--t-*` record-kind tokens, `.pbtn`). The contour `editor.css` now defines its own
+  `--font-mono` (it previously inherited the global v2 alias). **No component references a v2
+  alias anymore** — only `--fair-*` / `--tool-*` (and the kept `--t-*`).
+- **Deployer white-labeling repointed:** `useBranding` `BRANDABLE_TOKENS` + labels moved to the
+  FAIR names (`--tool-accent`, `--fair-bg`, `--fair-surface`, `--fair-text-strong`, …); config.js
+  docs + `runtimeConfig` example updated. **Contract change:** deployer `theme`/`themeDark`
+  overrides must now use FAIR token names (old `--accent`/`--paper`/… keys are ignored).
+- Gate: lint + typecheck + 501 tests green.
+
+**Definition of done (per surface, from MIGRATION §8):** no Fraunces/Hanken/Spline; no
+grain/vignette; no hard-coded hexes (only `--fair-*` / `--tool-*`); light & dark both pass
+AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified. ✅ met across P1–P5.
+
+**Residual follow-ups (non-blocking):** the SHACL graph's `.gv-node--shape` label text is a
+hardcoded `#fff` (low contrast in dark where the accent is light teal — see P4 note); the
+`ContainerBrowser` overlay still uses the `/page`-based `useTree` (empty for anonymous).
 
 **Definition of done (per surface, from MIGRATION §8):** no Fraunces/Hanken/Spline; no
 grain/vignette; no hard-coded hexes (only `--fair-*` / `--tool-*`); light & dark both pass

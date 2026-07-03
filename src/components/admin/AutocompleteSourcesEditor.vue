@@ -198,16 +198,16 @@ function removeItem(s: SourceEdit, i: number) {
 .empty {
   margin: 0;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .source {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--paper);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
 }
 .source__head {
   display: flex;
@@ -219,7 +219,7 @@ function removeItem(s: SourceEdit, i: number) {
   flex-direction: column;
   gap: 8px;
   padding-left: 12px;
-  border-left: 2px solid var(--line);
+  border-left: 2px solid var(--fair-separator);
 }
 .item {
   display: flex;
@@ -242,7 +242,7 @@ function removeItem(s: SourceEdit, i: number) {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .opt {
   text-transform: none;
@@ -252,13 +252,13 @@ function removeItem(s: SourceEdit, i: number) {
 input,
 select,
 textarea {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
   padding: 7px 9px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
-  background: var(--surface);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-sm);
+  background: var(--fair-surface);
+  color: var(--fair-text-strong);
 }
 .mono {
   font-family: var(--font-mono, monospace);

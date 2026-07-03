@@ -17,28 +17,28 @@ defineProps<{ label: string; mono?: boolean }>();
   grid-template-columns: 180px 1fr;
   gap: 24px;
   padding: 14px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
   align-items: baseline;
 }
 dt {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 dd {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 dd.mono {
-  font-family: var(--font-mono);
+  font-family: var(--fair-font-mono);
   font-size: 13px;
 }
 </style>

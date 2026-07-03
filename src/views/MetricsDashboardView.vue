@@ -181,7 +181,7 @@ function latency(ms: number | null): string {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .page__head {
   display: flex;
@@ -197,32 +197,32 @@ function latency(ms: number | null): string {
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 36px;
   line-height: 1.15;
   letter-spacing: -0.005em;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .lede {
   margin: 8px 0 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 14px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--fair-text);
   max-width: 620px;
 }
 .lede em {
   font-style: normal;
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 
 .kpis {
@@ -239,9 +239,9 @@ h1 {
 
 .panel {
   padding: 20px 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
 }
 .chart-panel {
   display: flex;
@@ -256,30 +256,30 @@ h1 {
 }
 .panel__head h2 {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 .small {
   font-size: 12px;
 }
 .muted {
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 
 .resource-select {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 12px;
   max-width: 50%;
   padding: 4px 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
-  background: var(--surface);
-  color: var(--ink-2);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-sm);
+  background: var(--fair-surface);
+  color: var(--fair-text);
 }
 .resource__summary {
   display: grid;
@@ -290,24 +290,24 @@ h1 {
 
 .loading {
   padding: 60px 20px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-align: center;
 }
 .empty-note {
   padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--surface-2);
-  color: var(--ink-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-highlight);
+  color: var(--fair-text);
 }
 .empty-note strong {
-  color: var(--ink);
+  color: var(--fair-text-strong);
   font-size: 14px;
 }
 .empty-note p {
   margin: 6px 0 0;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   max-width: 620px;
 }
 .signin {
@@ -320,14 +320,14 @@ h1 {
 }
 .signin h2 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 24px;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .signin p {
   margin: 0;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 14px;
 }
 .signin .btn.primary {

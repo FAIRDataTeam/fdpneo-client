@@ -201,10 +201,10 @@ function toggleRaw() {
 
 <style scoped>
 .setting {
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
   padding: 16px;
-  background: var(--surface);
+  background: var(--fair-surface);
 }
 .head {
   display: flex;
@@ -220,21 +220,21 @@ function toggleRaw() {
   min-width: 0;
 }
 .title {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .key {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-weight: 500;
 }
 .help {
   margin: 0 0 10px;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   max-width: 70ch;
 }
 .actions {
@@ -248,10 +248,10 @@ function toggleRaw() {
   font-size: 13px;
   line-height: 1.5;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   resize: vertical;
 }
 .json[readonly] {
@@ -260,9 +260,9 @@ function toggleRaw() {
 .error {
   margin-top: 10px;
   padding: 10px 12px;
-  border-radius: var(--r-2);
-  background: var(--signal-soft);
-  color: var(--signal);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-warning-tint);
+  color: var(--fair-warning);
   font-size: 13px;
 }
 .error p {

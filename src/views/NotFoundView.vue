@@ -36,44 +36,44 @@ const route = useRoute();
   display: grid;
   place-items: center;
   padding: 80px 20px;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .card {
   max-width: 560px;
   width: 100%;
   padding: 36px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 .eyebrow {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 h1 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 32px;
   line-height: 1.15;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 p {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .path {
   font-size: 13px;
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .actions {
   display: flex;

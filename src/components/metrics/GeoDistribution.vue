@@ -54,20 +54,20 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: var(--r-2);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-separator);
 }
 .code {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .label {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -75,7 +75,7 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
 .bar {
   display: inline-block;
   height: 6px;
-  background: var(--accent);
+  background: var(--tool-accent);
   border-radius: 4px;
   min-width: 4px;
   justify-self: end;
@@ -83,7 +83,7 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
 }
 .count {
   font-size: 12px;
-  color: var(--ink-2);
+  color: var(--fair-text);
   text-align: right;
   min-width: 32px;
 }
@@ -91,13 +91,13 @@ const max = computed(() => props.rows.reduce((m, r) => Math.max(m, r.visitors), 
    the faintest muted — because attribution is an obligation, not chrome. */
 .attribution {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 12px;
   line-height: 1.4;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .attribution a {
-  color: var(--accent);
+  color: var(--tool-accent);
   text-decoration: underline;
 }
 </style>

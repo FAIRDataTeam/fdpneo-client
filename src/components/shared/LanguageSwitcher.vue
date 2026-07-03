@@ -98,10 +98,10 @@ onMounted(() => {});
   top: calc(100% + 8px);
   right: 0;
   min-width: 180px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  box-shadow: var(--shadow-2);
+  background: var(--fair-surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
+  box-shadow: var(--fair-shadow-2);
   padding: 6px;
   display: grid;
   gap: 2px;
@@ -115,26 +115,26 @@ onMounted(() => {});
   padding: 8px 10px;
   background: transparent;
   border: 0;
-  border-radius: var(--r-1);
-  font-family: var(--font-sans);
+  border-radius: var(--fair-radius-sm);
+  font-family: var(--fair-font-sans);
   font-weight: 500;
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
   text-align: left;
   cursor: pointer;
 }
 .item:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--fair-highlight);
+  color: var(--fair-text-strong);
 }
 .item[aria-checked="true"] {
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .check {
   width: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent);
+  color: var(--tool-accent);
 }
 </style>

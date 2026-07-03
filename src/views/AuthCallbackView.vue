@@ -76,42 +76,42 @@ async function home() {
   display: grid;
   place-items: center;
   padding: 60px 20px;
-  background: var(--paper);
+  background: var(--fair-bg);
 }
 .card {
   max-width: 480px;
   width: 100%;
   padding: 36px 32px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 h1 {
   margin: 12px 0 0;
-  font-family: var(--font-serif);
+  font-family: var(--fair-font-sans);
   font-weight: 400;
   font-size: 28px;
   line-height: 1.2;
-  color: var(--ink);
+  color: var(--fair-text-strong);
 }
 .muted {
   margin: 0;
-  color: var(--ink-2);
+  color: var(--fair-text);
   font-size: 14px;
   line-height: 1.55;
 }
 .err {
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .spinner {
   width: 18px;
   height: 18px;
   border-radius: 999px;
-  border: 2px solid var(--accent-line);
-  border-top-color: var(--accent);
+  border: 2px solid var(--fair-node-soft);
+  border-top-color: var(--tool-accent);
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {

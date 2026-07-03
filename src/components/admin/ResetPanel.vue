@@ -82,20 +82,20 @@ function run() {
 
 <style scoped>
 .danger {
-  border: 1px solid var(--signal);
-  border-radius: var(--r-3);
+  border: 1px solid var(--fair-warning);
+  border-radius: var(--fair-radius-lg);
   padding: 18px;
-  background: var(--signal-soft);
+  background: var(--fair-warning-tint);
 }
 .danger h2 {
   margin: 0 0 8px;
   font-size: 14px;
-  color: var(--signal);
+  color: var(--fair-warning);
 }
 .desc {
   margin: 0 0 10px;
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .token {
   font-size: 12px;
@@ -108,16 +108,16 @@ function run() {
 .row input {
   flex: 1;
   min-width: 220px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   font-family: var(--font-mono, monospace);
   font-size: 13px;
   padding: 9px 12px;
 }
 .btn.danger {
-  background: var(--signal);
+  background: var(--fair-warning);
   color: #fff;
   border-color: transparent;
 }
@@ -126,12 +126,12 @@ function run() {
   cursor: not-allowed;
 }
 .error {
-  color: var(--signal);
+  color: var(--fair-warning);
   font-size: 13px;
   margin: 10px 0 0;
 }
 .ok {
-  color: var(--ok);
+  color: var(--fair-success);
   font-size: 13px;
   margin: 10px 0 0;
 }

@@ -62,8 +62,8 @@ function suffix(value: SparqlValue): string {
 <style scoped>
 .wrap {
   overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
 }
 .results {
   width: 100%;
@@ -74,40 +74,40 @@ th,
 td {
   text-align: left;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--fair-separator);
   vertical-align: top;
 }
 th {
   position: sticky;
   top: 0;
-  background: var(--surface-2);
-  color: var(--muted);
+  background: var(--fair-highlight);
+  color: var(--fair-text-muted);
   font-weight: 500;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 td {
-  color: var(--ink-2);
+  color: var(--fair-text);
 }
 .cell-uri {
-  color: var(--accent);
+  color: var(--tool-accent);
   text-decoration: none;
 }
 .cell-uri:hover {
   text-decoration: underline;
 }
 .suffix {
-  color: var(--muted);
+  color: var(--fair-text-muted);
   font-size: 11px;
   margin-left: 2px;
 }
 .unbound {
-  color: var(--muted-2);
+  color: var(--fair-text-light);
 }
 .empty {
   text-align: center;
-  color: var(--muted);
+  color: var(--fair-text-muted);
   padding: 24px;
 }
 </style>

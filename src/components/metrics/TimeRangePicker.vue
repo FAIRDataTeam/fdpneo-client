@@ -40,14 +40,14 @@ function select(v: TimeRange) {
   display: inline-flex;
   gap: 4px;
   padding: 3px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  background: var(--fair-highlight);
+  border: 1px solid var(--fair-separator);
+  border-radius: var(--fair-radius-md);
 }
 .btn.active {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-1);
+  background: var(--fair-surface);
+  color: var(--fair-text-strong);
+  border-color: var(--fair-border);
+  box-shadow: var(--fair-shadow-1);
 }
 </style>

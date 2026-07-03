@@ -60,18 +60,18 @@ const options = computed(() => {
   gap: 6px;
 }
 .ref__control {
-  font-family: var(--font-sans);
+  font-family: var(--fair-font-sans);
   font-size: 14px;
   padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
-  background: var(--paper);
-  color: var(--ink);
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-md);
+  background: var(--fair-bg);
+  color: var(--fair-text-strong);
   width: 100%;
   box-sizing: border-box;
 }
 .ref__hint {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>

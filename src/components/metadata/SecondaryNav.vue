@@ -46,18 +46,18 @@ async function copyIdentifier(id: string) {
   align-items: center;
   gap: 16px;
   padding: 10px 40px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  border-bottom: 1px solid var(--fair-separator);
+  background: var(--fair-surface);
   font-size: 13px;
 }
 .dot {
-  color: var(--muted-2);
+  color: var(--fair-text-light);
 }
 .spacer {
   flex: 1;
 }
 .id {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fair-text-muted);
 }
 </style>
