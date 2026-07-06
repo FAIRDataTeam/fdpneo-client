@@ -167,7 +167,7 @@ function navigate(id: string) {
 }
 .type-eyebrow {
   font-size: var(--fair-text-sm);
-  color: var(--tool-accent);
+  color: var(--fair-node-darker);
   letter-spacing: var(--fair-tracking-tight);
   margin-bottom: 6px;
 }

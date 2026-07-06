@@ -25,6 +25,13 @@
      light-mode accent; in dark mode the accent lightens, so this flips to
      dark slate (see .theme-dark) to keep contrast. */
   --fair-text-on-accent: #ffffff;
+
+  /* WCAG AA compliance: the design-system muted/light greys (#6b7480 / #9aa4b2)
+     fall just short of 4.5:1 for small text on the cool-slate grounds, so nudge
+     them darker here (app layer — fair-tokens stay pristine). Recommend
+     upstreaming to the design system. */
+  --fair-text-muted: #5c6673;
+  --fair-text-light: #616b78;
 }
 
 /* ---- Dark mode (cool-slate) ---- */
@@ -32,7 +39,7 @@
   --fair-bg:#10161e;  --fair-surface:#1a2230;  --fair-surface-input:#141b24;
   --fair-canvas:#141b24;  --fair-highlight:#232c3a;  --fair-code-bg:#131a23;
   --fair-border:#2b3543;  --fair-separator:#222c39;
-  --fair-text:#c6ceda;  --fair-text-muted:#8a94a2;  --fair-text-light:#5f6a78;
+  --fair-text:#c6ceda;  --fair-text-muted:#8a94a2;  --fair-text-light:#868f9c;  /* light: AA on dark bg (was #5f6a78, 2.9:1) */
   --fair-text-strong:#eef2f7;  --fair-ink-soft:#3a4655;  --fair-ink-tint:#1e2733;
 
   /* NOTE: ink flips light so it can serve as text/structure on dark surfaces. */

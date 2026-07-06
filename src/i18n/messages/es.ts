@@ -459,6 +459,7 @@ const es: Messages = {
     privacyItem3: "Derivaciones de visitantes únicos entre días (los recuentos se renuevan a diario)",
     privacyItem4: "Cadenas de referente (referrer) o geolocalización más precisa que país/región",
     privacyNote: 'Cualquier elemento marcado con "—" abajo significa que la señal subyacente no se recopila intencionadamente, no que falte.',
+    chartAria: "Gráfico de actividad: solicitudes y visitantes únicos a lo largo del tiempo",
     seriesRequests: "Solicitudes",
     seriesVisitors: "Visitantes únicos",
     geoAttribution: "Geolocalización de IP por {dbip}",

@@ -142,7 +142,7 @@ watchEffect(() => void chartOptions.value);
 
 <template>
   <div class="chart">
-    <Line :data="chartData" :options="chartOptions" />
+    <Line :data="chartData" :options="chartOptions" role="img" :aria-label="t('metrics.chartAria')" />
   </div>
 </template>
 

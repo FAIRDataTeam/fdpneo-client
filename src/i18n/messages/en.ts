@@ -455,6 +455,7 @@ const en = {
     privacyItem3: "Cross-day unique-visitor derivations (counts rotate daily)",
     privacyItem4: "Referrer chains or precise geolocation finer than country/region",
     privacyNote: 'Anything labelled "—" below means the underlying signal is intentionally not collected, not that it\'s missing.',
+    chartAria: "Activity chart: requests and unique visitors over time",
     seriesRequests: "Requests",
     seriesVisitors: "Unique visitors",
     geoAttribution: "IP geolocation by {dbip}",

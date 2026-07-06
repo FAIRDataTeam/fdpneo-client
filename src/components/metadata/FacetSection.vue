@@ -14,13 +14,14 @@ const emit = defineEmits<{ (e: "toggle", value: string): void }>();
         <span
           class="box"
           :aria-checked="it.on"
+          :aria-label="it.label"
           role="checkbox"
           tabindex="0"
           @click.prevent="emit('toggle', it.value)"
           @keydown.space.prevent="emit('toggle', it.value)"
           @keydown.enter.prevent="emit('toggle', it.value)"
         >
-          <AppIcon v-if="it.on" name="check" :size="10" color="#fff" />
+          <AppIcon v-if="it.on" name="check" :size="10" color="var(--fair-text-on-accent)" />
         </span>
         <span class="label">{{ it.label }}</span>
         <span class="count mono">{{ it.count }}</span>

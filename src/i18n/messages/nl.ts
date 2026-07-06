@@ -460,6 +460,7 @@ const nl: Messages = {
     privacyItem3: "Afleidingen van unieke bezoekers over dagen heen (tellingen worden dagelijks vernieuwd)",
     privacyItem4: "Referrer-ketens of nauwkeurigere geolocatie dan land/regio",
     privacyNote: 'Alles wat hieronder met "—" is gemarkeerd, betekent dat het onderliggende signaal opzettelijk niet wordt verzameld, niet dat het ontbreekt.',
+    chartAria: "Activiteitsgrafiek: verzoeken en unieke bezoekers in de tijd",
     seriesRequests: "Verzoeken",
     seriesVisitors: "Unieke bezoekers",
     geoAttribution: "IP-geolocatie door {dbip}",

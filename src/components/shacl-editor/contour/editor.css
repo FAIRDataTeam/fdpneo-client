@@ -1106,7 +1106,7 @@
 .contour-editor .prefix-row__ns {
   padding: 6px 8px;
   background: var(--color-bg-highlight);
-  color: var(--color-primary);
+  color: var(--color-primary-darker);
   font-weight: 700;
 }
 

@@ -187,7 +187,8 @@ onUnmounted(() => {
   height: 32px;
   border-radius: var(--fair-radius-pill);
   background: var(--tool-accent-tint);
-  color: var(--tool-accent);
+  /* darker teal so the initials clear AA on the light accent tint */
+  color: var(--fair-node-darker);
   display: grid;
   place-items: center;
   font-family: var(--fair-font-sans);

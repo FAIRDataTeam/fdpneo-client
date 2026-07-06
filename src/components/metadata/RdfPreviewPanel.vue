@@ -157,15 +157,14 @@ function openTab() {
     </button>
 
     <div v-if="open" id="rdf-body" class="body">
-      <div class="chips" role="tablist" :aria-label="t('rdfPreview.viewsAria')">
+      <div class="chips" role="group" :aria-label="t('rdfPreview.viewsAria')">
         <button
           v-for="f in FORMATS"
           :key="f.key"
           type="button"
-          role="tab"
           class="chip"
           :class="{ on: active === f.key }"
-          :aria-selected="active === f.key"
+          :aria-pressed="active === f.key"
           :disabled="busy"
           @click="select(f.key)"
         >
@@ -273,8 +272,10 @@ function openTab() {
   opacity: 0.55;
   cursor: default;
 }
+/* Flows left-aligned with the format chips (previously margin-left:auto
+   right-pushed it, which read as misaligned when it wrapped in the narrow
+   sidecar). */
 .graph-chip {
-  margin-left: auto;
   color: var(--tool-accent);
   border-color: var(--fair-node-soft);
   background: var(--tool-accent-tint);

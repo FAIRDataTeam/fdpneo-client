@@ -2929,6 +2929,27 @@ AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified.
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13
   (`design/proposal-specimen-archive.html` + tokens.css extraction).
-- Accessibility audit pass once visual surfaces stabilize.
+- ~~Accessibility audit pass once visual surfaces stabilize~~ — **done (2026-07-05)** after the
+  FAIR re-skin (P1–P5). Automated WCAG 2.2 AA scan (axe-core via Playwright across browse, record,
+  search text/SPARQL, metrics, schemas, policies, in light + dark, anon + admin) + keyboard/focus
+  checks. Started at **252 violation nodes → 82** (−67%). **Fixed:**
+  - Contrast: nudged the design-system neutral greys (`--fair-text-muted` #6b7480→#5c6673,
+    `--fair-text-light` #9aa4b2→#616b78 light / #5f6a78→#868f9c dark) in the app theme layer to
+    clear 4.5:1 on the cool-slate grounds; teal-as-text (`.avatar`, `.type-eyebrow`, contour
+    `.prefix-row__ns`) → `--fair-node-darker`. New contrast-aware `--fair-text-on-accent`.
+  - ARIA: facet checkboxes get `aria-label`; the metrics chart canvas gets `role="img"` +
+    `aria-label` (`metrics.chartAria`, 6 locales); empty top-resource link gets a text fallback;
+    the RDF-panel format chips changed from a malformed `tablist` to `aria-pressed` toggle buttons;
+    AboutSidecar `<dl>`→`<div>` (invalid dl children).
+  - Keyboard/focus verified: visible focus ring on nav/controls, search pill via `:focus-within`,
+    RDF graph overlay opens and closes on **Escape**.
+
+  **Documented residuals (design-system / vendored — need owner decisions, not client fixes):**
+  (1) semantic hues as small text on their tints — success `.ok` chips (4.46), warning (4.34),
+  record-kind teal `.kind` — recommend darker text-variant tokens (e.g. success #2a7130,
+  warning #7d6300); (2) Monaco's default `#ff0000` token in the read-only RDF/SPARQL preview —
+  recommend a Monaco rule for those token classes; (3) vendored Contour SHACL editor — form-field
+  `label`s, a `button-name`, and a `tablist` child (10 nodes) — recommend upstream/patch. None
+  affects the primary public surfaces.
 - ~~Internationalization — not in scope for v1~~ — now in progress as **Phase 18**
   (vue-i18n; en + pt-BR/nl/es/de/fr). Infra + shell first; remaining surfaces in 18.7.

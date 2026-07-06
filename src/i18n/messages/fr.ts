@@ -461,6 +461,7 @@ const fr: Messages = {
     privacyItem3: "Les dérivations de visiteurs uniques d'un jour à l'autre (les comptes sont réinitialisés chaque jour)",
     privacyItem4: "Les chaînes de référent (referrer) ou une géolocalisation plus précise que le pays/la région",
     privacyNote: "Tout élément marqué « — » ci-dessous signifie que le signal sous-jacent n'est délibérément pas collecté, et non qu'il est manquant.",
+    chartAria: "Graphique d'activité : requêtes et visiteurs uniques au fil du temps",
     seriesRequests: "Requêtes",
     seriesVisitors: "Visiteurs uniques",
     geoAttribution: "Géolocalisation IP par {dbip}",

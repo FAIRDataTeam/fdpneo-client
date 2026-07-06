@@ -14,7 +14,9 @@ defineProps<{ rows: TopResourceRow[] }>();
       <span class="rank mono">{{ String(i + 1).padStart(2, "0") }}</span>
       <div class="meta">
         <TypeTag :kind="r.type">{{ r.typeLabel }}</TypeTag>
-        <RouterLink :to="`/records/${r.id}`" class="title mono">{{ r.label }}</RouterLink>
+        <RouterLink :to="`/records/${r.id}`" class="title mono">{{
+          r.label || r.id || t("header.deploymentFallback")
+        }}</RouterLink>
       </div>
       <div class="stat">
         <div class="stat__value mono">{{ r.requests }}</div>

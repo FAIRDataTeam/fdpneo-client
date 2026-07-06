@@ -27,16 +27,16 @@ const hasIdentifiers = computed(
   <aside class="sidecar" :aria-label="t('aboutSidecar.ariaLabel')">
     <div class="card">
       <div class="eyebrow">{{ t("aboutSidecar.heading") }}</div>
-      <dl class="meta">
+      <div class="meta">
         <MetaItem :label="t('aboutSidecar.issued')">{{ record.issued }}</MetaItem>
         <MetaItem :label="t('aboutSidecar.lastModified')">{{ record.modified }}</MetaItem>
         <MetaItem :label="t('aboutSidecar.container')">{{ container || "—" }}</MetaItem>
-      </dl>
+      </div>
 
       <template v-if="hasIdentifiers">
         <hr class="hr divider" />
         <div class="eyebrow">{{ t("aboutSidecar.identifiers") }}</div>
-        <dl class="meta">
+        <div class="meta">
           <MetaItem v-if="record.identifier" :label="t('aboutSidecar.identifier')" mono>
             <a v-if="safeHref(record.identifier)" :href="safeHref(record.identifier)" target="_blank" rel="noopener noreferrer">{{ record.identifier }}</a>
             <template v-else>{{ record.identifier }}</template>
@@ -57,7 +57,7 @@ const hasIdentifiers = computed(
               </li>
             </ul>
           </MetaItem>
-        </dl>
+        </div>
       </template>
 
       <hr class="hr divider" />

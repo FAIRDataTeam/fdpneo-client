@@ -460,6 +460,7 @@ const de: Messages = {
     privacyItem3: "Tagesübergreifende Ableitungen eindeutiger Besucher (Zählungen werden täglich zurückgesetzt)",
     privacyItem4: "Referrer-Ketten oder genauere Geolokalisierung als Land/Region",
     privacyNote: 'Alles, was unten mit „—“ gekennzeichnet ist, bedeutet, dass das zugrunde liegende Signal absichtlich nicht erfasst wird, nicht dass es fehlt.',
+    chartAria: "Aktivitätsdiagramm: Anfragen und eindeutige Besucher im Zeitverlauf",
     seriesRequests: "Anfragen",
     seriesVisitors: "Eindeutige Besucher",
     geoAttribution: "IP-Geolokalisierung durch {dbip}",

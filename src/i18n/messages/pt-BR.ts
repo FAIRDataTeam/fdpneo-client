@@ -460,6 +460,7 @@ const ptBR: Messages = {
     privacyItem3: "Derivações de visitantes únicos entre dias (as contagens são renovadas diariamente)",
     privacyItem4: "Cadeias de referência (referrer) ou geolocalização mais precisa que país/região",
     privacyNote: 'Qualquer item marcado com "—" abaixo significa que o sinal subjacente não é coletado intencionalmente, não que esteja faltando.',
+    chartAria: "Gráfico de atividade: requisições e visitantes únicos ao longo do tempo",
     seriesRequests: "Requisições",
     seriesVisitors: "Visitantes únicos",
     geoAttribution: "Geolocalização de IP por {dbip}",
