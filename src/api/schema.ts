@@ -263,6 +263,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fdp-api/admin/backup/dump": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Backup Dump
+         * @description Start a store dump (admin). Poll the returned job; download its archive when done.
+         */
+        post: operations["admin_backup_dump_fdp_api_admin_backup_dump_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/backup/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Backup Restore
+         * @description Start a faithful restore from an uploaded dump archive (admin).
+         */
+        post: operations["admin_backup_restore_fdp_api_admin_backup_restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/backup/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin Backup Job
+         * @description Poll a backup/restore job's status (admin).
+         */
+        get: operations["admin_backup_job_fdp_api_admin_backup_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/backup/jobs/{job_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Admin Backup Download
+         * @description Download a finished dump job's archive (admin).
+         */
+        get: operations["admin_backup_download_fdp_api_admin_backup_jobs__job_id__archive_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fdp-api/forms/autocomplete": {
         parameters: {
             query?: never;
@@ -674,6 +754,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fdp-api/schemas/{schema_id}/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Schema Get Version
+         * @description Return an immutable versioned snapshot of the shape (ADR-0019 §4).
+         */
+        get: operations["schema_get_version_fdp_api_schemas__schema_id___version__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fdp-api/schemas/{schema_id}/validate": {
         parameters: {
             query?: never;
@@ -688,6 +788,57 @@ export interface paths {
          * @description Dry-run a sample record (Turtle body) against the shape (authenticated).
          */
         post: operations["schema_validate_fdp_api_schemas__schema_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile List */
+        get: operations["profile_list_fdp_api_profiles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/profiles/{profile_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile Get */
+        get: operations["profile_get_fdp_api_profiles__profile_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/profiles/{profile_id}/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile Get Version */
+        get: operations["profile_get_version_fdp_api_profiles__profile_id___version__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -930,6 +1081,54 @@ export interface paths {
         patch: operations["ldp_patch__path__patch"];
         trace?: never;
     };
+    "/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a FAIRDataPoint
+         * @description Fetch the RDF graph for one FAIRDataPoint record.
+         */
+        get: operations["getFAIRDataPoint"];
+        /**
+         * Replace a FAIRDataPoint
+         * @description Replace the RDF graph for one FAIRDataPoint record.
+         */
+        put: operations["replaceFAIRDataPoint"];
+        post?: never;
+        /**
+         * Delete a FAIRDataPoint
+         * @description Remove a FAIRDataPoint and its sibling /meta and /audit graphs.
+         */
+        delete: operations["deleteFAIRDataPoint"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/page/{childPrefix}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List a page of FAIRDataPoint children
+         * @description Paginated listing of FAIRDataPoint members of a given child type. ``childPrefix`` is the URL prefix of the target type.
+         */
+        get: operations["getFAIRDataPointChildPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/catalog": {
         parameters: {
             query?: never;
@@ -1030,26 +1229,6 @@ export interface paths {
          * @description Return the Catalog record together with every ancestor reachable via dct:isPartOf.
          */
         get: operations["getCatalogExpanded"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/fdp-api/catalog/{id}/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of Catalog children
-         * @description Paginated listing of Catalog members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getCatalogChildPage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1402,54 +1581,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a FAIRDataPoint
-         * @description Fetch the RDF graph for one FAIRDataPoint record.
-         */
-        get: operations["getFAIRDataPoint"];
-        /**
-         * Replace a FAIRDataPoint
-         * @description Replace the RDF graph for one FAIRDataPoint record.
-         */
-        put: operations["replaceFAIRDataPoint"];
-        post?: never;
-        /**
-         * Delete a FAIRDataPoint
-         * @description Remove a FAIRDataPoint and its sibling /meta and /audit graphs.
-         */
-        delete: operations["deleteFAIRDataPoint"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/fdp-api/page/{childPrefix}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List a page of FAIRDataPoint children
-         * @description Paginated listing of FAIRDataPoint members of a given child type. ``childPrefix`` is the URL prefix of the target type.
-         */
-        get: operations["getFAIRDataPointChildPage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1562,6 +1693,14 @@ export interface components {
             label: string;
             /** Source */
             source: string;
+        };
+        /** Body_admin_backup_restore_fdp_api_admin_backup_restore_post */
+        Body_admin_backup_restore_fdp_api_admin_backup_restore_post: {
+            /**
+             * Archive
+             * @description A dump archive (.zip) to restore.
+             */
+            archive: string;
         };
         /**
          * BootstrapConfig
@@ -1800,6 +1939,31 @@ export interface components {
             items: components["schemas"]["InstanceItem"][];
         };
         /**
+         * JobView
+         * @description A backup/restore job as the client polls it.
+         */
+        JobView: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** State */
+            state: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Error */
+            error?: string | null;
+        };
+        /**
          * LabelsResponse
          * @description Response shape for ``GET /labels``.
          */
@@ -1913,6 +2077,23 @@ export interface components {
             name: string;
             /** Version */
             version: string;
+        };
+        /**
+         * ProfileInfo
+         * @description Summary of a current profile.
+         */
+        ProfileInfo: {
+            /** Id */
+            id: string;
+            /** Iri */
+            iri: string;
+            /** Validation Artifact */
+            validation_artifact?: string | null;
+        };
+        /** ProfileListView */
+        ProfileListView: {
+            /** Profiles */
+            profiles: components["schemas"]["ProfileInfo"][];
         };
         /**
          * ReadinessReport
@@ -2878,6 +3059,142 @@ export interface operations {
             };
         };
     };
+    admin_backup_dump_fdp_api_admin_backup_dump_post: {
+        parameters: {
+            query?: {
+                /** @description Skip exporting the Postgres record_audit rows. */
+                no_audit?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_backup_restore_fdp_api_admin_backup_restore_post: {
+        parameters: {
+            query?: {
+                /** @description Into a non-empty store: skip existing graphs. */
+                merge?: boolean;
+                /** @description Into a non-empty store: replace existing graphs. */
+                overwrite?: boolean;
+                /** @description Skip inserting audit.jsonl rows. */
+                no_audit?: boolean;
+                /** @description Report what would change; write nothing. */
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_admin_backup_restore_fdp_api_admin_backup_restore_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_backup_job_fdp_api_admin_backup_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_backup_download_fdp_api_admin_backup_jobs__job_id__archive_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     forms_autocomplete_fdp_api_forms_autocomplete_get: {
         parameters: {
             query: {
@@ -3782,6 +4099,38 @@ export interface operations {
             };
         };
     };
+    schema_get_version_fdp_api_schemas__schema_id___version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     schema_validate_fdp_api_schemas__schema_id__validate_post: {
         parameters: {
             query?: never;
@@ -3800,6 +4149,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["fdp__metadata__schemas__ValidationResultView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profile_list_fdp_api_profiles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileListView"];
+                };
+            };
+        };
+    };
+    profile_get_fdp_api_profiles__profile_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profile_get_version_fdp_api_profiles__profile_id___version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -4585,6 +5017,209 @@ export interface operations {
             };
         };
     };
+    getFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replaceFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Replacement FAIRDataPoint graph */
+        requestBody: {
+            content: {
+                "text/turtle": string;
+                "application/ld+json": string;
+                "application/rdf+xml": string;
+                "application/n-triples": string;
+            };
+        };
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteFAIRDataPoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFAIRDataPointChildPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description URL prefix of the child resource type to list. */
+                childPrefix: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     createCatalog: {
         parameters: {
             query?: never;
@@ -4914,62 +5549,6 @@ export interface operations {
             path: {
                 /** @description Resource identifier (path segment). */
                 id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getCatalogChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Resource identifier (path segment). */
-                id: string;
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
             };
             cookie?: never;
         };
@@ -6154,209 +6733,6 @@ export interface operations {
             path: {
                 /** @description Resource identifier (path segment). */
                 id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getFAIRDataPoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    replaceFAIRDataPoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Replacement FAIRDataPoint graph */
-        requestBody: {
-            content: {
-                "text/turtle": string;
-                "application/ld+json": string;
-                "application/rdf+xml": string;
-                "application/n-triples": string;
-            };
-        };
-        responses: {
-            /** @description RDF graph */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/turtle": string;
-                    "application/ld+json": string;
-                    "application/rdf+xml": string;
-                    "application/n-triples": string;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteFAIRDataPoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getFAIRDataPointChildPage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description URL prefix of the child resource type to list. */
-                childPrefix: string;
             };
             cookie?: never;
         };
