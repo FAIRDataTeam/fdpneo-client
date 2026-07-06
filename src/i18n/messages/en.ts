@@ -39,6 +39,7 @@ const en = {
     ariaLabel: "User menu — {name}",
     signedIn: "Signed in",
     myMetadata: "My metadata",
+    backupRestore: "Backup & Restore",
     metrics: "Metrics",
     schemas: "Schemas",
     policies: "Policies",
@@ -50,6 +51,17 @@ const en = {
     profile: "Profile",
     accessTokens: "Access tokens",
     signOut: "Sign out",
+  },
+  backupAdmin: {
+    eyebrow: "Admin · Operations",
+    heading: "Backup & Restore",
+    intro:
+      "Dump, restore, and migration are operator actions run from the command line on the server — they work on the datastore directly and are intentionally not available through this web interface (ADR-0016). The commands below are provided for reference.",
+    adminNotice: "These are administrator operations.",
+    commandsHeading: "Commands",
+    caveatsHeading: "Two things to remember",
+    copy: "Copy",
+    copied: "Copied",
   },
   theme: {
     light: "Light theme — click for dark",

@@ -42,6 +42,7 @@ const nl: Messages = {
     ariaLabel: "Gebruikersmenu — {name}",
     signedIn: "Ingelogd",
     myMetadata: "Mijn metadata",
+    backupRestore: "Back-up & herstel",
     metrics: "Statistieken",
     schemas: "Schema's",
     policies: "Beleid",
@@ -53,6 +54,17 @@ const nl: Messages = {
     profile: "Profiel",
     accessTokens: "Toegangstokens",
     signOut: "Uitloggen",
+  },
+  backupAdmin: {
+    eyebrow: "Beheer · Bewerkingen",
+    heading: "Back-up & herstel",
+    intro:
+      "Dump, herstel en migratie zijn operatoracties die vanaf de opdrachtregel op de server worden uitgevoerd — ze werken rechtstreeks op de dataopslag en zijn bewust niet beschikbaar via deze webinterface (ADR-0016). De onderstaande opdrachten dienen ter referentie.",
+    adminNotice: "Dit zijn beheerdersbewerkingen.",
+    commandsHeading: "Opdrachten",
+    caveatsHeading: "Twee dingen om te onthouden",
+    copy: "Kopiëren",
+    copied: "Gekopieerd",
   },
   theme: {
     light: "Licht thema — klik voor donker",

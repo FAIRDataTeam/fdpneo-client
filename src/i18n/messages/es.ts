@@ -41,6 +41,7 @@ const es: Messages = {
     ariaLabel: "Menú de usuario — {name}",
     signedIn: "Sesión iniciada",
     myMetadata: "Mis metadatos",
+    backupRestore: "Copia de seguridad y restauración",
     metrics: "Métricas",
     schemas: "Esquemas",
     policies: "Políticas",
@@ -52,6 +53,17 @@ const es: Messages = {
     profile: "Perfil",
     accessTokens: "Tokens de acceso",
     signOut: "Cerrar sesión",
+  },
+  backupAdmin: {
+    eyebrow: "Administración · Operaciones",
+    heading: "Copia de seguridad y restauración",
+    intro:
+      "El volcado, la restauración y la migración son acciones de operador que se ejecutan desde la línea de comandos en el servidor: actúan directamente sobre el almacén de datos y, de forma intencionada, no están disponibles en esta interfaz web (ADR-0016). Los comandos siguientes se ofrecen como referencia.",
+    adminNotice: "Estas son operaciones de administrador.",
+    commandsHeading: "Comandos",
+    caveatsHeading: "Dos cosas para recordar",
+    copy: "Copiar",
+    copied: "Copiado",
   },
   theme: {
     light: "Tema claro — haz clic para oscuro",

@@ -43,6 +43,7 @@ const fr: Messages = {
     ariaLabel: "Menu utilisateur — {name}",
     signedIn: "Connecté",
     myMetadata: "Mes métadonnées",
+    backupRestore: "Sauvegarde et restauration",
     metrics: "Métriques",
     schemas: "Schémas",
     policies: "Politiques",
@@ -54,6 +55,17 @@ const fr: Messages = {
     profile: "Profil",
     accessTokens: "Jetons d'accès",
     signOut: "Se déconnecter",
+  },
+  backupAdmin: {
+    eyebrow: "Admin · Opérations",
+    heading: "Sauvegarde et restauration",
+    intro:
+      "Le vidage, la restauration et la migration sont des actions d'opérateur exécutées en ligne de commande sur le serveur — elles agissent directement sur le magasin de données et ne sont volontairement pas disponibles dans cette interface web (ADR-0016). Les commandes ci-dessous sont fournies à titre de référence.",
+    adminNotice: "Ce sont des opérations d'administrateur.",
+    commandsHeading: "Commandes",
+    caveatsHeading: "Deux choses à retenir",
+    copy: "Copier",
+    copied: "Copié",
   },
   theme: {
     light: "Thème clair — cliquez pour sombre",

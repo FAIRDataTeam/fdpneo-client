@@ -42,6 +42,7 @@ const ptBR: Messages = {
     ariaLabel: "Menu do usuário — {name}",
     signedIn: "Conectado",
     myMetadata: "Meus metadados",
+    backupRestore: "Backup e restauração",
     metrics: "Métricas",
     schemas: "Esquemas",
     policies: "Políticas",
@@ -53,6 +54,17 @@ const ptBR: Messages = {
     profile: "Perfil",
     accessTokens: "Tokens de acesso",
     signOut: "Sair",
+  },
+  backupAdmin: {
+    eyebrow: "Admin · Operações",
+    heading: "Backup e restauração",
+    intro:
+      "Dump, restauração e migração são ações de operador executadas pela linha de comando no servidor — atuam diretamente no armazenamento de dados e, por decisão de projeto, não estão disponíveis nesta interface web (ADR-0016). Os comandos abaixo servem como referência.",
+    adminNotice: "Estas são operações de administrador.",
+    commandsHeading: "Comandos",
+    caveatsHeading: "Duas coisas para lembrar",
+    copy: "Copiar",
+    copied: "Copiado",
   },
   theme: {
     light: "Tema claro — clique para escuro",

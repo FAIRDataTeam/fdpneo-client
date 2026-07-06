@@ -2925,6 +2925,22 @@ AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified.
 
 ---
 
+## Admin — Backup & Restore guidance page — ✅ done (2026-07-06)
+
+New **informational** admin surface at `/admin/backup` ([`BackupRestoreView`](src/views/BackupRestoreView.vue)),
+rendering the server operator runbook (`server docs/dev-docs/08-backup-restore.md`, ADR-0016). It
+**calls no API** — dump/restore/import are deliberately CLI-only (ADR-0016 §5) — so it shows
+copy-to-clipboard snippets for `fdp backup dump` / `restore` / `import --rebase` /
+`import --from <url>` / `fdp search reindex`, plus the two caveats (reindex after a bare
+`fdp pid rebase`; `record_audit` keeps historical IRIs). Admin-gated in the nav (UserMenu
+`v-if="auth.isAdmin"`, `download` icon) and in the view (non-admins see a notice); route is
+`requiresAuth`. Chrome is i18n'd (`backupAdmin.*` + `userMenu.backupRestore`, 6 locales); the CLI
+command descriptions/caveats are kept in English (they mirror an English operator runbook and
+translating datastore-command instructions risks misleading operators). No new API-client code —
+a static guidance surface until the server adds admin backup endpoints (a future ADR). Verified
+live: admin sees the nav item + page (copy works), steward sees neither. Gate: lint + typecheck +
+501 tests (incl. i18n parity) green.
+
 ## Open items
 
 - ~~Theme tokens and final design system~~ — addressed by Phase 13
@@ -2951,5 +2967,14 @@ AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified.
   recommend a Monaco rule for those token classes; (3) vendored Contour SHACL editor — form-field
   `label`s, a `button-name`, and a `tablist` child (10 nodes) — recommend upstream/patch. None
   affects the primary public surfaces.
-- ~~Internationalization — not in scope for v1~~ — now in progress as **Phase 18**
+- ⬜ **Functional QA sweep of the flows** (deferred, 2026-07-06) — run the **`/qa`** skill to
+  systematically exercise the end-to-end flows and fix bugs found: browse → drill-in → record
+  detail; text search + SPARQL; steward/admin CRUD (create/edit/delete catalog·dataset·
+  distribution); the SHACL editor round-trip (import ttl → edit → export → validate); the ODRL
+  composer (compose → validate → publish → delete) + licenses; publication-state transitions;
+  repository-root edit; metrics range/drill-down; users/API-keys/settings/appearance admin; auth
+  (login/logout/silent-renew, 401/403 handling); and error/empty states. This is the
+  **human/functional complement** to the automated a11y audit above (which covered contrast,
+  names/roles, and basic keyboard operability, not task-flow correctness). Best run against the
+  live stack (`docker compose` + admin login) after the re-skin lands. Owner: TBD.
   (vue-i18n; en + pt-BR/nl/es/de/fr). Infra + shell first; remaining surfaces in 18.7.

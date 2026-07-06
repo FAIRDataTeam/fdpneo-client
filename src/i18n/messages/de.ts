@@ -42,6 +42,7 @@ const de: Messages = {
     ariaLabel: "Benutzermenü — {name}",
     signedIn: "Angemeldet",
     myMetadata: "Meine Metadaten",
+    backupRestore: "Sicherung & Wiederherstellung",
     metrics: "Metriken",
     schemas: "Schemas",
     policies: "Richtlinien",
@@ -53,6 +54,17 @@ const de: Messages = {
     profile: "Profil",
     accessTokens: "Zugriffstoken",
     signOut: "Abmelden",
+  },
+  backupAdmin: {
+    eyebrow: "Administration · Betrieb",
+    heading: "Sicherung & Wiederherstellung",
+    intro:
+      "Dump, Wiederherstellung und Migration sind Operator-Aktionen, die auf dem Server über die Kommandozeile ausgeführt werden — sie arbeiten direkt auf dem Datenspeicher und sind bewusst nicht über diese Weboberfläche verfügbar (ADR-0016). Die folgenden Befehle dienen als Referenz.",
+    adminNotice: "Dies sind Administratoraktionen.",
+    commandsHeading: "Befehle",
+    caveatsHeading: "Zwei Dinge zum Merken",
+    copy: "Kopieren",
+    copied: "Kopiert",
   },
   theme: {
     light: "Helles Design — klicken für dunkel",

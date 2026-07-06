@@ -120,6 +120,15 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Settings", requiresAuth: true },
   },
   {
+    // Informational only: backup/restore/import are CLI-only operator actions
+    // (ADR-0016 §5) — this page renders guidance, it calls no API. Admin-gated in
+    // the view + nav; requiresAuth here just enforces sign-in.
+    path: "/admin/backup",
+    name: "backup-restore",
+    component: () => import("@/views/BackupRestoreView.vue"),
+    meta: { title: "Backup & Restore", requiresAuth: true },
+  },
+  {
     // Public on purpose: branding is a *client* deployment concern (it only
     // authors a /config.js block, touching nothing server-side), so a sysadmin
     // can customize look & feel before any auth/IdP is configured. Not under

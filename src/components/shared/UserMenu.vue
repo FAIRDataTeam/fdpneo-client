@@ -66,6 +66,11 @@ async function gotoSettings() {
   await router.push("/admin/settings");
 }
 
+async function gotoBackup() {
+  open.value = false;
+  await router.push("/admin/backup");
+}
+
 async function gotoAppearance() {
   open.value = false;
   await router.push("/appearance");
@@ -158,6 +163,9 @@ onUnmounted(() => {
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoSettings">
         <AppIcon name="cog" :size="14" /> {{ t("userMenu.settings") }}
+      </button>
+      <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoBackup">
+        <AppIcon name="download" :size="14" /> {{ t("userMenu.backupRestore") }}
       </button>
       <button v-if="auth.isAdmin" class="item" role="menuitem" @click="gotoAppearance">
         <AppIcon name="eye" :size="14" /> {{ t("userMenu.appearance") }}
