@@ -14,6 +14,8 @@ PostgreSQL, and Keycloak).
 
 ## Other docs in this repo
 
+- [adr/](./adr/) — client-side architecture decision records (numbered
+  independently from the server's ADR series).
 - [server-requests/](./server-requests/) — coordination specs for server-side
   changes the client depends on (e.g. the `/users` admin facade).
 - [design_handoff_visual_schema_editor/](./design_handoff_visual_schema_editor/) —
