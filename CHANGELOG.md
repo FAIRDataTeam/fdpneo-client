@@ -8,6 +8,35 @@ Entries prior to 0.5.0 were reconstructed retroactively from the release tags,
 their annotations, and the release commit messages; the matching GitHub release
 pages carry the fuller notes.
 
+## [0.6.0] — 2026-07-06
+
+Interactive admin Backup & Restore against the server's new v0.9.0 admin API.
+
+### Added
+
+- **Interactive Backup & Restore** (`/admin/backup`, admin only) driving the
+  server's job-based admin API (ADR-0016 §5 amendment): start → poll → download.
+  - Backup: create a dump (optionally excluding the audit log), watch it run,
+    see a result summary (graphs, quads, audit rows, data model), and download
+    the archive as `fdp-backup-<id>.zip`.
+  - Restore: upload a `.zip`, choose Merge / Overwrite (mutually exclusive),
+    exclude-audit, or Dry run; a destructive-action confirmation guards a
+    non-dry-run restore, and a dry run reports what *would* change.
+  - New `api/backup.ts` client and a `useBackupJob` polling composable (polls
+    every 1.5s only while QUEUED/RUNNING; stops on completion).
+
+### Changed
+
+- The Backup & Restore page (informational in 0.5.0) is now interactive when the
+  server exposes the admin backup API. Errors are surfaced specifically: 403
+  (needs the admin role), 409 (archive not ready), and 413 — an upload over the
+  server's 10 MiB limit points you to the `fdp backup restore` CLI.
+
+### Not changed
+
+- **Import** (rebase / reference-FDP crawl) stays **CLI-only** — it's shown as a
+  reference note, with no HTTP UI (ADR-0016).
+
 ## [0.5.0] — 2026-07-06
 
 Restyle onto the shared **FAIR Ecosystem** design system, a WCAG 2.2 AA
@@ -103,6 +132,7 @@ First tagged release of the FAIR Data Point v2 web client (Vue 3 / TypeScript).
 - Metadata browsing and editing, SHACL/ODRL editors, a metrics dashboard, OIDC
   auth (Authorization Code + PKCE), and the 2026-06 security hardening.
 
+[0.6.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.0
 [0.5.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.5.0
 [0.4.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.4.0
 [0.3.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.3.0
