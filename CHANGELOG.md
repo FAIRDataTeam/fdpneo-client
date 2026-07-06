@@ -8,6 +8,18 @@ Entries prior to 0.5.0 were reconstructed retroactively from the release tags,
 their annotations, and the release commit messages; the matching GitHub release
 pages carry the fuller notes.
 
+## [0.6.1] — 2026-07-06
+
+### Fixed
+
+- **Record "Contents" now lists a container's children by actual containment**
+  (`dct:isPartOf`) instead of the parent type's *declared* child-type links. A
+  deployment profile can leave those links off (e.g. a `catalog`
+  resource-definition with `children: []`) while the records are correctly
+  parented; the old gating then hid every child, so clicking a catalog reached a
+  dead end with no datasets. Contents matches the browse tree again, and
+  distributions are excluded (the dataset page shows them in their own section).
+
 ## [0.6.0] — 2026-07-06
 
 Interactive admin Backup & Restore against the server's new v0.9.0 admin API.
@@ -132,6 +144,7 @@ First tagged release of the FAIR Data Point v2 web client (Vue 3 / TypeScript).
 - Metadata browsing and editing, SHACL/ODRL editors, a metrics dashboard, OIDC
   auth (Authorization Code + PKCE), and the 2026-06 security hardening.
 
+[0.6.1]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.1
 [0.6.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.0
 [0.5.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.5.0
 [0.4.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.4.0

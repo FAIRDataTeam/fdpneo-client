@@ -2,8 +2,9 @@
  * useChildRecords enumerates a container's children via SPARQL (records that
  * declare `dct:isPartOf <parent>`), mapping each binding to a summary row:
  * title, description, split keywords, a child count, and a display kind +
- * label derived from the path prefix. The query gates on there being at least
- * one child type to load.
+ * label derived from the path prefix. The query runs on any non-empty id
+ * (children come from actual `dct:isPartOf` containment, not the parent's
+ * declared child types) and excludes distributions.
  */
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -75,9 +76,24 @@ describe("useChildRecords", () => {
     ]);
   });
 
-  it("stays disabled (no query) until there is a child type to load", async () => {
-    const out = await run("repo", []);
+  it("stays disabled (no query) when there is no id", async () => {
+    const out = await run("", TYPES);
     expect(sparqlSelect).not.toHaveBeenCalled();
     expect(out.children.value).toEqual([]);
+  });
+
+  it("runs even with no declared child types and excludes distributions", async () => {
+    sparqlSelect.mockResolvedValue([row({ s: "dataset/d1", title: "Data 1" })]);
+
+    const out = await run("catalog/c1", []);
+
+    expect(sparqlSelect).toHaveBeenCalledTimes(1);
+    const q = sparqlSelect.mock.calls[0]![0] as string;
+    expect(q).toContain("FILTER NOT EXISTS");
+    expect(q).toContain("Distribution");
+    // No catalog entry for the prefix → label falls back to the capitalised prefix.
+    expect(out.children.value).toEqual([
+      { id: "dataset/d1", label: "Data 1", type: "dataset", typeLabel: "Dataset", description: "", keywords: [], childCount: 0 },
+    ]);
   });
 });

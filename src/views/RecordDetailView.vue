@@ -34,7 +34,7 @@ import { useChildRecords } from "@/composables/useChildRecords";
 const { t } = useI18n();
 const route = useRoute();
 const auth = useAuthStore();
-const { typeForId, childSpecs } = useResourceTypes();
+const { typeForId, childSpecs, specFor, defs } = useResourceTypes();
 const id = computed(() => {
   const raw = route.params.id;
   return Array.isArray(raw) ? raw.join("/") : (raw as string);
@@ -55,11 +55,12 @@ const childCreateLinks = computed(() => {
 });
 
 // Child records of this container (e.g. a catalog's datasets/data-services),
-// listed in the "Contents" section. Child types come from the runtime catalog.
+// listed in the "Contents" section. Contents are found by actual containment
+// (dct:isPartOf), so these types are passed only to label each row — hence all
+// known types, not just this container's declared children (a profile may omit
+// the parent→child link even when records are correctly parented).
 const childTypes = computed(() =>
-  entityType.value
-    ? childSpecs(entityType.value).map((s) => ({ prefix: s.prefix, label: s.label }))
-    : [],
+  defs.value.map((d) => ({ prefix: d.urlPrefix, label: specFor(d.urlPrefix)?.label ?? d.name })),
 );
 const { children: childRecords } = useChildRecords(id, childTypes);
 

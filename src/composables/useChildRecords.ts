@@ -12,9 +12,14 @@
  * can't read are absent from the store, so anonymous visitors see only
  * published children.
  *
- * Pass the child types reactively (resolved from `useResourceTypes.childSpecs`)
- * so the query gates on the type catalog and each row's type carries the
- * catalog's human label.
+ * Children are found by *actual containment* (`dct:isPartOf`), not by the
+ * container's declared child-type links: a deployment profile can omit those
+ * links (e.g. a catalog whose resource-definition lists no children) while the
+ * records themselves are correctly parented, and the "Contents" must still show
+ * them. `childTypes` (from `useResourceTypes`) is therefore used only to label
+ * each row's type; the query runs regardless. Distributions are excluded — they
+ * have their own section on the dataset page, so surfacing them here too would
+ * duplicate them.
  */
 
 import { useQuery } from "@tanstack/vue-query";
@@ -61,13 +66,17 @@ export function useChildRecords(id: Ref<string>, childTypes: Ref<ChildType[]>) {
       id.value,
       childTypes.value.map((t) => t.prefix).join(","),
     ]),
-    enabled: computed(() => childTypes.value.length > 0),
+    enabled: computed(() => id.value.length > 0),
     queryFn: async (): Promise<ChildRecordRow[]> => {
       const parentIri = id.value ? `${apiBase()}/${id.value}` : apiBase();
+      // Actual containment (dct:isPartOf), independent of the parent's declared
+      // child-type links. Distributions are excluded — the dataset page shows
+      // them in its own "Distributions" section.
       const q = `SELECT ?s ?title ?desc (GROUP_CONCAT(DISTINCT ?kw; SEPARATOR="${KW_SEP}") AS ?kws) (COUNT(DISTINCT ?child) AS ?n) WHERE {
   GRAPH ?s {
     ?s <${NS.dct}isPartOf> <${parentIri}> ;
        <${NS.dct}title> ?title .
+    FILTER NOT EXISTS { ?s a <${NS.dcat}Distribution> }
     OPTIONAL { ?s <${NS.dct}description> ?desc }
     OPTIONAL { ?s <${NS.dcat}keyword> ?kw }
     OPTIONAL { ?s <${NS.ldp}contains> ?child }
