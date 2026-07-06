@@ -2925,21 +2925,27 @@ AA (mind the ink-fill trap); matches the mockup; keyboard + focus verified.
 
 ---
 
-## Admin — Backup & Restore guidance page — ✅ done (2026-07-06)
+## Admin — Backup & Restore — informational (v0.5.0) → interactive (2026-07-06)
 
-New **informational** admin surface at `/admin/backup` ([`BackupRestoreView`](src/views/BackupRestoreView.vue)),
-rendering the server operator runbook (`server docs/dev-docs/08-backup-restore.md`, ADR-0016). It
-**calls no API** — dump/restore/import are deliberately CLI-only (ADR-0016 §5) — so it shows
-copy-to-clipboard snippets for `fdp backup dump` / `restore` / `import --rebase` /
-`import --from <url>` / `fdp search reindex`, plus the two caveats (reindex after a bare
-`fdp pid rebase`; `record_audit` keeps historical IRIs). Admin-gated in the nav (UserMenu
-`v-if="auth.isAdmin"`, `download` icon) and in the view (non-admins see a notice); route is
-`requiresAuth`. Chrome is i18n'd (`backupAdmin.*` + `userMenu.backupRestore`, 6 locales); the CLI
-command descriptions/caveats are kept in English (they mirror an English operator runbook and
-translating datastore-command instructions risks misleading operators). No new API-client code —
-a static guidance surface until the server adds admin backup endpoints (a future ADR). Verified
-live: admin sees the nav item + page (copy works), steward sees neither. Gate: lint + typecheck +
-501 tests (incl. i18n parity) green.
+Admin surface at `/admin/backup` ([`BackupRestoreView`](src/views/BackupRestoreView.vue)),
+admin-gated in the nav (UserMenu `v-if="auth.isAdmin"`) and in the view (non-admins see a notice);
+route is `requiresAuth`. Chrome i18n'd across 6 locales (`backupAdmin.*` + `userMenu.backupRestore`).
+
+- **v0.5.0 — informational.** Rendered the server operator runbook as copy-to-clipboard snippets
+  (no API); dump/restore/import were CLI-only at that point.
+- **2026-07-06 — interactive** against the new v0.9.0 admin API (ADR-0016 §5 amendment). Job-based
+  (start → poll every 1.5s → download): [`api/backup.ts`](src/api/backup.ts) (startDump /
+  startRestore multipart / getBackupJob / downloadArchive blob) +
+  [`useBackupJob`](src/composables/useBackupJob.ts) (polling, cleanup on unmount).
+  Backup section (create + exclude-audit → result summary → download `.zip`); restore section
+  (.zip picker + merge/overwrite mutually exclusive + exclude-audit + dry-run, a **destructive
+  confirmation** before a non-dry-run restore, result summary rendered as "would change" for a dry
+  run). Errors mapped: 403 (not admin), 404, 409 (archive not ready), 413 (→ use the CLI, 10 MiB
+  cap). **Import stays CLI-only** — shown as a reference note, no UI. Types are hand-written to the
+  server contract (the `result` payloads are `dict[str,Any]` server-side; the `BackupJob` envelope
+  mirrors the server `JobView`) — a full `generate-api` against v0.9 is a separate schema sync.
+  **Verified live vs v0.9.0**: create→poll→download, dry-run restore ("would change"), overwrite
+  confirm banner; 0 console errors. Gate: lint + typecheck + 501 tests (incl. i18n parity) green.
 
 ## Open items
 

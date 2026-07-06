@@ -1,88 +1,149 @@
 <script setup lang="ts">
 /**
- * Backup & Restore — an admin-only *informational* surface.
+ * Backup & Restore — admin-only, interactive (FDPneo v0.9.0 admin API).
  *
- * The server exposes NO backup/restore/import HTTP API: these are deliberately
- * CLI-only operator actions that read/write the triple store directly, not the
- * LDP API (ADR-0016 §5). So this page performs nothing — it mirrors the server
- * operator runbook (server docs/dev-docs/08-backup-restore.md) as copy-ready
- * command snippets plus the two boundaries to remember. When the server later
- * grows admin backup endpoints (a future ADR), this becomes the place to wire
- * them.
- *
- * The command snippets and their descriptions are kept in English (not i18n'd):
- * they mirror an English operator runbook, the commands themselves are English,
- * and machine-translating instructions for datastore-touching commands into five
- * languages would risk misleading an operator. Only the page chrome is localized.
+ * Backup and restore are job-based: start → poll → (dump) download. The API is
+ * admin-role-gated; the nav entry and this view are gated on the admin role too,
+ * and a 403 is surfaced clearly if the API rejects anyway. Import (rebase /
+ * reference-FDP crawl) is intentionally CLI-only and is shown only as a reference
+ * note — there is no UI for it.
  */
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
+import {
+  startDump,
+  startRestore,
+  downloadArchive,
+  isDumpResult,
+  isRestoreResult,
+  type BackupJob,
+} from "@/api/backup";
+import { useBackupJob } from "@/composables/useBackupJob";
+import { parseFdpError, type ParsedError } from "@/api/errors";
 import AppIcon from "@/components/shared/AppIcon.vue";
 
 const { t } = useI18n();
 const auth = useAuthStore();
 
-interface Command {
-  id: string;
-  label: string;
-  cmd: string;
-  desc: string;
+// ── Backup ──────────────────────────────────────────────────────────────────
+const { job: backupJob, busy: backupBusy, error: backupErr, run: runBackup } = useBackupJob();
+const dumpNoAudit = ref(false);
+const downloadErr = ref<ParsedError | null>(null);
+
+// Typed, narrowed result for the template (a v-if can't discriminate the union).
+const dumpResult = computed(() =>
+  backupJob.value && isDumpResult(backupJob.value) ? backupJob.value.result : null,
+);
+
+function createBackup() {
+  downloadErr.value = null;
+  void runBackup(() => startDump(dumpNoAudit.value));
 }
-const COMMANDS: Command[] = [
-  {
-    id: "dump",
-    label: "Dump the store",
-    cmd: "fdp backup dump ./backup-2026-07-06",
-    desc: "Export every named graph (records + their /meta and /audit siblings) to a versioned archive — records.nq, manifest.json, and audit.jsonl.",
-  },
-  {
-    id: "restore",
-    label: "Restore (same identifier base)",
-    cmd: "fdp backup restore ./backup-2026-07-06",
-    desc: "Load a dump verbatim — provenance, publication state, and audit survive byte-for-byte. Add --merge (skip existing), --overwrite, or --dry-run. Refuses unless the deployment's identifier base equals the dump's.",
-  },
-  {
-    id: "import-rebase",
-    label: "Adopt a dump captured under a different base",
-    cmd: "fdp backup import ./other-fdp-dump --rebase",
-    desc: "Re-roots every IRI — records, cross-links, and the schema binding — from the dump's identifier base to this deployment's.",
-  },
-  {
-    id: "import-from",
-    label: "Migrate from another FDP over HTTP",
-    cmd: "fdp backup import --from https://old-fdp.example.org",
-    desc: "Crawls the source's LDP tree (egress-pinned to its origin), re-roots each record, carries its dates into the meta graph, and preserves the old IRI as a structured alternative identifier (never owl:sameAs).",
-  },
-  {
-    id: "reindex",
-    label: "Reindex search after a bare rebase",
-    cmd: "fdp search reindex",
-    desc: "restore and import reindex automatically; run this yourself only after a bare `fdp pid rebase`.",
-  },
-];
 
-const CAVEATS = [
-  {
-    title: "Search reindex is part of the runbook",
-    body: "metadata_search is a derived projection. restore and import rebuild it automatically, but a bare `fdp pid rebase` rewrites only the triple store — run `fdp search reindex` yourself afterwards.",
-  },
-  {
-    title: "record_audit keeps historical IRIs",
-    body: "A rebase or import rewrites the triple store, but the Postgres record_audit rows intentionally keep the IRIs that were current when each event happened — they are history, not live references.",
-  },
-];
+async function download(id: string) {
+  downloadErr.value = null;
+  try {
+    const blob = await downloadArchive(id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fdp-backup-${id}.zip`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  } catch (e) {
+    downloadErr.value = parseFdpError(e);
+  }
+}
 
-const copiedId = ref<string | null>(null);
-async function copy(id: string, cmd: string) {
+// ── Restore ─────────────────────────────────────────────────────────────────
+const {
+  job: restoreJob,
+  busy: restoreBusy,
+  error: restoreErr,
+  run: runRestore,
+  reset: resetRestore,
+} = useBackupJob();
+const restoreFile = ref<File | null>(null);
+const merge = ref(false);
+const overwrite = ref(false);
+const restoreNoAudit = ref(false);
+const dryRun = ref(false);
+const confirmOpen = ref(false);
+
+const restoreResult = computed(() =>
+  restoreJob.value && isRestoreResult(restoreJob.value) ? restoreJob.value.result : null,
+);
+
+// Merge and overwrite are mutually exclusive (the server 400s if both are set).
+function setMerge(v: boolean) {
+  merge.value = v;
+  if (v) overwrite.value = false;
+}
+function setOverwrite(v: boolean) {
+  overwrite.value = v;
+  if (v) merge.value = false;
+}
+function onFile(e: Event) {
+  resetRestore();
+  restoreFile.value = (e.target as HTMLInputElement).files?.[0] ?? null;
+}
+
+function requestRestore() {
+  if (!restoreFile.value) return;
+  // A dry run writes nothing, so it needs no confirmation; a real restore does.
+  if (dryRun.value) doRestore();
+  else confirmOpen.value = true;
+}
+function doRestore() {
+  confirmOpen.value = false;
+  const file = restoreFile.value;
+  if (!file) return;
+  void runRestore(() =>
+    startRestore(file, {
+      merge: merge.value,
+      overwrite: overwrite.value,
+      noAudit: restoreNoAudit.value,
+      dryRun: dryRun.value,
+    }),
+  );
+}
+
+// ── Shared ────────────────────────────────────────────────────────────────
+/** Context-aware message for a parsed error (403/404/409/413 get specific copy). */
+function errorText(err: ParsedError): string {
+  switch (err.status) {
+    case 403:
+      return t("backupAdmin.forbidden");
+    case 413:
+      return t("backupAdmin.tooLarge");
+    case 409:
+      return t("backupAdmin.notReady");
+    case 404:
+      return t("backupAdmin.gone");
+    default:
+      return err.message;
+  }
+}
+function stateLabel(job: BackupJob | null): string {
+  return job?.state === "RUNNING" ? t("backupAdmin.running") : t("backupAdmin.queued");
+}
+
+// Import stays CLI-only (never over HTTP) — shown as a reference note.
+const IMPORT_CMDS = [
+  "fdp backup import ./other-fdp-dump --rebase",
+  "fdp backup import --from https://old-fdp.example.org",
+];
+const copiedCmd = ref<string | null>(null);
+async function copyCmd(cmd: string) {
   try {
     await navigator.clipboard.writeText(cmd);
-    copiedId.value = id;
+    copiedCmd.value = cmd;
     setTimeout(() => {
-      if (copiedId.value === id) copiedId.value = null;
+      if (copiedCmd.value === cmd) copiedCmd.value = null;
     }, 1500);
   } catch {
-    /* clipboard blocked — no-op */
+    /* clipboard blocked */
   }
 }
 </script>
@@ -97,33 +158,140 @@ async function copy(id: string, cmd: string) {
     </header>
 
     <template v-if="auth.isAdmin">
-      <section class="section" :aria-label="t('backupAdmin.commandsHeading')">
-        <h2 class="section__title">{{ t("backupAdmin.commandsHeading") }}</h2>
-        <div v-for="c in COMMANDS" :key="c.id" class="cmd">
-          <div class="cmd__label">{{ c.label }}</div>
-          <p class="cmd__desc">{{ c.desc }}</p>
-          <div class="cmd__row">
-            <code class="cmd__code mono">{{ c.cmd }}</code>
-            <button
-              type="button"
-              class="btn sm cmd__copy"
-              :aria-label="`${t('backupAdmin.copy')}: ${c.cmd}`"
-              @click="copy(c.id, c.cmd)"
-            >
-              <AppIcon v-if="copiedId === c.id" name="check" :size="13" />
-              {{ copiedId === c.id ? t("backupAdmin.copied") : t("backupAdmin.copy") }}
-            </button>
-          </div>
+      <!-- Backup -->
+      <section class="section" :aria-label="t('backupAdmin.backupHeading')">
+        <h2 class="section__title">{{ t("backupAdmin.backupHeading") }}</h2>
+        <p class="section__sub">{{ t("backupAdmin.backupSub") }}</p>
+
+        <label class="opt">
+          <input v-model="dumpNoAudit" type="checkbox" :disabled="backupBusy" />
+          <span>{{ t("backupAdmin.excludeAudit") }}</span>
+        </label>
+
+        <div class="actions">
+          <button class="btn primary" :disabled="backupBusy" @click="createBackup">
+            {{ t("backupAdmin.create") }}
+          </button>
+          <span v-if="backupBusy" class="progress">
+            <span class="spinner" aria-hidden="true" />
+            {{ stateLabel(backupJob) }}
+          </span>
         </div>
+
+        <p v-if="backupErr" class="msg err" role="alert">{{ errorText(backupErr) }}</p>
+
+        <template v-if="backupJob && !backupBusy">
+          <div v-if="backupJob.state === 'FAILED'" class="msg err" role="alert">
+            {{ backupJob.error || t("backupAdmin.failed") }}
+          </div>
+          <div v-else-if="dumpResult" class="result">
+            <div class="result__title ok">
+              <AppIcon name="check" :size="14" /> {{ t("backupAdmin.resultTitle") }}
+            </div>
+            <dl class="metrics">
+              <div><dt>{{ t("backupAdmin.mGraphs") }}</dt><dd class="mono">{{ dumpResult.graphs }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mQuads") }}</dt><dd class="mono">{{ dumpResult.quads }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mAuditRows") }}</dt><dd class="mono">{{ dumpResult.audit_rows }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mDataModel") }}</dt><dd class="mono">{{ dumpResult.data_model_version }}</dd></div>
+            </dl>
+            <button class="btn accent" @click="backupJob && download(backupJob.id)">
+              <AppIcon name="download" :size="14" /> {{ t("backupAdmin.download") }}
+            </button>
+            <p v-if="downloadErr" class="msg err" role="alert">{{ errorText(downloadErr) }}</p>
+          </div>
+        </template>
       </section>
 
-      <section class="section" :aria-label="t('backupAdmin.caveatsHeading')">
-        <h2 class="section__title">{{ t("backupAdmin.caveatsHeading") }}</h2>
-        <div v-for="cv in CAVEATS" :key="cv.title" class="caveat">
-          <div class="caveat__title">
-            <AppIcon name="shield" :size="14" /> {{ cv.title }}
+      <!-- Restore -->
+      <section class="section" :aria-label="t('backupAdmin.restoreHeading')">
+        <h2 class="section__title">{{ t("backupAdmin.restoreHeading") }}</h2>
+        <p class="section__sub">{{ t("backupAdmin.restoreSub") }}</p>
+
+        <label class="filepick">
+          <input type="file" accept=".zip,application/zip" @change="onFile" />
+        </label>
+
+        <div class="opts">
+          <label class="opt">
+            <input type="checkbox" :checked="merge" @change="setMerge(($event.target as HTMLInputElement).checked)" />
+            <span>{{ t("backupAdmin.merge") }} <em>{{ t("backupAdmin.mergeHelp") }}</em></span>
+          </label>
+          <label class="opt">
+            <input type="checkbox" :checked="overwrite" @change="setOverwrite(($event.target as HTMLInputElement).checked)" />
+            <span>{{ t("backupAdmin.overwrite") }} <em>{{ t("backupAdmin.overwriteHelp") }}</em></span>
+          </label>
+          <label class="opt">
+            <input v-model="restoreNoAudit" type="checkbox" />
+            <span>{{ t("backupAdmin.excludeAudit") }}</span>
+          </label>
+          <label class="opt">
+            <input v-model="dryRun" type="checkbox" />
+            <span>{{ t("backupAdmin.dryRun") }} <em>{{ t("backupAdmin.dryRunHelp") }}</em></span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button
+            class="btn"
+            :class="dryRun ? 'primary' : 'danger'"
+            :disabled="!restoreFile || restoreBusy"
+            @click="requestRestore"
+          >
+            {{ dryRun ? t("backupAdmin.dryRunBtn") : t("backupAdmin.restore") }}
+          </button>
+          <span v-if="restoreBusy" class="progress">
+            <span class="spinner" aria-hidden="true" />
+            {{ stateLabel(restoreJob) }}
+          </span>
+        </div>
+
+        <!-- Destructive confirmation (non-dry-run only) -->
+        <div v-if="confirmOpen" class="confirm" role="alertdialog" aria-labelledby="cfm-t">
+          <div id="cfm-t" class="confirm__title">
+            <AppIcon name="shield" :size="15" />
+            {{ overwrite ? t("backupAdmin.confirmTitleOverwrite") : t("backupAdmin.confirmTitle") }}
           </div>
-          <p class="caveat__body">{{ cv.body }}</p>
+          <p class="confirm__body">{{ t("backupAdmin.confirmBody") }}</p>
+          <div class="confirm__actions">
+            <button class="btn danger" @click="doRestore">{{ t("backupAdmin.confirmProceed") }}</button>
+            <button class="btn ghost" @click="confirmOpen = false">{{ t("backupAdmin.cancel") }}</button>
+          </div>
+        </div>
+
+        <p v-if="restoreErr" class="msg err" role="alert">{{ errorText(restoreErr) }}</p>
+
+        <template v-if="restoreJob && !restoreBusy">
+          <div v-if="restoreJob.state === 'FAILED'" class="msg err" role="alert">
+            {{ restoreJob.error || t("backupAdmin.failed") }}
+          </div>
+          <div v-else-if="restoreResult" class="result">
+            <div class="result__title" :class="restoreResult.dry_run ? '' : 'ok'">
+              <AppIcon :name="restoreResult.dry_run ? 'eye' : 'check'" :size="14" />
+              {{ restoreResult.dry_run ? t("backupAdmin.wouldTitle") : t("backupAdmin.resultTitle") }}
+            </div>
+            <dl class="metrics">
+              <div><dt>{{ t("backupAdmin.mGraphsLoaded") }}</dt><dd class="mono">{{ restoreResult.graphs_loaded }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mGraphsSkipped") }}</dt><dd class="mono">{{ restoreResult.graphs_skipped }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mQuads") }}</dt><dd class="mono">{{ restoreResult.quads }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mProfiles") }}</dt><dd class="mono">{{ restoreResult.profiles_provisioned }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mAuditRows") }}</dt><dd class="mono">{{ restoreResult.audit_rows }}</dd></div>
+              <div><dt>{{ t("backupAdmin.mRecordsIndexed") }}</dt><dd class="mono">{{ restoreResult.records_indexed }}</dd></div>
+              <div v-if="restoreResult.migrated"><dt>{{ t("backupAdmin.mMigrated") }}</dt><dd class="mono">✓</dd></div>
+            </dl>
+          </div>
+        </template>
+      </section>
+
+      <!-- Import (CLI-only reference) -->
+      <section class="section" :aria-label="t('backupAdmin.importHeading')">
+        <h2 class="section__title">{{ t("backupAdmin.importHeading") }}</h2>
+        <p class="section__sub">{{ t("backupAdmin.importSub") }}</p>
+        <div v-for="cmd in IMPORT_CMDS" :key="cmd" class="cmd__row">
+          <code class="cmd__code mono">{{ cmd }}</code>
+          <button type="button" class="btn sm cmd__copy" :aria-label="`${t('backupAdmin.copy')}: ${cmd}`" @click="copyCmd(cmd)">
+            <AppIcon v-if="copiedCmd === cmd" name="check" :size="13" />
+            {{ copiedCmd === cmd ? t("backupAdmin.copied") : t("backupAdmin.copy") }}
+          </button>
         </div>
       </section>
     </template>
@@ -167,6 +335,8 @@ async function copy(id: string, cmd: string) {
 }
 .section {
   margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--fair-separator);
 }
 .section__title {
   font-family: var(--fair-font-sans);
@@ -175,31 +345,159 @@ async function copy(id: string, cmd: string) {
   text-transform: uppercase;
   letter-spacing: var(--fair-tracking-eyebrow);
   color: var(--fair-text-muted);
+  margin: 0 0 6px;
+}
+.section__sub {
   margin: 0 0 16px;
-}
-.cmd {
-  padding: 16px 0;
-  border-top: 1px solid var(--fair-separator);
-}
-.cmd:first-of-type {
-  border-top: 0;
-}
-.cmd__label {
-  font-weight: var(--fair-weight-semibold);
-  color: var(--fair-text-strong);
-  font-size: var(--fair-text-md);
-}
-.cmd__desc {
-  margin: 4px 0 10px;
   color: var(--fair-text-muted);
   font-size: var(--fair-text-base);
   line-height: var(--fair-leading-snug);
   max-width: 62ch;
 }
+.opts {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.opt {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  font-size: var(--fair-text-base);
+  color: var(--fair-text-strong);
+  cursor: pointer;
+}
+.opt em {
+  display: block;
+  font-style: normal;
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-sm);
+}
+.filepick {
+  display: block;
+  margin-bottom: 16px;
+  font-size: var(--fair-text-base);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.btn.danger {
+  background: var(--fair-danger);
+  color: #fff;
+  border-color: var(--fair-danger);
+}
+.btn.danger:hover {
+  filter: brightness(0.94);
+}
+.btn.accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-base);
+}
+.spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--fair-border);
+  border-top-color: var(--tool-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+.msg {
+  margin: 14px 0 0;
+  font-size: var(--fair-text-base);
+}
+.msg.err {
+  color: var(--fair-danger);
+}
+.result {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--fair-border);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-surface);
+}
+.result__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: var(--fair-weight-semibold);
+  color: var(--fair-text-strong);
+  margin-bottom: 12px;
+}
+.result__title.ok {
+  color: var(--fair-success);
+}
+.metrics {
+  margin: 0 0 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 20px;
+}
+.metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.metrics dt {
+  font-size: var(--fair-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--fair-tracking-eyebrow);
+  color: var(--fair-text-muted);
+}
+.metrics dd {
+  margin: 0;
+  font-size: var(--fair-text-lg);
+  color: var(--fair-text-strong);
+}
+.confirm {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--fair-danger);
+  border-radius: var(--fair-radius-lg);
+  background: var(--fair-danger-tint);
+}
+.confirm__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: var(--fair-weight-semibold);
+  color: var(--fair-text-strong);
+}
+.confirm__body {
+  margin: 8px 0 14px;
+  color: var(--fair-text);
+  font-size: var(--fair-text-base);
+  line-height: var(--fair-leading-snug);
+  max-width: 60ch;
+}
+.confirm__actions {
+  display: flex;
+  gap: 10px;
+}
 .cmd__row {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-top: 10px;
 }
 .cmd__code {
   flex: 1;
@@ -218,27 +516,5 @@ async function copy(id: string, cmd: string) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
-.caveat {
-  padding: 14px 16px;
-  border: 1px solid var(--fair-border);
-  border-radius: var(--fair-radius-lg);
-  background: var(--fair-surface);
-  margin-bottom: 12px;
-}
-.caveat__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: var(--fair-weight-semibold);
-  color: var(--fair-text-strong);
-  font-size: var(--fair-text-base);
-}
-.caveat__body {
-  margin: 6px 0 0;
-  color: var(--fair-text-muted);
-  font-size: var(--fair-text-base);
-  line-height: var(--fair-leading-normal);
-  max-width: 62ch;
 }
 </style>
