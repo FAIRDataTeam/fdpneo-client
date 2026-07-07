@@ -238,6 +238,11 @@ export function mapRecord(
 
   const publisherUri = one(store, s, `${NS.dct}publisher`) ?? "";
   const licenseUri = one(store, s, `${NS.dct}license`) ?? "";
+  const creatorUri = one(store, s, `${NS.dct}creator`) ?? "";
+  // Keep the raw spatial/language IRIs (not just the short label) so the detail
+  // view can resolve them to human text via /labels, like publisher/theme.
+  const spatialUri = one(store, s, `${NS.dct}spatial`) ?? "";
+  const languageUri = one(store, s, `${NS.dct}language`) ?? "";
   const distributionIris = many(store, s, `${NS.dcat}distribution`);
 
   return {
@@ -248,9 +253,12 @@ export function mapRecord(
     description: one(store, s, `${NS.dct}description`) ?? "",
     publisher: publisherUri ? shortLabel(publisherUri) : "",
     publisherUri,
+    creator: creatorUri ? shortLabel(creatorUri) : "",
+    creatorUri,
     version: one(store, s, `${NS.dct}hasVersion`) ?? "",
     versionDate: isoDate(one(store, s, `${NS.dct}modified`)),
-    language: shortLabel(one(store, s, `${NS.dct}language`) ?? ""),
+    language: shortLabel(languageUri),
+    languageUri,
     license: licenseLabel(licenseUri),
     licenseUri,
     conformsTo: one(store, s, `${NS.dct}conformsTo`) ?? "",
@@ -266,7 +274,8 @@ export function mapRecord(
     keywords: many(store, s, `${NS.dcat}keyword`),
     themes: many(store, s, `${NS.dcat}theme`).map(shortLabel),
     themeUris: many(store, s, `${NS.dcat}theme`),
-    spatial: shortLabel(one(store, s, `${NS.dct}spatial`) ?? ""),
+    spatial: shortLabel(spatialUri),
+    spatialUri,
     temporal: one(store, s, `${NS.dct}temporal`) ?? "",
     participants: 0,
     visits: 0,

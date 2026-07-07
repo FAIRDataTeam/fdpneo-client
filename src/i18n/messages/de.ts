@@ -763,8 +763,11 @@ const de: Messages = {
   },
   propList: {
     publisher: "Herausgeber",
+    creator: "Ersteller",
     license: "Lizenz",
+    language: "Sprache",
     themes: "Themen",
+    spatial: "Räumliche Abdeckung",
     conformsTo: "Konform zu",
     identifier: "Bezeichner",
   },

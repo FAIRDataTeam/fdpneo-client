@@ -53,9 +53,14 @@ export interface FdpRecord {
   description: string;
   publisher: string;
   publisherUri: string;
+  /** `dct:creator` short label + raw IRI (resolved to human text via `/labels`). */
+  creator?: string;
+  creatorUri?: string;
   version: string;
   versionDate: string;
   language: string;
+  /** Raw `dct:language` IRI (for `/labels`); `language` is the fallback label. */
+  languageUri?: string;
   license: string;
   licenseUri: string;
   conformsTo: string;
@@ -74,6 +79,8 @@ export interface FdpRecord {
   /** Raw theme IRIs (for label resolution via `/labels`); `themes` are the fallback labels. */
   themeUris?: string[];
   spatial: string;
+  /** Raw `dct:spatial` IRI (for `/labels`); `spatial` is the fallback label. */
+  spatialUri?: string;
   temporal: string;
   participants: number;
   visits: number;
@@ -154,6 +161,8 @@ export const sampleRecord: FdpRecord = {
     "Longitudinal magnetic-resonance imaging and cognitive assessment data from 412 participants across three follow-up visits (baseline, 18 months, 36 months). Includes T1, T2-FLAIR, DTI sequences alongside MMSE, MoCA, and ADAS-Cog scores.",
   publisher: "Erasmus MC · Department of Neurology",
   publisherUri: "https://www.erasmusmc.nl/en/research/departments/neurology",
+  creator: "Erasmus MC · Department of Neurology",
+  creatorUri: "https://www.erasmusmc.nl/en/research/departments/neurology",
   version: "2024.2",
   versionDate: "2026-04-12",
   language: "English",

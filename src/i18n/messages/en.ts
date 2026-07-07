@@ -758,8 +758,11 @@ const en = {
   },
   propList: {
     publisher: "Publisher",
+    creator: "Creator",
     license: "License",
+    language: "Language",
     themes: "Themes",
+    spatial: "Spatial coverage",
     conformsTo: "Conforms to",
     identifier: "Identifier",
   },
