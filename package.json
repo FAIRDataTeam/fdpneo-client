@@ -4,7 +4,7 @@
   "version": "0.6.1",
   "description": "Reference web client for FAIR Data Point v2 — Vue 3 + TypeScript SPA.",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "engines": {
     "node": ">=22.0.0"
   },
