@@ -8,6 +8,18 @@ Entries prior to 0.5.0 were reconstructed retroactively from the release tags,
 their annotations, and the release commit messages; the matching GitHub release
 pages carry the fuller notes.
 
+## [Unreleased]
+
+### Added
+
+- **Record detail surfaces Creator, Language, and Spatial coverage**, alongside
+  the existing Publisher/License/Themes. Each IRI-valued property is resolved to
+  a human label via the server's `/labels` service and rendered as a clickable
+  link (falling back to a terse label when the service can't resolve it); plain
+  literal values render as text. Edit forms are unaffected — they still bind the
+  raw IRI so the actual value stays visible while editing. (Fuller resolution of
+  ROR / ORCID / DOI / EU-vocabulary / GeoNames IRIs is a server `/labels` change.)
+
 ## [0.6.1] — 2026-07-06
 
 ### Fixed

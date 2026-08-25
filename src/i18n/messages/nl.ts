@@ -763,8 +763,11 @@ const nl: Messages = {
   },
   propList: {
     publisher: "Uitgever",
+    creator: "Maker",
     license: "Licentie",
+    language: "Taal",
     themes: "Thema's",
+    spatial: "Ruimtelijke dekking",
     conformsTo: "Voldoet aan",
     identifier: "Identifier",
   },

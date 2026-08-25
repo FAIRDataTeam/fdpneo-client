@@ -762,8 +762,11 @@ const es: Messages = {
   },
   propList: {
     publisher: "Editor",
+    creator: "Creador",
     license: "Licencia",
+    language: "Idioma",
     themes: "Temas",
+    spatial: "Cobertura espacial",
     conformsTo: "Conforme a",
     identifier: "Identificador",
   },

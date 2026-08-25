@@ -763,8 +763,11 @@ const ptBR: Messages = {
   },
   propList: {
     publisher: "Publicador",
+    creator: "Criador",
     license: "Licença",
+    language: "Idioma",
     themes: "Temas",
+    spatial: "Cobertura espacial",
     conformsTo: "Em conformidade com",
     identifier: "Identificador",
   },
