@@ -330,7 +330,7 @@ and copy the generated `FDP_BRANDING='…'` line straight into your compose file
 ```yaml
 services:
   fdp-client:
-    image: ghcr.io/.../fdp-client:latest
+    image: ghcr.io/fairdatateam/fdpneo-client:main
     environment:
       FDP_API_URL: https://api.fdp.example
       FDP_PUBLIC_ORIGIN: https://fdp.example
