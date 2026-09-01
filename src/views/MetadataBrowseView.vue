@@ -14,7 +14,7 @@ import { useCatalogs } from "@/composables/useCatalogs";
 import { useRepository } from "@/composables/useRepository";
 import { useTreeGraph } from "@/composables/useTreeGraph";
 import { useAuthStore } from "@/stores/auth";
-import { sampleDeployment, type TreeNode as TreeNodeData } from "@/data/sampleRecord";
+import type { TreeNode as TreeNodeData } from "@/data/sampleRecord";
 import { apiBase } from "@/api/rdf";
 import CatalogCard from "@/components/metadata/CatalogCard.vue";
 import TreeNode from "@/components/metadata/TreeNode.vue";
@@ -30,7 +30,16 @@ const { data: catalogs, isLoading } = useCatalogs();
 const { data: containers, isLoading: treeLoading } = useTreeGraph();
 
 const newCatalogLink = computed(() => `/create/catalog?parent=${encodeURIComponent(apiBase())}`);
-const repoTitle = computed(() => repo.value?.title || sampleDeployment.name);
+// Neutral fallback while the root record loads (or fails to): the deployment
+// host, never sample branding (interface note 12.1 — no sample text in the shell).
+const hostLabel = computed(() => {
+  try {
+    return new URL(apiBase()).host;
+  } catch {
+    return "FAIR Data Point";
+  }
+});
+const repoTitle = computed(() => repo.value?.title || hostLabel.value);
 const repoDescription = computed(() => repo.value?.description || "");
 const catalogCount = computed(() => catalogs.value?.length ?? 0);
 const totalRecords = computed(() => (catalogs.value ?? []).reduce((s, c) => s + c.distributions, 0));

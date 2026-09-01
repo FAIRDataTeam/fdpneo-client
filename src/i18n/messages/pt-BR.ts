@@ -200,7 +200,7 @@ const ptBR: Messages = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Metadados abertos de dados de coorte, imagem, biobanco e registro mantidos por pesquisadores do Erasmus MC. Navegue pelos catálogos, busque entre os registros ou consulte o endpoint SPARQL.",
+      "Metadados abertos dos dados deste FAIR Data Point. Navegue pelos catálogos, busque entre os registros ou consulte o endpoint SPARQL.",
     editRepository: "Editar repositório",
     catalogsHeading: "Catálogos",
     newCatalog: "Novo catálogo",

@@ -199,7 +199,7 @@ const es: Messages = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Metadatos abiertos de datos de cohortes, imágenes, biobancos y registros mantenidos por investigadores de Erasmus MC. Explora los catálogos, busca entre los registros o consulta el endpoint SPARQL.",
+      "Metadatos abiertos de los datos de este FAIR Data Point. Explora los catálogos, busca entre los registros o consulta el endpoint SPARQL.",
     editRepository: "Editar repositorio",
     catalogsHeading: "Catálogos",
     newCatalog: "Nuevo catálogo",

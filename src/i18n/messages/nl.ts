@@ -200,7 +200,7 @@ const nl: Messages = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Open metadata voor cohort-, beeld-, biobank- en registergegevens beheerd door onderzoekers van Erasmus MC. Blader door de catalogi, zoek door records of bevraag het SPARQL-endpoint.",
+      "Open metadata voor de gegevens in dit FAIR Data Point. Blader door de catalogi, zoek door records of bevraag het SPARQL-endpoint.",
     editRepository: "Repository bewerken",
     catalogsHeading: "Catalogi",
     newCatalog: "Nieuwe catalogus",

@@ -195,7 +195,7 @@ const en = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Open metadata for cohort, imaging, biobank and registry data maintained by Erasmus MC researchers. Browse the catalogs, search across records, or query the SPARQL endpoint.",
+      "Open metadata for the data in this FAIR Data Point. Browse the catalogs, search across records, or query the SPARQL endpoint.",
     editRepository: "Edit repository",
     catalogsHeading: "Catalogs",
     newCatalog: "New catalog",

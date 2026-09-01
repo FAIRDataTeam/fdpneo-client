@@ -10,6 +10,19 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.6.2] — 2026-09-01
+
+### Fixed
+
+- **No more "Erasmus MC" sample branding in a live deployment.** The browse
+  view's title fell back to the hardcoded sample deployment name whenever the
+  repository root record hadn't loaded (or couldn't load — e.g. a CORS
+  misconfiguration), and the default repository description shown when the root
+  record has no `dct:description` mentioned "Erasmus MC researchers" in all six
+  languages. The title now falls back to the deployment host (never sample
+  text, completing interface note 12.1), and the default description is
+  deployment-neutral.
+
 ### Added
 
 - **Record detail surfaces Creator, Language, and Spatial coverage**, alongside
@@ -156,6 +169,7 @@ First tagged release of the FAIR Data Point v2 web client (Vue 3 / TypeScript).
 - Metadata browsing and editing, SHACL/ODRL editors, a metrics dashboard, OIDC
   auth (Authorization Code + PKCE), and the 2026-06 security hardening.
 
+[0.6.2]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.2
 [0.6.1]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.1
 [0.6.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.0
 [0.5.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.5.0

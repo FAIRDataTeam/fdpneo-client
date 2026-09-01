@@ -201,7 +201,7 @@ const fr: Messages = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Métadonnées ouvertes pour les données de cohortes, d'imagerie, de biobanques et de registres maintenues par les chercheurs d'Erasmus MC. Parcourez les catalogues, recherchez parmi les enregistrements ou interrogez le point de terminaison SPARQL.",
+      "Métadonnées ouvertes pour les données de ce FAIR Data Point. Parcourez les catalogues, recherchez parmi les enregistrements ou interrogez le point de terminaison SPARQL.",
     editRepository: "Modifier le dépôt",
     catalogsHeading: "Catalogues",
     newCatalog: "Nouveau catalogue",
