@@ -200,7 +200,7 @@ const de: Messages = {
   metadata: {
     eyebrow: "FAIR Data Point",
     defaultDescription:
-      "Offene Metadaten zu Kohorten-, Bildgebungs-, Biobank- und Registerdaten, die von Forschenden des Erasmus MC gepflegt werden. Durchstöbern Sie die Kataloge, suchen Sie über Datensätze hinweg oder fragen Sie den SPARQL-Endpunkt ab.",
+      "Offene Metadaten zu den Daten dieses FAIR Data Point. Durchstöbern Sie die Kataloge, suchen Sie über Datensätze hinweg oder fragen Sie den SPARQL-Endpunkt ab.",
     editRepository: "Repository bearbeiten",
     catalogsHeading: "Kataloge",
     newCatalog: "Neuer Katalog",
