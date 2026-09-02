@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useSettings } from "@/composables/useSettings";
 import type { SettingValue } from "@/api/settings";
 import SettingEditor from "@/components/admin/SettingEditor.vue";
+import IndexTargetsPanel from "@/components/admin/IndexTargetsPanel.vue";
 import ResetPanel from "@/components/admin/ResetPanel.vue";
 
 const { t } = useI18n();
@@ -56,6 +57,8 @@ const entries = computed<[string, SettingValue][]>(() =>
         :can-edit="auth.isAdmin"
       />
     </div>
+
+    <IndexTargetsPanel v-if="auth.isAdmin" class="reset" />
 
     <ResetPanel v-if="auth.isAdmin" class="reset" />
   </main>

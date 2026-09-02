@@ -502,7 +502,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for FAIRDataPoint
-         * @description Return the SHACL shape graph that validates FAIRDataPoint instances (http://localhost:8000/fdp-api/schemas/fairdata-point).
+         * @description Return the SHACL shape graph that validates FAIRDataPoint instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/fairdata-point).
          */
         get: operations["getFAIRDataPointSpec"];
         put?: never;
@@ -591,7 +591,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Ext Root Page */
+        /**
+         * Ext Root Page
+         * @description Paginated listing of a container's children. Navigate with the RFC 8288 `Link` header (`rel="first"/"prev"/"next"/"last"`). The `X-FDP-Page-Total/Offset/Limit` headers are **deprecated** (removal targeted v0.12.0); prefer the `Link` relations.
+         */
         get: operations["ext_root_page_fdp_api_page__child_prefix__get"];
         put?: never;
         post?: never;
@@ -788,6 +791,58 @@ export interface paths {
          * @description Dry-run a sample record (Turtle body) against the shape (authenticated).
          */
         post: operations["schema_validate_fdp_api_schemas__schema_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/index/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Index Target List */
+        get: operations["index_target_list_fdp_api_index_targets_get"];
+        put?: never;
+        /** Index Target Add */
+        post: operations["index_target_add_fdp_api_index_targets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/index/targets/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Index Target Remove */
+        delete: operations["index_target_remove_fdp_api_index_targets__target_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/index/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Index Ping Now */
+        post: operations["index_ping_now_fdp_api_index_ping_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1186,7 +1241,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Catalog
-         * @description Return the SHACL shape graph that validates Catalog instances (http://localhost:8000/fdp-api/schemas/catalog).
+         * @description Return the SHACL shape graph that validates Catalog instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/catalog).
          */
         get: operations["getCatalogTypeSpec"];
         put?: never;
@@ -1206,7 +1261,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Catalog
-         * @description Return the SHACL shape graph that validates Catalog instances (http://localhost:8000/fdp-api/schemas/catalog).
+         * @description Return the SHACL shape graph that validates Catalog instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/catalog).
          */
         get: operations["getCatalogSpec"];
         put?: never;
@@ -1229,6 +1284,26 @@ export interface paths {
          * @description Return the Catalog record together with every ancestor reachable via dct:isPartOf.
          */
         get: operations["getCatalogExpanded"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/catalog/{id}/page/{childPrefix}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List a page of Catalog children
+         * @description Paginated listing of Catalog members of a given child type. ``childPrefix`` is the URL prefix of the target type.
+         */
+        get: operations["getCatalogChildPage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1294,7 +1369,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Dataset
-         * @description Return the SHACL shape graph that validates Dataset instances (http://localhost:8000/fdp-api/schemas/dataset).
+         * @description Return the SHACL shape graph that validates Dataset instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/dataset).
          */
         get: operations["getDatasetTypeSpec"];
         put?: never;
@@ -1314,7 +1389,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Dataset
-         * @description Return the SHACL shape graph that validates Dataset instances (http://localhost:8000/fdp-api/schemas/dataset).
+         * @description Return the SHACL shape graph that validates Dataset instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/dataset).
          */
         get: operations["getDatasetSpec"];
         put?: never;
@@ -1422,7 +1497,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for DataService
-         * @description Return the SHACL shape graph that validates DataService instances (http://localhost:8000/fdp-api/schemas/data-service).
+         * @description Return the SHACL shape graph that validates DataService instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/data-service).
          */
         get: operations["getDataServiceTypeSpec"];
         put?: never;
@@ -1442,7 +1517,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for DataService
-         * @description Return the SHACL shape graph that validates DataService instances (http://localhost:8000/fdp-api/schemas/data-service).
+         * @description Return the SHACL shape graph that validates DataService instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/data-service).
          */
         get: operations["getDataServiceSpec"];
         put?: never;
@@ -1530,7 +1605,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Distribution
-         * @description Return the SHACL shape graph that validates Distribution instances (http://localhost:8000/fdp-api/schemas/distribution).
+         * @description Return the SHACL shape graph that validates Distribution instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/distribution).
          */
         get: operations["getDistributionTypeSpec"];
         put?: never;
@@ -1550,7 +1625,7 @@ export interface paths {
         };
         /**
          * Get SHACL shape for Distribution
-         * @description Return the SHACL shape graph that validates Distribution instances (http://localhost:8000/fdp-api/schemas/distribution).
+         * @description Return the SHACL shape graph that validates Distribution instances (https://fdpneo.semlab-leiden.nl/fdp-api/schemas/distribution).
          */
         get: operations["getDistributionSpec"];
         put?: never;
@@ -1924,6 +1999,55 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** IndexPingRunView */
+        IndexPingRunView: {
+            /** Results */
+            results: components["schemas"]["PingResultView"][];
+        };
+        /**
+         * IndexTargetCreateRequest
+         * @description Body for ``POST /fdp-api/index/targets``.
+         */
+        IndexTargetCreateRequest: {
+            /** Url */
+            url: string;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * IndexTargetInfo
+         * @description One effective ping target (env-configured or runtime-managed).
+         */
+        IndexTargetInfo: {
+            /** Id */
+            id: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "env" | "runtime";
+            /** Note */
+            note?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Created By */
+            created_by?: string | null;
+            /** Last Ping At */
+            last_ping_at?: string | null;
+            /** Last Status Code */
+            last_status_code?: number | null;
+            /** Last Ok */
+            last_ok?: boolean | null;
+            /** Last Detail */
+            last_detail?: string | null;
+        };
+        /** IndexTargetList */
+        IndexTargetList: {
+            /** Targets */
+            targets: components["schemas"]["IndexTargetInfo"][];
+        };
         /** InstanceItem */
         InstanceItem: {
             /** Iri */
@@ -2034,6 +2158,17 @@ export interface components {
              * Format: date
              */
             until: string;
+        };
+        /** PingResultView */
+        PingResultView: {
+            /** Target */
+            target: string;
+            /** Status */
+            status: number | null;
+            /** Ok */
+            ok: boolean;
+            /** Detail */
+            detail?: string | null;
         };
         /**
          * PolicyInfo
@@ -2156,6 +2291,22 @@ export interface components {
             children?: components["schemas"]["ChildLinkInput"][];
         };
         /**
+         * ResourceDefinitionLinks
+         * @description Absolute, followable URLs for a resource definition (ADR-0022 §4).
+         *
+         *     Self-describing so a client need not concatenate ``urlPrefix`` onto a base it
+         *     must already know. Built from the *serving* base (ADR-0014 split), the host a
+         *     client actually calls.
+         */
+        ResourceDefinitionLinks: {
+            /** Self */
+            self: string;
+            /** Container */
+            container: string;
+            /** Spec */
+            spec: string;
+        };
+        /**
          * ResourceDefinitionListView
          * @description Response for ``GET /resource-definitions`` — the full type catalog.
          */
@@ -2180,6 +2331,7 @@ export interface components {
             isRoot: boolean;
             /** Children */
             children: components["schemas"]["ChildLinkView"][];
+            links: components["schemas"]["ResourceDefinitionLinks"];
         };
         /** RolesView */
         RolesView: {
@@ -2473,7 +2625,7 @@ export interface components {
             ctx?: Record<string, never>;
         };
         /** ValidationResultView */
-        fdp__metadata__licenses__ValidationResultView: {
+        fdpneo_server__metadata__licenses__ValidationResultView: {
             /** Conforms */
             conforms: boolean;
             /** Violations */
@@ -2485,7 +2637,7 @@ export interface components {
          * ValidationResultView
          * @description The outcome of a dry-run profile validation of an Offer body.
          */
-        fdp__metadata__policies__ValidationResultView: {
+        fdpneo_server__metadata__policies__ValidationResultView: {
             /** Conforms */
             conforms: boolean;
             /** Violations */
@@ -2497,7 +2649,7 @@ export interface components {
          * ValidationResultView
          * @description The outcome of a dry-run validation against a shape.
          */
-        fdp__metadata__schemas__ValidationResultView: {
+        fdpneo_server__metadata__schemas__ValidationResultView: {
             /** Conforms */
             conforms: boolean;
             /** Violations */
@@ -2612,6 +2764,8 @@ export interface operations {
                 iri: string[];
                 /** @description Preferred BCP-47 language tag. Untagged literals are the fallback. */
                 lang?: string;
+                /** @description Milliseconds to wait for external IRI resolution to complete inline. 0 (default) is lazy: unknown external IRIs are resolved in the background and returned on a later call. */
+                wait?: number;
             };
             header?: never;
             path?: never;
@@ -4148,7 +4302,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["fdp__metadata__schemas__ValidationResultView"];
+                    "application/json": components["schemas"]["fdpneo_server__metadata__schemas__ValidationResultView"];
                 };
             };
             /** @description Validation Error */
@@ -4158,6 +4312,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_target_list_fdp_api_index_targets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexTargetList"];
+                };
+            };
+        };
+    };
+    index_target_add_fdp_api_index_targets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndexTargetCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexTargetInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_target_remove_fdp_api_index_targets__target_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_ping_now_fdp_api_index_ping_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexPingRunView"];
                 };
             };
         };
@@ -4452,7 +4708,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["fdp__metadata__policies__ValidationResultView"];
+                    "application/json": components["schemas"]["fdpneo_server__metadata__policies__ValidationResultView"];
                 };
             };
             /** @description Validation Error */
@@ -4605,7 +4861,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["fdp__metadata__licenses__ValidationResultView"];
+                    "application/json": components["schemas"]["fdpneo_server__metadata__licenses__ValidationResultView"];
                 };
             };
             /** @description Validation Error */
@@ -5549,6 +5805,62 @@ export interface operations {
             path: {
                 /** @description Resource identifier (path segment). */
                 id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RDF graph */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/turtle": string;
+                    "application/ld+json": string;
+                    "application/rdf+xml": string;
+                    "application/n-triples": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getCatalogChildPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier (path segment). */
+                id: string;
+                /** @description URL prefix of the child resource type to list. */
+                childPrefix: string;
             };
             cookie?: never;
         };
