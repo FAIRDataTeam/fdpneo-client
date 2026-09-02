@@ -692,6 +692,31 @@ export function fieldsFromShape(
     return out.length ? out : null;
   };
 
+  // sh:or over datatype-only alternatives (e.g. the server's
+  // xsd:string | rdf:langString relaxation, 0.15): the datatypes of every
+  // list member, or null when the property has no sh:or or any member is not
+  // a plain datatype alternative. `first()` does not descend into RDF lists,
+  // so without this flattening such a property would silently disappear from
+  // the create/edit form.
+  const readOrDatatypes = (p: Quad_Object): string[] | null => {
+    const head = store.getObjects(p, sh("or"), null)[0];
+    if (!head) return null;
+    const out: string[] = [];
+    const seen = new Set<string>();
+    let node: Term | undefined = head;
+    while (node && node.value !== RDF_NIL && !seen.has(node.value)) {
+      seen.add(node.value);
+      const member = store.getObjects(node, DataFactory.namedNode(RDF_FIRST), null)[0];
+      if (member) {
+        const dt = store.getObjects(member, sh("datatype"), null)[0];
+        if (!dt) return null; // not a flattenable datatype union
+        out.push(dt.value);
+      }
+      node = store.getObjects(node, DataFactory.namedNode(RDF_REST), null)[0];
+    }
+    return out.length ? out : null;
+  };
+
   // Union property shapes across the shape closure (target + inherited shapes),
   // deduping by sh:path with the most-derived (target-first) shape winning.
   const fields: FieldSpec[] = [];
@@ -701,7 +726,16 @@ export function fieldsFromShape(
     for (const p of store.getObjects(src, sh("property"), null)) {
       const path = store.getObjects(p, sh("path"), null)[0]?.value;
       if (!path || SHACL_EXCLUDED.has(path) || seenPaths.has(path)) continue;
-      const datatype = first(p, "datatype");
+      let datatype = first(p, "datatype");
+      let orLang = false;
+      if (!datatype) {
+        const alternatives = readOrDatatypes(p);
+        if (alternatives) {
+          orLang = alternatives.includes(`${NS.rdf}langString`);
+          datatype =
+            alternatives.find((d) => d !== `${NS.rdf}langString`) ?? alternatives[0];
+        }
+      }
       const nodeKind = first(p, "nodeKind");
       const options = readIn(p);
       const editorIri = store.getObjects(
@@ -767,9 +801,11 @@ export function fieldsFromShape(
       ) {
         field.datatype = datatype;
       }
-      // Language-tagged literal: rdf:langString or a dash:*WithLangEditor.
+      // Language-tagged literal: rdf:langString, a string|langString sh:or
+      // union, or a dash:*WithLangEditor.
       if (
         datatype === `${NS.rdf}langString` ||
+        orLang ||
         editorIri?.endsWith("WithLangEditor")
       ) {
         field.lang = true;

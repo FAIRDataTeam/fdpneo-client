@@ -653,6 +653,7 @@ const en = {
     errIdTakenMsg: "A record already exists at /{path}. Choose a different id.",
     creating: "Creating…",
     createButton: "Create {type}",
+    publishImmediately: "Publish immediately (otherwise the record is created as a draft, visible only to you until published)",
     cancel: "Cancel",
     editNotAllowedMsg: "Editing metadata requires the steward role.",
     editUnknownTypeMsg: "{id} is not an editable resource type.",

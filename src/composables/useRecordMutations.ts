@@ -29,12 +29,15 @@ function useInvalidateListings() {
 export interface CreateInput {
   path: string;
   turtle: string;
+  /** Create the record already PUBLISHED (Prefer: publication-state=PUBLISHED). */
+  publish?: boolean;
 }
 
 export function useCreateRecord() {
   const invalidate = useInvalidateListings();
   return useMutation({
-    mutationFn: ({ path, turtle }: CreateInput) => putGraph(path, turtle, null),
+    mutationFn: ({ path, turtle, publish }: CreateInput) =>
+      putGraph(path, turtle, null, { publish: publish === true }),
     onSuccess: (_etag, { path }) => invalidate(path),
   });
 }

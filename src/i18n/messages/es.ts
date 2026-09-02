@@ -657,6 +657,7 @@ const es: Messages = {
     errIdTakenMsg: "Ya existe un registro en /{path}. Elige un id diferente.",
     creating: "Creando…",
     createButton: "Crear {type}",
+    publishImmediately: "Publicar inmediatamente (de lo contrario el registro se crea como borrador, visible solo para ti hasta su publicación)",
     cancel: "Cancelar",
     editNotAllowedMsg: "Editar metadatos requiere el rol de steward.",
     editUnknownTypeMsg: "{id} no es un tipo de recurso editable.",

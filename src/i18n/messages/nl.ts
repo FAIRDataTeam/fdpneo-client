@@ -658,6 +658,7 @@ const nl: Messages = {
     errIdTakenMsg: "Er bestaat al een record op /{path}. Kies een andere id.",
     creating: "Aanmaken…",
     createButton: "{type} aanmaken",
+    publishImmediately: "Direct publiceren (anders wordt het record als concept aangemaakt en is het tot publicatie alleen voor jou zichtbaar)",
     cancel: "Annuleren",
     editNotAllowedMsg: "Het bewerken van metadata vereist de steward-rol.",
     editUnknownTypeMsg: "{id} is geen bewerkbaar resourcetype.",

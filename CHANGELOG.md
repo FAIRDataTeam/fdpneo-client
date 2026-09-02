@@ -10,6 +10,29 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.6.3] — 2026-09-02
+
+### Added
+
+- **"Publish immediately" on create.** The create form gains an opt-in checkbox
+  that sends `Prefer: publication-state=PUBLISHED` (server 0.15, ADR-0010 §4
+  amendment) so a record can be born visible instead of requiring a second
+  publish step. Default unchanged (DRAFT).
+
+### Fixed
+
+- **Descriptions keep their line breaks.** Multi-paragraph descriptions (the
+  repository hero and record detail) rendered as one mashed-together block —
+  HTML whitespace collapsing; now rendered with `white-space: pre-line`.
+- **Language-relaxed shapes keep their form fields.** Server 0.15 relaxes
+  title/description/keyword to `sh:or (xsd:string | rdf:langString)`; the shape
+  parser did not descend into `sh:or`, which would have silently dropped those
+  fields from create/edit forms. It now flattens datatype-only unions and
+  activates the language-aware editor for `rdf:langString` alternatives.
+- **Publisher/creator names** (with server 0.15): the `/labels` service now
+  resolves `foaf:name`/`vcard:fn`, so agent IRIs render as names instead of
+  raw URLs. (Client already routed them through `/labels`.)
+
 ## [0.6.2] — 2026-09-01
 
 ### Fixed
@@ -169,6 +192,7 @@ First tagged release of the FAIR Data Point v2 web client (Vue 3 / TypeScript).
 - Metadata browsing and editing, SHACL/ODRL editors, a metrics dashboard, OIDC
   auth (Authorization Code + PKCE), and the 2026-06 security hardening.
 
+[0.6.3]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.3
 [0.6.2]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.2
 [0.6.1]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.1
 [0.6.0]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.0

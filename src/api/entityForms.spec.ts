@@ -499,3 +499,33 @@ fs:base a sh:NodeShape ;
     expect(groups[0]?.keys.sort()).toEqual(["accessURL", "downloadURL"]);
   });
 });
+
+describe("fieldsFromShape sh:or datatype union (0.15 lang relaxation)", () => {
+  const SHAPE = `
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+dcat:Dataset a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:property [ sh:path dcterms:title ; sh:minCount 1 ; sh:name "title" ;
+    sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ] ;
+  sh:property [ sh:path dcterms:abstract ;
+    sh:or ( [ sh:datatype xsd:string ] [ sh:nodeKind sh:IRI ] ) ] .
+`;
+
+  it("flattens a string|langString union into a lang-capable text field", () => {
+    const fields = fieldsFromShape(SHAPE, "http://www.w3.org/ns/dcat#Dataset");
+    const title = fields.find((f) => f.predicate === "http://purl.org/dc/terms/title");
+    expect(title).toBeDefined();
+    expect(title?.kind).toBe("text");
+    expect(title?.lang).toBe(true);
+    expect(title?.required).toBe(true);
+  });
+
+  it("does not flatten a mixed (non-datatype) union", () => {
+    const fields = fieldsFromShape(SHAPE, "http://www.w3.org/ns/dcat#Dataset");
+    expect(fields.find((f) => f.predicate === "http://purl.org/dc/terms/abstract")).toBeUndefined();
+  });
+});
