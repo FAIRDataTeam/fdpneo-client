@@ -99,13 +99,18 @@ top-down.
    - **Access policy** (`dct:rights`) — choose a published **ODRL policy** that
      governs who may read/modify the record (see [§6](#6-access-policies-odrl-admins)).
    - **License** (`dct:license`) — choose a published **license** or paste an IRI.
-4. **Save.** The record is created as a **draft**.
+4. **Save.** By default the record is created as a **draft**. Tick **"Publish
+   immediately"** next to the create button to make it publicly visible in one
+   step (the client sends `Prefer: publication-state=PUBLISHED`; server ≥ 0.15).
 
 ### Publish / lifecycle
 
 A record moves through **draft → published → archived**. Open the record and use
 the state control (owner or admin) to publish it. Only **published** records are
-visible to anonymous users and offered for assignment elsewhere.
+visible to anonymous users and offered for assignment elsewhere. API clients can
+likewise create records already published by sending
+`Prefer: publication-state=PUBLISHED` on the creating request; every create
+response carries the birth state in an `FDP-Metadata-State` header.
 
 ### My data (stewards)
 
