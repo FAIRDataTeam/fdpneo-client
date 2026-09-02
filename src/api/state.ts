@@ -24,7 +24,10 @@ import { translate } from "@/i18n";
 export type MetadataState = components["schemas"]["MetadataState"];
 export type StateTransitionResponse = components["schemas"]["StateTransitionResponse"];
 
-const FDP_METADATA_STATE = "https://w3id.org/fdp/o#metadataState";
+// fdpneo-server >=0.16 uses the published FDP-O namespace; older servers the
+// unregistered legacy one. Read both.
+const FDP_METADATA_STATE = "https://w3id.org/fdp/fdp-o#metadataState";
+const FDP_METADATA_STATE_LEGACY = "https://w3id.org/fdp/o#metadataState";
 
 export interface Transition {
   to: MetadataState;
@@ -72,7 +75,9 @@ export async function fetchRecordState(recordPath: string): Promise<MetadataStat
       responseType: "text",
       transformResponse: (d: unknown) => d,
     });
-    const value = anyObject(parseTurtle(res.data), FDP_METADATA_STATE);
+    const parsed = parseTurtle(res.data);
+    const value =
+      anyObject(parsed, FDP_METADATA_STATE) ?? anyObject(parsed, FDP_METADATA_STATE_LEGACY);
     return value === "DRAFT" || value === "PUBLISHED" || value === "ARCHIVED" ? value : null;
   } catch {
     // Meta not readable (anonymous on a non-public record, etc.) — no badge.

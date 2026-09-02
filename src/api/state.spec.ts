@@ -50,10 +50,16 @@ describe("transitionState", () => {
 describe("fetchRecordState", () => {
   it("parses fdp:metadataState from the meta graph", async () => {
     mockGet.mockResolvedValueOnce({
-      data: '<http://x/catalog/c> <https://w3id.org/fdp/o#metadataState> "PUBLISHED" .',
+      data: '<http://x/catalog/c> <https://w3id.org/fdp/fdp-o#metadataState> "PUBLISHED" .',
     });
     await expect(fetchRecordState("catalog/c")).resolves.toBe("PUBLISHED");
     expect(mockGet).toHaveBeenCalledWith("/catalog/c/meta", expect.anything());
+  });
+  it("falls back to the legacy namespace for pre-0.16 servers", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: '<http://x/catalog/c> <https://w3id.org/fdp/o#metadataState> "DRAFT" .',
+    });
+    await expect(fetchRecordState("catalog/c")).resolves.toBe("DRAFT");
   });
   it("returns null when the meta is unreadable", async () => {
     mockGet.mockRejectedValueOnce(new Error("401"));

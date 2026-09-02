@@ -10,6 +10,19 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.6.5] — 2026-09-02
+
+### Changed
+
+- **FDP-O namespace dual-accept** (server 0.16 / ADR-0026). The server moved
+  its vocabulary from the unregistered `https://w3id.org/fdp/o#` to the
+  published FDP Ontology namespace `https://w3id.org/fdp/fdp-o#`. The client
+  now matches both: the root type map (`FAIRDataPoint`/`MetadataService` new,
+  `FAIRDataPoint`/`Repository` legacy) and the `metadataState` read from
+  `/meta` (new predicate first, legacy fallback), so this client works against
+  pre- and post-0.16 servers alike. The display `fdp:` prefix compacts the new
+  namespace.
+
 ## [0.6.4] — 2026-09-02
 
 ### Added
