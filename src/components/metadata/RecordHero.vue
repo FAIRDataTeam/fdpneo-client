@@ -51,6 +51,8 @@ h1 {
   color: var(--fair-text-strong);
 }
 .lede {
+  /* Preserve authored line breaks in multi-paragraph descriptions. */
+  white-space: pre-line;
   margin: 0 0 24px;
   font-family: var(--fair-font-sans);
   font-weight: 400;

@@ -658,6 +658,7 @@ const ptBR: Messages = {
     errIdTakenMsg: "Já existe um registro em /{path}. Escolha um id diferente.",
     creating: "Criando…",
     createButton: "Criar {type}",
+    publishImmediately: "Publicar imediatamente (caso contrário o registro é criado como rascunho, visível apenas para você até ser publicado)",
     cancel: "Cancelar",
     editNotAllowedMsg: "Editar metadados requer a função de steward.",
     editUnknownTypeMsg: "{id} não é um tipo de recurso editável.",

@@ -196,6 +196,8 @@ function navigate(id: string) {
   color: var(--fair-text-strong);
 }
 .lede {
+  /* Preserve authored line breaks in multi-paragraph descriptions. */
+  white-space: pre-line;
   margin: 12px 0 0;
   font-family: var(--fair-font-sans);
   font-size: var(--fair-text-md);

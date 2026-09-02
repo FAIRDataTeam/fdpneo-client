@@ -57,6 +57,8 @@ const model = ref<EntityModel>({});
 const slug = ref("");
 const error = ref<ParsedError | null>(null);
 const submitting = ref(false);
+// Create-as-published (ADR-0010 §4): opt-in — default keeps the DRAFT flow.
+const publishNow = ref(false);
 
 // (Re)build the empty model once the spec (incl. shape-derived fields) settles
 // or the create type changes.
@@ -108,7 +110,7 @@ async function submit() {
     }
     const iri = `${apiBase()}/${path}`;
     const turtle = await buildCreateTurtle(iri, spec.value, model.value, parentIri.value);
-    await create.mutateAsync({ path, turtle });
+    await create.mutateAsync({ path, turtle, publish: publishNow.value });
     await router.push(`/records/${path}`);
   } catch (e) {
     error.value = parseFdpError(e);
@@ -168,6 +170,10 @@ function clientError(title: string, message: string): ParsedError {
         </div>
 
         <div class="actions">
+          <label class="publish-now">
+            <input v-model="publishNow" type="checkbox" />
+            {{ t("entityAuthor.publishImmediately") }}
+          </label>
           <button class="btn primary" type="submit" :disabled="submitting">
             {{ submitting ? t("entityAuthor.creating") : t("entityAuthor.createButton", { type: spec.label }) }}
           </button>
@@ -272,5 +278,14 @@ input {
 .actions {
   display: flex;
   gap: 10px;
+}
+
+.publish-now {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-muted, var(--fair-text));
 }
 </style>

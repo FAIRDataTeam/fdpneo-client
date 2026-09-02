@@ -658,6 +658,7 @@ const de: Messages = {
     errIdTakenMsg: "Unter /{path} existiert bereits ein Datensatz. Wählen Sie eine andere Id.",
     creating: "Wird erstellt…",
     createButton: "{type} erstellen",
+    publishImmediately: "Sofort veröffentlichen (andernfalls wird der Eintrag als Entwurf angelegt und ist bis zur Veröffentlichung nur für Sie sichtbar)",
     cancel: "Abbrechen",
     editNotAllowedMsg: "Das Bearbeiten von Metadaten erfordert die Steward-Rolle.",
     editUnknownTypeMsg: "{id} ist kein bearbeitbarer Ressourcentyp.",

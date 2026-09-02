@@ -659,6 +659,7 @@ const fr: Messages = {
     errIdTakenMsg: "Un enregistrement existe déjà à /{path}. Choisissez un id différent.",
     creating: "Création…",
     createButton: "Créer {type}",
+    publishImmediately: "Publier immédiatement (sinon la fiche est créée comme brouillon, visible uniquement par vous jusqu'à sa publication)",
     cancel: "Annuler",
     editNotAllowedMsg: "Modifier des métadonnées requiert le rôle steward.",
     editUnknownTypeMsg: "{id} n'est pas un type de ressource modifiable.",

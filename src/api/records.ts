@@ -49,9 +49,14 @@ export async function putGraph(
   path: string,
   turtle: string,
   etag: string | null,
+  opts?: { publish?: boolean },
 ): Promise<string | null> {
   const headers: Record<string, string> = { "Content-Type": "text/turtle" };
   if (etag) headers["If-Match"] = etag;
+  // Create-as-published (ADR-0010 §4): ask the server to mint the record
+  // visible instead of the DRAFT default. Only meaningful on creation; the
+  // server ignores the preference on updates.
+  if (opts?.publish) headers["Prefer"] = "publication-state=PUBLISHED";
   try {
     const res = await http.put(`/${path}`, turtle, { headers, responseType: "text" });
     return readEtag(res.headers);
