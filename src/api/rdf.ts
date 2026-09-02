@@ -183,11 +183,19 @@ export function serializeTurtle(store: Store): Promise<string> {
   });
 }
 
+// Servers before fdpneo-server 0.16 minted the FDP vocabulary under this
+// unregistered namespace (a typo for the published FDP-O IRI); accept both so
+// the client works across the transition.
+export const FDP_LEGACY_NS = "https://w3id.org/fdp/o#";
+
 const TYPE_MAP: Record<string, { kind: RecordKind; label: string }> = {
-  // The FDP root advertises `fdp:FAIRDataPoint` (current server) or `fdp:Repository`
-  // (older spec); both are the repository root, not a dataset.
+  // The FDP root advertises `fdp:FAIRDataPoint` (+ `fdp:MetadataService`, its
+  // FDP-O superclass, asserted for index validators) — or, on older servers,
+  // the same terms under the legacy namespace / the pre-spec `Repository`.
   [`${NS.fdp}FAIRDataPoint`]: { kind: "fdp", label: "FAIR Data Point" },
-  [`${NS.fdp}Repository`]: { kind: "fdp", label: "FAIR Data Point" },
+  [`${NS.fdp}MetadataService`]: { kind: "fdp", label: "FAIR Data Point" },
+  [`${FDP_LEGACY_NS}FAIRDataPoint`]: { kind: "fdp", label: "FAIR Data Point" },
+  [`${FDP_LEGACY_NS}Repository`]: { kind: "fdp", label: "FAIR Data Point" },
   [`${NS.dcat}Catalog`]: { kind: "catalog", label: "Catalog" },
   [`${NS.dcat}Dataset`]: { kind: "dataset", label: "Dataset" },
   [`${NS.dcat}Distribution`]: { kind: "distribution", label: "Distribution" },

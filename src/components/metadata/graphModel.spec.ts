@@ -96,7 +96,7 @@ describe("neighbourhood", () => {
     const rootTurtle = `
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix ldp: <http://www.w3.org/ns/ldp#> .
-<${BASE}> a ldp:DirectContainer, <https://w3id.org/fdp/o#FAIRDataPoint> ;
+<${BASE}> a ldp:DirectContainer, <https://w3id.org/fdp/fdp-o#FAIRDataPoint> ;
   dcterms:title "Test FAIR Data Point" ;
   dcterms:description "Root description." ;
   dcterms:creator <http://example.org/person/1> .

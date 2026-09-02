@@ -122,10 +122,15 @@ describe("rdf helpers", () => {
     expect(iriToId("http://localhost:8000/dataset/x")).toBe("dataset/x");
   });
 
-  it("classify recognises the FDP root type (FAIRDataPoint / Repository) as the fdp kind", () => {
+  it("classify recognises the FDP root type in both namespaces as the fdp kind", () => {
     const root = "http://localhost:8000";
-    const fdpTtl = `<${root}> a <http://www.w3.org/ns/ldp#DirectContainer>, <https://w3id.org/fdp/o#FAIRDataPoint> .`;
+    // Current servers (fdpneo-server >=0.16): published FDP-O namespace, root
+    // asserts FAIRDataPoint + MetadataService.
+    const fdpTtl = `<${root}> a <http://www.w3.org/ns/ldp#DirectContainer>, <https://w3id.org/fdp/fdp-o#FAIRDataPoint>, <https://w3id.org/fdp/fdp-o#MetadataService> .`;
     expect(classify(parseTurtle(fdpTtl), root).kind).toBe("fdp");
+    // Legacy servers: the unregistered namespace, FAIRDataPoint or Repository.
+    const legacyTtl = `<${root}> a <https://w3id.org/fdp/o#FAIRDataPoint> .`;
+    expect(classify(parseTurtle(legacyTtl), root).kind).toBe("fdp");
     const repoTtl = `<${root}> a <https://w3id.org/fdp/o#Repository> .`;
     expect(classify(parseTurtle(repoTtl), root).kind).toBe("fdp");
     // DCAT types still classify as before; unknown types fall back to dataset.
