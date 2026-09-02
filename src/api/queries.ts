@@ -26,4 +26,5 @@ export const queryKeys = {
   savedQueries: () => ["saved-queries"] as const,
   recordState: (id: string) => ["record-state", id] as const,
   apiKeys: () => ["api-keys"] as const,
+  indexTargets: () => ["index-targets"] as const,
 };

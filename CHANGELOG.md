@@ -10,6 +10,15 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.6.4] — 2026-09-02
+
+### Added
+
+- **FDP Indexes panel in Settings** (admins). Manage the indexes this FDP
+  announces itself to (server 0.15 / ADR-0025): list environment + runtime
+  targets with their last ping outcome, add/remove runtime targets, and
+  "Ping now" with per-target results. API types regenerated against 0.15.
+
 ## [0.6.3] — 2026-09-02
 
 ### Added
@@ -192,6 +201,7 @@ First tagged release of the FAIR Data Point v2 web client (Vue 3 / TypeScript).
 - Metadata browsing and editing, SHACL/ODRL editors, a metrics dashboard, OIDC
   auth (Authorization Code + PKCE), and the 2026-06 security hardening.
 
+[0.6.4]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.4
 [0.6.3]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.3
 [0.6.2]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.2
 [0.6.1]: https://github.com/FAIRDataTeam/fdpneo-client/releases/tag/v0.6.1
