@@ -25,7 +25,13 @@
  *   - `handleCallback()` — completes the redirect at /auth/callback; returns
  *                           the original returnTo (or "/").
  *   - `silentRenew()`    — refreshes the token without UI; concurrent callers
- *                           share a single in-flight promise.
+ *                           share a single in-flight promise. When the IdP
+ *                           refuses (SSO session gone), the local session is
+ *                           ended: `user` is cleared, the stored token removed,
+ *                           and `sessionExpired` raised — so admin-gated polling
+ *                           stops and the app degrades to anonymous instead of
+ *                           re-sending a dead token forever.
+ *   - `sessionExpired`   — true after a failed renew until the next sign-in.
  *   - `loadStoredUser()` — rehydrate from the OIDC library's storage on boot.
  *   - `setIntendedRedirect(path)` / `clearError()` — helpers used by the
  *                           router guard and the callback view.
@@ -70,6 +76,7 @@ export const useAuthStore = defineStore("auth", () => {
   const user = ref<User | null>(null);
   const error = ref<Error | null>(null);
   const intendedRedirect = ref<string | null>(null);
+  const sessionExpired = ref(false);
 
   let renewInFlight: Promise<User | null> | null = null;
 
@@ -104,6 +111,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function login(returnTo: string | null = null): Promise<void> {
     clearError();
+    sessionExpired.value = false;
     if (returnTo) intendedRedirect.value = returnTo;
     try {
       // The `state` payload rides inside oidc-client-ts's own (already
@@ -133,6 +141,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const completed = await getUserManager().signinRedirectCallback();
       user.value = completed;
+      sessionExpired.value = false;
       const fromState = readReturnFromState(completed);
       const target = fromState ?? intendedRedirect.value ?? "/";
       intendedRedirect.value = null;
@@ -153,15 +162,32 @@ export const useAuthStore = defineStore("auth", () => {
       } catch {
         // Silent renew runs in the background (from the 401 interceptor), so a
         // failure here must NOT write the store-wide `error.value` — doing so
-        // surfaces a stale "renew failed" banner over unrelated views. Return
-        // null and let the caller (the interceptor) decide how to react; a
-        // genuinely expired session falls through to a normal re-login.
+        // surfaces a stale "renew failed" banner over unrelated views. But the
+        // session IS over: leaving the stale user in place kept `isAdmin` true,
+        // so the footer readiness poll re-sent the dead token every minute
+        // (thousands of 401s on a live deployment) and public pages errored
+        // instead of rendering anonymously. End it here; the caller replays
+        // idempotent reads anonymously and the header shows a sign-in prompt.
+        await endExpiredSession();
         return null;
       } finally {
         renewInFlight = null;
       }
     })();
     return renewInFlight;
+  }
+
+  async function endExpiredSession(): Promise<void> {
+    user.value = null;
+    intendedRedirect.value = null;
+    sessionExpired.value = true;
+    try {
+      // Drop the dead token from the OIDC store too, or a reload would
+      // rehydrate it and start the 401 loop again.
+      await getUserManager().removeUser();
+    } catch {
+      // best effort — the in-memory session is already gone
+    }
   }
 
   async function loadStoredUser(): Promise<void> {
@@ -182,6 +208,7 @@ export const useAuthStore = defineStore("auth", () => {
     isAdmin,
     error,
     intendedRedirect,
+    sessionExpired,
     login,
     logout,
     handleCallback,

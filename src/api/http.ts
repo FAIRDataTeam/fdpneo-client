@@ -5,7 +5,10 @@
  *
  *   1. Request: attach the OIDC bearer token, when the auth store has one.
  *   2. Response: on a 401, attempt one silent renewal and replay the request
- *      with the refreshed token. A second 401 propagates to the caller.
+ *      with the refreshed token. If the renewal fails the session is over
+ *      (the store has already cleared it): idempotent reads are replayed once
+ *      *anonymously* so public content still renders; writes are not re-sent.
+ *      A second 401 propagates to the caller.
  *
  * The TypeScript types for request/response shapes come from the server's
  * OpenAPI spec — regenerate after server contract changes:
@@ -68,9 +71,17 @@ http.interceptors.response.use(
     config._retried = true;
     try {
       const auth = useAuthStore();
-      await auth.silentRenew();
+      const renewed = await auth.silentRenew();
       const token = auth.accessToken;
-      if (!token) return Promise.reject(error);
+      if (renewed === null || !token) {
+        // Session gone. Public GETs must not fail just because a dead token
+        // was attached — replay without it (the request interceptor finds no
+        // token in the cleared store). Never re-send a write anonymously.
+        const method = (config.method ?? "get").toLowerCase();
+        if (method !== "get" && method !== "head") return Promise.reject(error);
+        config.headers?.delete("Authorization");
+        return await http.request(config);
+      }
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
       return await http.request(config);

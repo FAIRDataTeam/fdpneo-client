@@ -10,6 +10,22 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.6.6] — 2026-09-09
+
+### Fixed
+
+- **An expired session now ends instead of looping.** When silent token renewal
+  failed (IdP SSO session gone), the stale user stayed in the store: `isAdmin`
+  kept the footer readiness probe polling every minute with a dead token
+  (thousands of 401s on a live deployment) and public pages errored instead of
+  rendering anonymously. A failed renew now clears the session (store + OIDC
+  storage), idempotent reads are replayed once **without** the token so public
+  content still loads, writes are never re-sent, and the header shows a
+  "Session expired — sign in again" prompt.
+- **Metrics dashboard: 4xx and 5xx are separate KPIs**, with hints — a single
+  "error responses" number mixed scanner 404s and auth 401s with real server
+  errors.
+
 ## [0.6.5] — 2026-09-02
 
 ### Changed

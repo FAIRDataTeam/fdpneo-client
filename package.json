@@ -1,7 +1,7 @@
 {
   "name": "fdp-client",
   "private": true,
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "Reference web client for FAIR Data Point v2 — Vue 3 + TypeScript SPA.",
   "type": "module",
   "license": "MIT",
