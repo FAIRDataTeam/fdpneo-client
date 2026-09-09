@@ -142,7 +142,15 @@ defineProps<{ variant?: "default" | "minimal" }>();
     </div>
     <LanguageSwitcher />
     <ThemeToggle />
-    <button v-if="!auth.isAuthenticated" class="btn ghost" @click="startSignIn">
+    <button
+      v-if="!auth.isAuthenticated && auth.sessionExpired"
+      class="btn ghost expired"
+      role="status"
+      @click="startSignIn"
+    >
+      {{ t("header.sessionExpired") }}
+    </button>
+    <button v-else-if="!auth.isAuthenticated" class="btn ghost" @click="startSignIn">
       {{ t("header.signIn") }}
     </button>
     <template v-else>
@@ -240,6 +248,10 @@ header {
 .kbd {
   font-size: var(--fair-text-xs);
   color: var(--fair-text-light);
+}
+.expired {
+  border-color: var(--fair-warning, #b26a00);
+  color: var(--fair-warning, #b26a00);
 }
 .create-btn {
   display: inline-flex;

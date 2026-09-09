@@ -115,9 +115,14 @@ function latency(ms: number | null): string {
         />
         <KpiCard :label="t('metrics.kpiAvgLatency')" :value="latency(overview.kpis.avgLatencyMs)" />
         <KpiCard
-          :label="t('metrics.kpiErrors')"
-          :value="fmt(overview.kpis.errors)"
-          :hint="t('metrics.kpiErrorsHint')"
+          :label="t('metrics.kpiErrors4xx')"
+          :value="fmt(overview.status.s4xx)"
+          :hint="t('metrics.kpiErrors4xxHint')"
+        />
+        <KpiCard
+          :label="t('metrics.kpiErrors5xx')"
+          :value="fmt(overview.status.s5xx)"
+          :hint="t('metrics.kpiErrors5xxHint')"
         />
       </section>
 
