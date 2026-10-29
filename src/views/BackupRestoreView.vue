@@ -7,17 +7,24 @@
  * and a 403 is surfaced clearly if the API rejects anyway. Import (rebase /
  * reference-FDP crawl) is intentionally CLI-only and is shown only as a reference
  * note — there is no UI for it.
+ *
+ * A *full* backup (server ADR-0029) also carries the Postgres state — settings,
+ * API keys, saved searches, metrics history — and is therefore always encrypted
+ * with a passphrase (`.fdpbk`). Restoring an encrypted archive asks for it.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import {
+  MIN_PASSPHRASE_LENGTH,
   startDump,
   startRestore,
   downloadArchive,
   isDumpResult,
   isRestoreResult,
+  isSealedArchive,
   type BackupJob,
+  type BackupScope,
 } from "@/api/backup";
 import { useBackupJob } from "@/composables/useBackupJob";
 import { parseFdpError, type ParsedError } from "@/api/errors";
@@ -29,7 +36,25 @@ const auth = useAuthStore();
 // ── Backup ──────────────────────────────────────────────────────────────────
 const { job: backupJob, busy: backupBusy, error: backupErr, run: runBackup } = useBackupJob();
 const dumpNoAudit = ref(false);
+const dumpScope = ref<BackupScope>("store");
+const passphrase = ref("");
+const passphraseRepeat = ref("");
 const downloadErr = ref<ParsedError | null>(null);
+
+/** Why the full-backup passphrase is not acceptable yet, or null when it is. */
+const passphraseProblem = computed(() => {
+  if (dumpScope.value !== "full") return null;
+  if (passphrase.value.length < MIN_PASSPHRASE_LENGTH)
+    return t("backupAdmin.passTooShort", { n: MIN_PASSPHRASE_LENGTH });
+  if (passphrase.value !== passphraseRepeat.value) return t("backupAdmin.passMismatch");
+  return null;
+});
+const canCreate = computed(() => !backupBusy.value && passphraseProblem.value === null);
+
+/** Total Postgres rows of a full backup or restore result. */
+function totalRows(rows: Record<string, number> | undefined): number {
+  return Object.values(rows ?? {}).reduce((sum, n) => sum + n, 0);
+}
 
 // Typed, narrowed result for the template (a v-if can't discriminate the union).
 const dumpResult = computed(() =>
@@ -37,8 +62,13 @@ const dumpResult = computed(() =>
 );
 
 function createBackup() {
+  if (!canCreate.value) return;
   downloadErr.value = null;
-  void runBackup(() => startDump(dumpNoAudit.value));
+  const full = dumpScope.value === "full" ? { passphrase: passphrase.value } : undefined;
+  // The passphrase is not kept in the page once the job has it.
+  passphrase.value = "";
+  passphraseRepeat.value = "";
+  void runBackup(() => startDump(dumpNoAudit.value, full));
 }
 
 async function download(id: string) {
@@ -48,7 +78,7 @@ async function download(id: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `fdp-backup-${id}.zip`;
+    a.download = `fdp-backup-${id}${dumpResult.value?.encrypted ? ".fdpbk" : ".zip"}`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
   } catch (e) {
@@ -70,6 +100,15 @@ const overwrite = ref(false);
 const restoreNoAudit = ref(false);
 const dryRun = ref(false);
 const confirmOpen = ref(false);
+/** The chosen file is an encrypted archive: a passphrase is required. */
+const restoreSealed = ref(false);
+const restorePassphrase = ref("");
+const canRestore = computed(
+  () =>
+    restoreFile.value !== null &&
+    !restoreBusy.value &&
+    (!restoreSealed.value || restorePassphrase.value.length >= MIN_PASSPHRASE_LENGTH),
+);
 
 const restoreResult = computed(() =>
   restoreJob.value && isRestoreResult(restoreJob.value) ? restoreJob.value.result : null,
@@ -84,13 +123,16 @@ function setOverwrite(v: boolean) {
   overwrite.value = v;
   if (v) merge.value = false;
 }
-function onFile(e: Event) {
+async function onFile(e: Event) {
   resetRestore();
-  restoreFile.value = (e.target as HTMLInputElement).files?.[0] ?? null;
+  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+  restoreFile.value = file;
+  restorePassphrase.value = "";
+  restoreSealed.value = file ? await isSealedArchive(file) : false;
 }
 
 function requestRestore() {
-  if (!restoreFile.value) return;
+  if (!canRestore.value) return;
   // A dry run writes nothing, so it needs no confirmation; a real restore does.
   if (dryRun.value) doRestore();
   else confirmOpen.value = true;
@@ -99,13 +141,18 @@ function doRestore() {
   confirmOpen.value = false;
   const file = restoreFile.value;
   if (!file) return;
+  const secret = restoreSealed.value ? restorePassphrase.value : undefined;
   void runRestore(() =>
-    startRestore(file, {
-      merge: merge.value,
-      overwrite: overwrite.value,
-      noAudit: restoreNoAudit.value,
-      dryRun: dryRun.value,
-    }),
+    startRestore(
+      file,
+      {
+        merge: merge.value,
+        overwrite: overwrite.value,
+        noAudit: restoreNoAudit.value,
+        dryRun: dryRun.value,
+      },
+      secret,
+    ),
   );
 }
 
@@ -121,6 +168,8 @@ function errorText(err: ParsedError): string {
       return t("backupAdmin.notReady");
     case 404:
       return t("backupAdmin.gone");
+    case 503:
+      return t("backupAdmin.paused");
     default:
       return err.message;
   }
@@ -163,13 +212,52 @@ async function copyCmd(cmd: string) {
         <h2 class="section__title">{{ t("backupAdmin.backupHeading") }}</h2>
         <p class="section__sub">{{ t("backupAdmin.backupSub") }}</p>
 
-        <label class="opt">
+        <fieldset class="opts scope" :disabled="backupBusy">
+          <legend class="visually-hidden">{{ t("backupAdmin.scopeLegend") }}</legend>
+          <label class="opt">
+            <input v-model="dumpScope" type="radio" value="store" name="backup-scope" />
+            <span>{{ t("backupAdmin.scopeStore") }} <em>{{ t("backupAdmin.scopeStoreHelp") }}</em></span>
+          </label>
+          <label class="opt">
+            <input v-model="dumpScope" type="radio" value="full" name="backup-scope" />
+            <span>{{ t("backupAdmin.scopeFull") }} <em>{{ t("backupAdmin.scopeFullHelp") }}</em></span>
+          </label>
+        </fieldset>
+
+        <div v-if="dumpScope === 'full'" class="passbox">
+          <label class="field">
+            <span>{{ t("backupAdmin.passphrase") }}</span>
+            <input
+              v-model="passphrase"
+              class="input"
+              type="password"
+              autocomplete="new-password"
+              data-testid="backup-passphrase"
+              :disabled="backupBusy"
+            />
+          </label>
+          <label class="field">
+            <span>{{ t("backupAdmin.passphraseRepeat") }}</span>
+            <input
+              v-model="passphraseRepeat"
+              class="input"
+              type="password"
+              autocomplete="new-password"
+              data-testid="backup-passphrase-repeat"
+              :disabled="backupBusy"
+            />
+          </label>
+          <p class="hint">{{ t("backupAdmin.passphraseHint", { n: MIN_PASSPHRASE_LENGTH }) }}</p>
+          <p v-if="passphrase && passphraseProblem" class="msg err">{{ passphraseProblem }}</p>
+        </div>
+
+        <label v-else class="opt">
           <input v-model="dumpNoAudit" type="checkbox" :disabled="backupBusy" />
           <span>{{ t("backupAdmin.excludeAudit") }}</span>
         </label>
 
         <div class="actions">
-          <button class="btn primary" :disabled="backupBusy" @click="createBackup">
+          <button class="btn primary" :disabled="!canCreate" data-testid="create-backup" @click="createBackup">
             {{ t("backupAdmin.create") }}
           </button>
           <span v-if="backupBusy" class="progress">
@@ -193,7 +281,11 @@ async function copyCmd(cmd: string) {
               <div><dt>{{ t("backupAdmin.mQuads") }}</dt><dd class="mono">{{ dumpResult.quads }}</dd></div>
               <div><dt>{{ t("backupAdmin.mAuditRows") }}</dt><dd class="mono">{{ dumpResult.audit_rows }}</dd></div>
               <div><dt>{{ t("backupAdmin.mDataModel") }}</dt><dd class="mono">{{ dumpResult.data_model_version }}</dd></div>
+              <div v-if="dumpResult.state_rows">
+                <dt>{{ t("backupAdmin.mStateRows") }}</dt><dd class="mono">{{ totalRows(dumpResult.state_rows) }}</dd>
+              </div>
             </dl>
+            <p v-if="dumpResult.encrypted" class="hint">{{ t("backupAdmin.encryptedNote") }}</p>
             <button class="btn accent" @click="backupJob && download(backupJob.id)">
               <AppIcon name="download" :size="14" /> {{ t("backupAdmin.download") }}
             </button>
@@ -208,8 +300,22 @@ async function copyCmd(cmd: string) {
         <p class="section__sub">{{ t("backupAdmin.restoreSub") }}</p>
 
         <label class="filepick">
-          <input type="file" accept=".zip,application/zip" @change="onFile" />
+          <input type="file" accept=".zip,.fdpbk,application/zip,application/octet-stream" @change="onFile" />
         </label>
+
+        <div v-if="restoreSealed" class="passbox">
+          <label class="field">
+            <span>{{ t("backupAdmin.restorePassphrase") }}</span>
+            <input
+              v-model="restorePassphrase"
+              class="input"
+              type="password"
+              autocomplete="off"
+              data-testid="restore-passphrase"
+            />
+          </label>
+          <p class="hint">{{ t("backupAdmin.restoreSealedHint") }}</p>
+        </div>
 
         <div class="opts">
           <label class="opt">
@@ -234,7 +340,7 @@ async function copyCmd(cmd: string) {
           <button
             class="btn"
             :class="dryRun ? 'primary' : 'danger'"
-            :disabled="!restoreFile || restoreBusy"
+            :disabled="!canRestore"
             @click="requestRestore"
           >
             {{ dryRun ? t("backupAdmin.dryRunBtn") : t("backupAdmin.restore") }}
@@ -276,6 +382,9 @@ async function copyCmd(cmd: string) {
               <div><dt>{{ t("backupAdmin.mProfiles") }}</dt><dd class="mono">{{ restoreResult.profiles_provisioned }}</dd></div>
               <div><dt>{{ t("backupAdmin.mAuditRows") }}</dt><dd class="mono">{{ restoreResult.audit_rows }}</dd></div>
               <div><dt>{{ t("backupAdmin.mRecordsIndexed") }}</dt><dd class="mono">{{ restoreResult.records_indexed }}</dd></div>
+              <div v-if="restoreResult.state_rows">
+                <dt>{{ t("backupAdmin.mStateRowsLoaded") }}</dt><dd class="mono">{{ totalRows(restoreResult.state_rows) }}</dd>
+              </div>
               <div v-if="restoreResult.migrated"><dt>{{ t("backupAdmin.mMigrated") }}</dt><dd class="mono">✓</dd></div>
             </dl>
           </div>
@@ -372,6 +481,41 @@ async function copyCmd(cmd: string) {
   font-style: normal;
   color: var(--fair-text-muted);
   font-size: var(--fair-text-sm);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.scope {
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+}
+.passbox {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: var(--fair-text-sm);
+  color: var(--fair-text-strong);
+}
+.hint {
+  margin: 0;
+  color: var(--fair-text-muted);
+  font-size: var(--fair-text-sm);
+  line-height: var(--fair-leading-snug);
+  max-width: 62ch;
+}
+.result .hint {
+  margin: -6px 0 12px;
 }
 .filepick {
   display: block;
