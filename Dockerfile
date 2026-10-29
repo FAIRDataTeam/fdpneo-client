@@ -5,7 +5,7 @@
 # script, so one image is reusable across deployments.
 
 # --- build: compile + type-check the SPA -------------------------------------
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # Dependency layer (cached unless package*.json change).
@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build
 
 # --- runtime: nginx serving the static bundle --------------------------------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30-alpine AS runtime
 
 # jq: the entrypoint uses it to validate FDP_BRANDING and assemble branding from
 # discrete env vars into guaranteed-valid JSON (see 40-fdp-config.sh).
