@@ -51,13 +51,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Image references must be lowercase; the organisation name is not.
+      - name: Image name
+        id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/fdpneo-client" >> "$GITHUB_OUTPUT"
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
-          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/fdpneo-client,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ steps.name.outputs.image }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=release-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=release-${{ matrix.platform }}
       - name: Export digest
@@ -85,9 +89,9 @@ jobs:
       packages: write
       id-token: write       # Sigstore keyless signing and provenance
       attestations: write
-    env:
-      IMAGE: ghcr.io/${{ github.repository_owner }}/fdpneo-client
     steps:
+      - name: Image name (lowercase)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/fdpneo-client" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
