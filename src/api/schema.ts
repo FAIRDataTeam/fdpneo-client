@@ -1949,6 +1949,11 @@ export interface components {
              * @description A dump archive (.zip) to restore.
              */
             archive: string;
+            /**
+             * Passphrase
+             * @description Passphrase of an encrypted (sealed) archive.
+             */
+            passphrase?: string | null;
         };
         /**
          * BootstrapConfig
@@ -2160,6 +2165,14 @@ export interface components {
              * @default false
              */
             user_management: boolean;
+        };
+        /**
+         * FullDumpRequest
+         * @description Body of a full dump: the passphrase that seals the archive (never stored).
+         */
+        FullDumpRequest: {
+            /** Passphrase */
+            passphrase: string;
         };
         /** GeographyResponse */
         GeographyResponse: {
@@ -3520,12 +3533,18 @@ export interface operations {
             query?: {
                 /** @description Skip exporting the Postgres record_audit rows. */
                 no_audit?: boolean;
+                /** @description `full` adds the Postgres state and seals the archive. */
+                scope?: "store" | "full";
             };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["FullDumpRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             202: {
