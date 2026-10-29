@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  applyBlocker,
   compareVersions,
   newerThan,
   parseVersion,
@@ -98,5 +99,21 @@ describe("updateNotices", () => {
     );
     expect(notices[0]?.metadataMissing).toBe(true);
     expect(notices[0]?.security).toBe(false);
+  });
+});
+
+describe("applyBlocker", () => {
+  it("allows a release with metadata, no manual steps and a satisfied minimum", () => {
+    expect(applyBlocker("server", release("0.21.0", { min_upgrade_from: "0.17.0" }), "0.20.0", "0.20.0")).toBeNull();
+  });
+
+  it("names the first reason a release must be applied by hand", () => {
+    expect(applyBlocker("server", release("0.21.0", { metadata_present: false }), "0.20.0", "0.20.0")).toBe("metadata");
+    expect(applyBlocker("server", release("0.21.0", { manual_steps: true }), "0.20.0", "0.20.0")).toBe("manual");
+    expect(applyBlocker("server", release("0.21.0", { manual_steps: null }), "0.20.0", "0.20.0")).toBe("manual");
+    expect(applyBlocker("server", release("0.21.0", { min_upgrade_from: "0.20.1" }), "0.20.0", "0.20.0")).toBe("tooOld");
+    expect(
+      applyBlocker("client", release("0.10.0", { requires_server: ">=0.21.0" }), "0.9.0", "0.20.0"),
+    ).toBe("needsServer");
   });
 });

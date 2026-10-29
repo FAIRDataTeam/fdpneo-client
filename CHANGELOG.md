@@ -10,6 +10,8 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-10-29
+
 Needs fdpneo-server 0.20 or later for the update notices. Older servers
 have no updates endpoint, and the client then shows nothing.
 
@@ -25,6 +27,18 @@ have no updates endpoint, and the client then shows nothing.
     *Check now* button.
   - **Setting editor.** The `updates.check` setting gets a simple on/off
     editor.
+- **Updating from the client (server ADR-0030).** The optional host
+  updater agent can now apply updates requested here.
+  - **Update button.** While an agent is connected, the *Updates* panel
+    offers *Update to X* for the newest release the agent may apply
+    unattended. A confirmation step comes first.
+  - **When it must be done by hand.** If a release can't be applied
+    unattended, the panel says why: manual steps, missing upgrade
+    information, too old to upgrade directly, or a newer server needed first.
+  - **History.** Recent requests are listed with their status, message and
+    backup location. Pending requests can be cancelled.
+- **Updater tokens.** Administrators can mint an *Updater token* under
+  API keys. It carries only the updater role, for the host agent.
 - **Version-tagged releases.** A `v*` tag now does four things:
   - It checks that the tag, `package.json` and `release.json` agree.
   - It publishes the image as `X.Y.Z`, `X.Y` and `latest`.

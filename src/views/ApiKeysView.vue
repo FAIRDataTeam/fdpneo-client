@@ -6,10 +6,14 @@
  * returns the plaintext key **once** — shown in a copy-once panel that can't be
  * re-opened; the list thereafter shows only metadata (`display_prefix`, dates,
  * status). Revoke is per-key (the server lets admins revoke any).
+ *
+ * Admins can also mint an *updater* token (server ADR-0030): it carries only
+ * the `updater` role and is accepted only by the host updater agent endpoints.
  */
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApiKeys } from "@/composables/useApiKeys";
+import { useAuthStore } from "@/stores/auth";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import type { ApiKeyCreated } from "@/api/apiKeys";
 import AppIcon from "@/components/shared/AppIcon.vue";
@@ -17,9 +21,11 @@ import AppChip from "@/components/shared/AppChip.vue";
 
 const { t } = useI18n();
 const { keys, isLoading, isError, create, revoke } = useApiKeys();
+const auth = useAuthStore();
 
 const label = ref("");
 const expires = ref(""); // YYYY-MM-DD
+const updaterScope = ref(false);
 const newKey = ref<ApiKeyCreated | null>(null);
 const copied = ref(false);
 
@@ -34,13 +40,18 @@ function submit() {
   const name = label.value.trim();
   if (!name) return;
   create.mutate(
-    { label: name, expires_at: expires.value ? `${expires.value}T23:59:59Z` : null },
+    {
+      label: name,
+      expires_at: expires.value ? `${expires.value}T23:59:59Z` : null,
+      scope: auth.isAdmin && updaterScope.value ? "updater" : null,
+    },
     {
       onSuccess: (created) => {
         newKey.value = created;
         copied.value = false;
         label.value = "";
         expires.value = "";
+        updaterScope.value = false;
       },
     },
   );
@@ -94,6 +105,13 @@ const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
           <span class="label">{{ t("apiKeys.expiresLabel") }}</span>
           <input v-model="expires" type="date" :aria-label="t('apiKeys.expiryAria')" />
         </label>
+        <label v-if="auth.isAdmin" class="scope">
+          <input v-model="updaterScope" type="checkbox" />
+          <span>
+            {{ t("apiKeys.updaterScope") }}
+            <small>{{ t("apiKeys.updaterScopeHelp") }}</small>
+          </span>
+        </label>
         <button class="btn primary" type="submit" :disabled="!label.trim() || create.isPending.value">
           {{ t("apiKeys.generate") }}
         </button>
@@ -113,7 +131,10 @@ const fmt = (d: string | null) => (d ? d.slice(0, 10) : "—");
         </thead>
         <tbody>
           <tr v-for="k in keys" :key="k.id">
-            <td>{{ k.label }}</td>
+            <td>
+              {{ k.label }}
+              <AppChip v-if="k.scope === 'updater'">{{ t("apiKeys.updaterBadge") }}</AppChip>
+            </td>
             <td class="mono">{{ k.display_prefix }}</td>
             <td>{{ fmt(k.created_at) }}</td>
             <td>{{ k.expires_at ? fmt(k.expires_at) : t("apiKeys.never") }}</td>
@@ -204,6 +225,17 @@ section h2 {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.scope {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  flex-basis: 100%;
+}
+.scope small {
+  display: block;
+  color: var(--fair-text-muted);
 }
 .label {
   font-size: 12px;

@@ -11,7 +11,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, reactive } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { queryKeys } from "@/api/queries";
-import { checkUpdatesNow, fetchUpdates, updateNotices, type UpdateNotice } from "@/api/updates";
+import {
+  OPEN_REQUEST_STATUSES,
+  cancelUpdateRequest,
+  checkUpdatesNow,
+  fetchUpdateRequests,
+  fetchUpdates,
+  requestUpdate,
+  updateNotices,
+  type UpdateNotice,
+  type UpdateRequestCreate,
+} from "@/api/updates";
 
 // Module-level, so every banner instance in the session shares it.
 const dismissed = reactive(new Set<string>());
@@ -49,6 +59,53 @@ export function useUpdates() {
     dismiss: (n: UpdateNotice) => dismissed.add(noticeKey(n)),
     checkNow,
     clientVersion: __APP_VERSION__,
+  };
+}
+
+/**
+ * Update requests for the optional host updater (server ADR-0030): history,
+ * whether an agent is connected, request and cancel. Polls every few seconds
+ * while a request is open; callers refresh the version information
+ * (`refreshVersions`) once it closes.
+ */
+export function useUpdateRequests() {
+  const auth = useAuthStore();
+  const client = useQueryClient();
+  const invalidate = () => client.invalidateQueries({ queryKey: queryKeys.updateRequests() });
+
+  const query = useQuery({
+    queryKey: queryKeys.updateRequests(),
+    queryFn: fetchUpdateRequests,
+    enabled: computed(() => auth.isAdmin),
+    refetchOnWindowFocus: false,
+    retry: false,
+    refetchInterval: (q) =>
+      q.state.data?.requests.some((r) => OPEN_REQUEST_STATUSES.has(r.status)) ? 5_000 : 60_000,
+  });
+
+  const hasOpen = computed(() =>
+    (query.data.value?.requests ?? []).some((r) => OPEN_REQUEST_STATUSES.has(r.status)),
+  );
+
+  const request = useMutation({
+    mutationFn: (body: UpdateRequestCreate) => requestUpdate(body),
+    onSuccess: invalidate,
+  });
+  const cancel = useMutation({
+    mutationFn: (id: string) => cancelUpdateRequest(id),
+    onSuccess: invalidate,
+  });
+
+  return {
+    list: computed(() => query.data.value ?? null),
+    hasOpen,
+    refreshVersions: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: queryKeys.updates() }),
+        client.invalidateQueries({ queryKey: queryKeys.appInfo() }),
+      ]),
+    request,
+    cancel,
   };
 }
 

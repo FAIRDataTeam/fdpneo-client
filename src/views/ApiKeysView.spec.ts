@@ -19,11 +19,15 @@ vi.mock("@/composables/useApiKeys", () => ({
   }),
 }));
 
+const auth = { isAdmin: false };
+vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
+
 import ApiKeysView from "./ApiKeysView.vue";
 
 beforeEach(() => {
   create.mutate.mockReset();
   create.error.value = null;
+  auth.isAdmin = false;
 });
 
 describe("ApiKeysView", () => {
@@ -42,11 +46,24 @@ describe("ApiKeysView", () => {
     await flushPromises();
 
     expect(create.mutate).toHaveBeenCalledWith(
-      { label: "CI pipeline", expires_at: null },
+      { label: "CI pipeline", expires_at: null, scope: null },
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
     const reveal = w.find(".reveal");
     expect(reveal.exists()).toBe(true);
     expect(reveal.text()).toContain("fdpk_topsecret");
+  });
+
+  it("offers updater tokens to admins only, and sends the scope", async () => {
+    expect(mount(ApiKeysView).find(".scope").exists()).toBe(false);
+    auth.isAdmin = true;
+    const w = mount(ApiKeysView);
+    await w.find('input[aria-label="Token label"]').setValue("updater");
+    await w.find('.scope input[type="checkbox"]').setValue(true);
+    await w.find("form").trigger("submit");
+    expect(create.mutate).toHaveBeenCalledWith(
+      { label: "updater", expires_at: null, scope: "updater" },
+      expect.anything(),
+    );
   });
 });
