@@ -10,6 +10,35 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-10-29
+
+### Changed
+
+- **Major dependency upgrades.**
+
+  | Package | Before | Now |
+  |---|---|---|
+  | pinia | 3 | 4 |
+  | monaco-editor | 0.52 | 0.57 |
+  | vitest, @vitest/coverage-v8 | 4 | 5 |
+  | typescript | 5.6 | 5.9 |
+  | @vue/tsconfig | 0.5 | 0.9 |
+
+  Pinia 4 needs `@vue/devtools-api`, which is now a direct dependency.
+  Monaco 0.57 adds an `exports` map, so the SPARQL and Turtle editors
+  import `monaco-editor/editor/*`. The lazily loaded editor chunk grows by
+  about 116 kB gzipped.
+- **Held back on purpose.**
+  - TypeScript 7 is not supported by typescript-eslint or openapi-typescript.
+  - PrimeVue 5 changed from MIT to a commercial licence that needs a
+    licence key.
+
+### Security
+
+- **DOMPurify is pinned to ^3.4.17** through an override. Monaco 0.57 ships
+  3.4.15, which has a critical DOM-XSS advisory. npm audit reports 0
+  vulnerabilities.
+
 ## [0.7.0] — 2026-10-29
 
 Requires fdpneo-server 0.18 for the access-control setting; older servers
