@@ -39,7 +39,7 @@ const turtle = computed(() => serializeOffer(offer.value));
 
 /** The Offer's stable IRI, derived from the slug (the server stores it there). */
 function deriveIri(s: string): string {
-  return s.trim() ? `${apiBase()}/policies/${s.trim()}` : ":NewPolicy";
+  return s.trim() ? `${apiBase()}/fdp-api/policies/${s.trim()}` : ":NewPolicy";
 }
 function onSlug(v: string) {
   slug.value = v;

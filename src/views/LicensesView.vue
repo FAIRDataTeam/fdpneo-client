@@ -29,7 +29,7 @@ const error = ref<ParsedError | null>(null);
 const validation = ref<PolicyValidation | null>(null);
 
 const slugLocked = computed(() => savedId.value !== null);
-const iriFor = (s: string) => `${apiBase()}/licenses/${s.trim() || "draft"}`;
+const iriFor = (s: string) => `${apiBase()}/fdp-api/licenses/${s.trim() || "draft"}`;
 const turtle = computed(() => serializeLicense(iriFor(slug.value), fields.value));
 
 function setField<K extends keyof LicenseFields>(k: K, v: string) {
