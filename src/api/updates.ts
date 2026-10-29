@@ -118,3 +118,51 @@ export function updateNotices(view: UpdatesView, clientVersion: string): UpdateN
     ),
   ].filter((n): n is UpdateNotice => n !== null);
 }
+
+// --- update requests for the optional host updater (server ADR-0030) --------
+
+export type UpdateRequestView = components["schemas"]["UpdateRequestView"];
+export type UpdateRequestList = components["schemas"]["UpdateRequestList"];
+export type UpdateRequestCreate = components["schemas"]["UpdateRequestCreate"];
+
+export async function fetchUpdateRequests(): Promise<UpdateRequestList> {
+  const res = await http.get<UpdateRequestList>("/fdp-api/admin/updates/requests");
+  return res.data;
+}
+
+export async function requestUpdate(body: UpdateRequestCreate): Promise<UpdateRequestView> {
+  const res = await http.post<UpdateRequestView>("/fdp-api/admin/updates/requests", body);
+  return res.data;
+}
+
+export async function cancelUpdateRequest(id: string): Promise<UpdateRequestView> {
+  const res = await http.post<UpdateRequestView>(
+    `/fdp-api/admin/updates/requests/${encodeURIComponent(id)}/cancel`,
+  );
+  return res.data;
+}
+
+export type ApplyBlocker = "metadata" | "manual" | "tooOld" | "needsServer";
+
+/**
+ * Why the host updater may not apply `release` unattended, or null when it may.
+ * Mirrors the server's validation (which stays authoritative).
+ */
+export function applyBlocker(
+  component: Component,
+  release: ReleaseInfo,
+  current: string,
+  serverVersion: string,
+): ApplyBlocker | null {
+  if (!release.metadata_present) return "metadata";
+  if (release.manual_steps !== false) return "manual";
+  if (release.min_upgrade_from && satisfies(current, `>=${release.min_upgrade_from}`) !== true) {
+    return "tooOld";
+  }
+  if (component === "client" && satisfies(serverVersion, release.requires_server ?? null) !== true) {
+    return "needsServer";
+  }
+  return null;
+}
+
+export const OPEN_REQUEST_STATUSES: ReadonlySet<string> = new Set(["pending", "claimed"]);

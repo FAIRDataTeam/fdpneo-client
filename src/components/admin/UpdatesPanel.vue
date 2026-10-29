@@ -8,19 +8,85 @@
  * behind with their security / manual-steps flags, and a "Check now" action
  * (the server allows one per minute). Admin-only; SettingsView mounts it for
  * admins.
+ *
+ * With the optional host updater connected (server ADR-0030), each component
+ * offers "Update to X" for the newest release the agent may apply unattended,
+ * with a confirmation step, and the panel lists recent requests and outcomes.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useUpdates } from "@/composables/useUpdates";
-import { newerThan, type ReleaseInfo } from "@/api/updates";
+import { useUpdateRequests, useUpdates } from "@/composables/useUpdates";
+import {
+  OPEN_REQUEST_STATUSES,
+  applyBlocker,
+  newerThan,
+  type ApplyBlocker,
+  type Component,
+  type ReleaseInfo,
+} from "@/api/updates";
 import { parseFdpError } from "@/api/errors";
 
 const { t } = useI18n();
 const { view, isLoading, isError, checkNow, clientVersion } = useUpdates();
+const requests = useUpdateRequests();
 const error = ref<string | null>(null);
+const confirming = ref<string | null>(null);
+
+// The agent finished an open request: the running versions changed.
+watch(requests.hasOpen, (open, wasOpen) => {
+  if (wasOpen && !open) void requests.refreshVersions();
+});
+
+const agentConnected = computed(() => requests.list.value?.agent_connected === true);
+
+interface Offer {
+  release: ReleaseInfo;
+  blocker: ApplyBlocker | null;
+}
+
+function offerFor(row: Row): Offer | null {
+  const release = row.newer[0];
+  if (!release || !view.value) return null;
+  return {
+    release,
+    blocker: applyBlocker(row.component, release, row.current, view.value.server_version),
+  };
+}
+
+const offerKey = (component: Component, version: string) => `${component}@${version}`;
+
+async function onUpdate(row: Row, version: string) {
+  const key = offerKey(row.component, version);
+  if (confirming.value !== key) {
+    confirming.value = key;
+    return;
+  }
+  confirming.value = null;
+  error.value = null;
+  try {
+    await requests.request.mutateAsync({
+      component: row.component,
+      version,
+      from_version: row.component === "client" ? row.current : null,
+    });
+  } catch (e) {
+    const parsed = parseFdpError(e);
+    error.value = `${parsed.title}: ${parsed.message}`;
+  }
+}
+
+async function onCancel(id: string) {
+  error.value = null;
+  try {
+    await requests.cancel.mutateAsync(id);
+  } catch (e) {
+    const parsed = parseFdpError(e);
+    error.value = `${parsed.title}: ${parsed.message}`;
+  }
+}
 
 interface Row {
-  component: "server" | "client";
+  component: Component;
   current: string;
   latest: string | null;
   newer: ReleaseInfo[];
@@ -100,6 +166,25 @@ async function onCheck() {
                   }}</a>
                 </li>
               </ul>
+              <template v-if="agentConnected && offerFor(row)">
+                <p v-if="offerFor(row)?.blocker" class="blocker">
+                  {{ t(`updates.blocker.${offerFor(row)?.blocker}`) }}
+                </p>
+                <button
+                  v-else
+                  type="button"
+                  class="btn sm"
+                  :class="confirming === offerKey(row.component, row.newer[0]?.version ?? '') ? 'primary' : 'ghost'"
+                  :disabled="requests.hasOpen.value || requests.request.isPending.value"
+                  @click="onUpdate(row, row.newer[0]?.version ?? '')"
+                >
+                  {{
+                    confirming === offerKey(row.component, row.newer[0]?.version ?? "")
+                      ? t("updates.confirmUpdate", { version: row.newer[0]?.version })
+                      : t("updates.updateTo", { version: row.newer[0]?.version })
+                  }}
+                </button>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -119,6 +204,53 @@ async function onCheck() {
         {{ checkNow.isPending.value ? t("updates.checking") : t("updates.checkNow") }}
       </button>
       <p v-if="error" class="error" role="alert">{{ error }}</p>
+
+      <h3>{{ t("updates.updaterHeading") }}</h3>
+      <p v-if="agentConnected" class="meta">
+        {{
+          t("updates.agentConnected", {
+            version: requests.list.value?.agent_version ?? "?",
+            when: when(requests.list.value?.agent_last_seen),
+          })
+        }}
+      </p>
+      <p v-else class="meta">{{ t("updates.agentMissing") }}</p>
+
+      <table v-if="requests.list.value?.requests.length" class="versions history">
+        <thead>
+          <tr>
+            <th>{{ t("updates.colComponent") }}</th>
+            <th>{{ t("updates.colChange") }}</th>
+            <th>{{ t("updates.colStatus") }}</th>
+            <th>{{ t("updates.colRequested") }}</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in requests.list.value?.requests ?? []" :key="r.id">
+            <td>{{ t(r.component === "server" ? "updates.server" : "updates.client") }}</td>
+            <td class="mono">{{ r.from_version }} → {{ r.target_version }}</td>
+            <td>
+              <span class="badge" :class="`status-${r.status}`">{{ t(`updates.status.${r.status}`) }}</span>
+              <span v-if="r.message" class="note">{{ r.message }}</span>
+              <span v-if="r.backup_location" class="note">{{ t("updates.backupAt", { location: r.backup_location }) }}</span>
+            </td>
+            <td>{{ when(r.requested_at) }}</td>
+            <td>
+              <button
+                v-if="r.status === 'pending'"
+                type="button"
+                class="btn ghost sm"
+                :disabled="requests.cancel.isPending.value"
+                @click="onCancel(r.id)"
+              >
+                {{ t("updates.cancel") }}
+              </button>
+              <span v-else-if="OPEN_REQUEST_STATUSES.has(r.status)" class="note">{{ t("updates.inProgress") }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </template>
   </section>
 </template>
@@ -188,6 +320,26 @@ async function onCheck() {
 }
 .badge.muted {
   opacity: 0.75;
+}
+h3 {
+  margin: 18px 0 6px;
+  font-size: 14px;
+}
+.blocker,
+.note {
+  display: block;
+  margin: 6px 0 0;
+  color: var(--fair-text-muted);
+  font-size: 12px;
+}
+.badge.status-succeeded {
+  background: var(--fair-success, #2e7d32);
+  color: #fff;
+}
+.badge.status-failed,
+.badge.status-needs_attention {
+  background: var(--fair-danger, #c62828);
+  color: #fff;
 }
 .error {
   margin: 10px 0;

@@ -889,6 +889,104 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fdp-api/admin/updates/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Update Request List
+         * @description Recent requests, and whether an updater agent is connected.
+         */
+        get: operations["update_request_list_fdp_api_admin_updates_requests_get"];
+        put?: never;
+        /**
+         * Update Request Create
+         * @description Request an update; the host updater agent applies it (ADR-0030).
+         */
+        post: operations["update_request_create_fdp_api_admin_updates_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/updates/requests/{request_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Request Cancel
+         * @description Cancel a request the agent has not claimed yet.
+         */
+        post: operations["update_request_cancel_fdp_api_admin_updates_requests__request_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/updates/agent/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Agent Next
+         * @description Agent heartbeat: the oldest pending request, or null.
+         */
+        post: operations["update_agent_next_fdp_api_admin_updates_agent_next_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/updates/agent/requests/{request_id}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Agent Claim */
+        post: operations["update_agent_claim_fdp_api_admin_updates_agent_requests__request_id__claim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/updates/agent/requests/{request_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Agent Report */
+        post: operations["update_agent_report_fdp_api_admin_updates_agent_requests__request_id__report_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fdp-api/profiles": {
         parameters: {
             query?: never;
@@ -1700,6 +1798,32 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentNext */
+        AgentNext: {
+            request: components["schemas"]["UpdateRequestView"] | null;
+            /**
+             * Server Version
+             * @description The version of the server answering the poll.
+             */
+            server_version: string;
+        };
+        /** AgentPoll */
+        AgentPoll: {
+            /** Agent Version */
+            agent_version?: string | null;
+        };
+        /** AgentReport */
+        AgentReport: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "succeeded" | "rolled_back" | "failed" | "needs_attention";
+            /** Message */
+            message?: string | null;
+            /** Backup Location */
+            backup_location?: string | null;
+        };
         /**
          * ApiKeyCreateRequest
          * @description Body for ``POST /me/api-keys``.
@@ -1709,6 +1833,11 @@ export interface components {
             label: string;
             /** Expires At */
             expires_at?: string | null;
+            /**
+             * Scope
+             * @description Restrict the key. 'updater' (admins only) carries just the updater role for the host updater agent (ADR-0030).
+             */
+            scope?: "updater" | null;
         };
         /**
          * ApiKeyCreated
@@ -1738,6 +1867,8 @@ export interface components {
             revoked_at: string | null;
             /** Active */
             active: boolean;
+            /** Scope */
+            scope?: string | null;
             /** Key */
             key: string;
         };
@@ -1769,6 +1900,8 @@ export interface components {
             revoked_at: string | null;
             /** Active */
             active: boolean;
+            /** Scope */
+            scope?: string | null;
         };
         /** ApiKeyList */
         ApiKeyList: {
@@ -2631,6 +2764,69 @@ export interface components {
             event_type?: string | null;
             /** Items */
             items: components["schemas"]["TopResourceModel"][];
+        };
+        /** UpdateRequestCreate */
+        UpdateRequestCreate: {
+            /**
+             * Component
+             * @enum {string}
+             */
+            component: "server" | "client";
+            /**
+             * Version
+             * @description Target release, X.Y.Z.
+             */
+            version: string;
+            /**
+             * From Version
+             * @description Client requests: the client version the admin is running (the server knows its own).
+             */
+            from_version?: string | null;
+        };
+        /** UpdateRequestList */
+        UpdateRequestList: {
+            /** Agent Connected */
+            agent_connected: boolean;
+            /** Agent Last Seen */
+            agent_last_seen: string | null;
+            /** Agent Version */
+            agent_version: string | null;
+            /** Requests */
+            requests: components["schemas"]["UpdateRequestView"][];
+        };
+        /** UpdateRequestView */
+        UpdateRequestView: {
+            /** Id */
+            id: string;
+            /**
+             * Component
+             * @enum {string}
+             */
+            component: "server" | "client";
+            /** Target Version */
+            target_version: string;
+            /** From Version */
+            from_version: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "claimed" | "succeeded" | "rolled_back" | "failed" | "needs_attention" | "cancelled";
+            /** Requested By */
+            requested_by: string;
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /** Claimed At */
+            claimed_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Message */
+            message: string | null;
+            /** Backup Location */
+            backup_location: string | null;
         };
         /**
          * UpdateUserRequest
@@ -4560,6 +4756,189 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdatesView"];
+                };
+            };
+        };
+    };
+    update_request_list_fdp_api_admin_updates_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRequestList"];
+                };
+            };
+        };
+    };
+    update_request_create_fdp_api_admin_updates_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRequestView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_request_cancel_fdp_api_admin_updates_requests__request_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRequestView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_agent_next_fdp_api_admin_updates_agent_next_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentPoll"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentNext"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_agent_claim_fdp_api_admin_updates_agent_requests__request_id__claim_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRequestView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_agent_report_fdp_api_admin_updates_agent_requests__request_id__report_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentReport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRequestView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
