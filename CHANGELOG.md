@@ -10,6 +10,17 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-10-29
+
+### Changed
+
+- **Signed, multi-architecture images.** Release images are built for
+  `linux/amd64` and `linux/arm64` and published as one image, so Apple
+  Silicon and ARM hosts no longer build locally. The image is signed with
+  Sigstore keyless signing and carries a build-provenance attestation, as
+  described in server ADR-0028 §1. The host updater (server 0.21+) checks
+  this signature before applying a client release.
+
 ## [0.9.0] — 2026-10-29
 
 Needs fdpneo-server 0.20 or later for the update notices. Older servers
