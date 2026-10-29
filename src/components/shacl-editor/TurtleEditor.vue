@@ -11,8 +11,8 @@
  * textarea is safe.
  */
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import * as monaco from "monaco-editor/editor/editor.api";
+import EditorWorker from "monaco-editor/editor/editor.worker?worker";
 import { useThemeStore } from "@/stores/theme";
 
 const props = withDefaults(
