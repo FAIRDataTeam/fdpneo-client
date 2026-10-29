@@ -10,6 +10,27 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+Needs fdpneo-server 0.20 or later for the update notices. Older servers
+have no updates endpoint, and the client then shows nothing.
+
+### Added
+
+- **Update notices for administrators (server ADR-0028).**
+  - **Banner.** A banner under the header appears when a newer server or web
+    client release exists. It flags security releases and releases that need
+    manual upgrade steps, and says when a client release needs a newer
+    server first. Dismissing it lasts for the session.
+  - **Updates panel.** Instance settings gains an *Updates* panel with the
+    running and latest versions, the last check, any check error and a
+    *Check now* button.
+  - **Setting editor.** The `updates.check` setting gets a simple on/off
+    editor.
+- **Version-tagged releases.** A `v*` tag now does four things:
+  - It checks that the tag, `package.json` and `release.json` agree.
+  - It publishes the image as `X.Y.Z`, `X.Y` and `latest`.
+  - It creates the GitHub release with the CHANGELOG section as notes.
+  - It attaches `release.json` as `fdpneo-release.json`.
+
 ## [0.8.0] — 2026-10-29
 
 ### Changed

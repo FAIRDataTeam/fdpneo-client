@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "component": "client",
+  "version": "0.8.0",
+  "min_upgrade_from": "0.1.0",
+  "manual_steps": false,
+  "security": false,
+  "requires": { "server": ">=0.18.0" },
+  "upgrade_notes": "https://github.com/FAIRDataTeam/fdpneo-client/blob/v0.8.0/CHANGELOG.md#080--2026-10-29"
+}

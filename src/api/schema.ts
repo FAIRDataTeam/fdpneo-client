@@ -849,6 +849,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fdp-api/admin/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Updates View
+         * @description The cached outcome of the last release check.
+         */
+        get: operations["updates_view_fdp_api_admin_updates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fdp-api/admin/updates/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Updates Check
+         * @description Check GitHub now (at most once a minute); returns the refreshed view.
+         */
+        post: operations["updates_check_fdp_api_admin_updates_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fdp-api/profiles": {
         parameters: {
             query?: never;
@@ -2246,6 +2286,36 @@ export interface components {
             };
         };
         /**
+         * ReleaseView
+         * @description One published release and its upgrade metadata (when the release has it).
+         */
+        ReleaseView: {
+            /** Version */
+            version: string;
+            /** Published At */
+            published_at?: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Metadata Present
+             * @default false
+             */
+            metadata_present: boolean;
+            /** Security */
+            security?: boolean | null;
+            /** Manual Steps */
+            manual_steps?: boolean | null;
+            /** Min Upgrade From */
+            min_upgrade_from?: string | null;
+            /**
+             * Requires Server
+             * @description Client releases: minimum server version, e.g. '>=0.18.0'.
+             */
+            requires_server?: string | null;
+            /** Upgrade Notes */
+            upgrade_notes?: string | null;
+        };
+        /**
          * ResetRequest
          * @description Body for ``POST /admin/reset``.
          */
@@ -2577,6 +2647,42 @@ export interface components {
             last_name?: string | null;
             /** Email */
             email?: string | null;
+        };
+        /**
+         * UpdatesView
+         * @description What ``GET /admin/updates`` returns.
+         */
+        UpdatesView: {
+            /**
+             * Enabled
+             * @description Whether the daily check currently runs.
+             */
+            enabled: boolean;
+            /**
+             * Env Enabled
+             * @description FDP_UPDATES_CHECK_ENABLED; when false the runtime setting cannot enable it.
+             */
+            env_enabled: boolean;
+            /** Checked At */
+            checked_at: string | null;
+            /** Error */
+            error: string | null;
+            /** Server Version */
+            server_version: string;
+            /** Latest Server */
+            latest_server: string | null;
+            /** Latest Client */
+            latest_client: string | null;
+            /**
+             * Server Releases
+             * @description Server releases newer than the running server, newest first.
+             */
+            server_releases: components["schemas"]["ReleaseView"][];
+            /**
+             * Client Releases
+             * @description Known client releases, newest first; the client compares its own version.
+             */
+            client_releases: components["schemas"]["ReleaseView"][];
         };
         /**
          * UserInfo
@@ -4414,6 +4520,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IndexPingRunView"];
+                };
+            };
+        };
+    };
+    updates_view_fdp_api_admin_updates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatesView"];
+                };
+            };
+        };
+    };
+    updates_check_fdp_api_admin_updates_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatesView"];
                 };
             };
         };
