@@ -2,7 +2,8 @@
 /**
  * Root shell.
  *
- * AppHeader (logo · deployment · search · theme · auth) → RouterView → AppFooter.
+ * AppHeader (logo · deployment · search · theme · auth) → UpdateBanner (admins
+ * only, ADR-0028) → RouterView → AppFooter.
  * Per-view backgrounds (paper, surface) stay inside the view; the shell is a
  * neutral flex column that fills the viewport.
  *
@@ -14,6 +15,7 @@ import { RouterView } from "vue-router";
 import AppHeader from "@/components/shared/AppHeader.vue";
 import AppFooter from "@/components/shared/AppFooter.vue";
 import AppErrorBoundary from "@/components/shared/AppErrorBoundary.vue";
+import UpdateBanner from "@/components/shared/UpdateBanner.vue";
 import { useThemeStore } from "@/stores/theme";
 import { usePrefersDark } from "@/composables/usePrefersDark";
 import { useBranding, applyFaviconFromLogo } from "@/composables/useBranding";
@@ -32,6 +34,7 @@ watchEffect(() => applyFaviconFromLogo(faviconUrl.value));
 <template>
   <div class="shell" data-tool="fdp">
     <AppHeader />
+    <UpdateBanner />
     <main class="main">
       <AppErrorBoundary v-slot="{ remountKey }">
         <RouterView :key="remountKey" />
