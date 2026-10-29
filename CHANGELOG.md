@@ -10,6 +10,43 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-10-29
+
+Requires fdpneo-server 0.18 for the access-control setting; older servers
+simply do not offer it.
+
+### Added
+
+- **Access-control mode in Instance settings.** A structured editor for the
+  server's `access.control` setting (server ADR-0027). Administrators choose
+  **Open access**, where everyone reads and the writer roles create, edit
+  and delete, or **ODRL policies**, where per-record Offers are enforced. In
+  open mode they can also edit the writer roles.
+- **Open-mode notice on the Policies page.** In open mode the page explains
+  that policies are stored but not enforced, and administrators get a link
+  to the setting.
+
+### Fixed
+
+- **Policy and license editors work against server 0.16+.** The editors
+  built a document's subject IRI as `<base>/policies/<id>` while the server
+  stores managed documents under `<base>/fdp-api/policies/<id>` and
+  `<base>/fdp-api/licenses/<id>`. As a result, Validate reported "not an
+  odrl:Offer" and Publish did nothing.
+
+### Security
+
+- **Dependency refresh clears all npm audit advisories.** The previous lock
+  had 17 advisories, 13 of them high. They affected vite's dev server,
+  launch-editor and vitest's mocker.
+
+### Changed
+
+- The CI actions moved to their Node 24 runtimes. CI and the image build
+  now use Node 24, and the runtime image uses nginx 1.30 (stable) instead
+  of 1.27.
+- The README is rebranded to FDPneo and links the sibling repositories.
+
 ## [0.6.6] — 2026-09-09
 
 ### Fixed
