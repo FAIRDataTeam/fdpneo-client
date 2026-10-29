@@ -10,6 +10,8 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-10-29
+
 Needs fdpneo-server 0.20 or later for the update notices. Older servers
 have no updates endpoint, and the client then shows nothing.
 
