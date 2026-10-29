@@ -16,6 +16,7 @@ import { useInvalidateSettings } from "@/composables/useSettings";
 import { parseFdpError, type ParsedError } from "@/api/errors";
 import SearchFiltersEditor from "./SearchFiltersEditor.vue";
 import AutocompleteSourcesEditor from "./AutocompleteSourcesEditor.vue";
+import AccessControlEditor from "./AccessControlEditor.vue";
 
 const props = defineProps<{ settingKey: string; value: SettingValue; canEdit: boolean }>();
 
@@ -33,13 +34,18 @@ const SETTING_META: Record<string, { titleKey: string; helpKey: string }> = {
     titleKey: "settingsAdmin.metaAutocompleteTitle",
     helpKey: "settingsAdmin.metaAutocompleteHelp",
   },
+  "access.control": {
+    titleKey: "settingsAdmin.metaAccessTitle",
+    helpKey: "settingsAdmin.metaAccessHelp",
+  },
 };
 const meta = computed(() => SETTING_META[props.settingKey] ?? null);
 
 // Keys with a structured form editor; everything else edits as raw JSON.
-const structuredKind = computed<"filters" | "autocomplete" | null>(() => {
+const structuredKind = computed<"filters" | "autocomplete" | "access" | null>(() => {
   if (props.settingKey === "search.filters") return "filters";
   if (props.settingKey === "forms.autocomplete-sources") return "autocomplete";
+  if (props.settingKey === "access.control") return "access";
   return null;
 });
 // Raw-JSON escape hatch, available even for structured keys.
@@ -174,6 +180,11 @@ function toggleRaw() {
     />
     <AutocompleteSourcesEditor
       v-else-if="structuredKind === 'autocomplete' && !useRaw"
+      v-model="model"
+      :can-edit="canEdit"
+    />
+    <AccessControlEditor
+      v-else-if="structuredKind === 'access' && !useRaw"
       v-model="model"
       :can-edit="canEdit"
     />

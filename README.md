@@ -1,8 +1,8 @@
-# FAIR Data Point v2 — Reference Web Client
+# FDPneo — Web Client
 
-A Vue 3 single-page application providing the reference web interface for the FAIR Data Point v2 server. Lets data stewards manage metadata, schemas, and access policies; lets data consumers browse and query metadata; provides a dashboard of usage metrics.
+A Vue 3 single-page application providing the web interface for the FDPneo server, an **AI-developed** FAIR Data Point implementation (see the [server README](https://github.com/FAIRDataTeam/fdpneo-server#readme) for the caution that applies to the whole stack). Lets data stewards manage metadata, schemas, and access policies; lets data consumers browse and query metadata; provides a dashboard of usage metrics.
 
-This repository contains the **client** implementation. The server lives in the sibling `server/` project (`fdpneo-server`).
+This repository contains the **client** implementation. The server lives in [`fdpneo-server`](https://github.com/FAIRDataTeam/fdpneo-server); documentation for the whole stack is in [`fdpneo-docs`](https://github.com/FAIRDataTeam/fdpneo-docs).
 
 > **Status: implemented.** All four surfaces (metadata browsing/search, SHACL editor, ODRL editor, metrics dashboard) are built and covered by unit tests. See the audit notes and `CLAUDE.md` for current conventions.
 

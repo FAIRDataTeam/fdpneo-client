@@ -179,7 +179,7 @@ export function serializeTurtle(store: Store): Promise<string> {
       prefixes: { dcterms: NS.dct, dcat: NS.dcat, rdf: NS.rdf, ldp: "http://www.w3.org/ns/ldp#" },
     });
     writer.addQuads(store.getQuads(null, null, null, null));
-    writer.end((err, result) => (err ? reject(err) : resolve(result)));
+    writer.end((err, result) => (err ? reject(err) : resolve(result ?? "")));
   });
 }
 

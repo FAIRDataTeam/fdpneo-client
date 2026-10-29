@@ -10,7 +10,9 @@
 import { computed, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
 import { useI18n } from "vue-i18n";
+import { RouterLink } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useSettings } from "@/composables/useSettings";
 import { apiBase } from "@/api/rdf";
 import { deletePolicy, getPolicyTurtle, putPolicy, validatePolicy, type PolicyValidation } from "@/api/policies";
 import { usePolicies, useInvalidatePolicies } from "@/composables/usePolicies";
@@ -26,6 +28,11 @@ const { t } = useI18n();
 const auth = useAuthStore();
 const { policies, isLoading } = usePolicies();
 const invalidate = useInvalidatePolicies();
+// Policies are only *enforced* when `access.control` is in ODRL mode (server
+// ADR-0027). In the open default they can still be authored and attached, so
+// the page stays usable but says so up front.
+const { settings } = useSettings();
+const openMode = computed(() => settings.value["access.control"]?.mode !== "odrl");
 
 const slug = ref("");
 const offer = ref<OfferModel>(newOffer());
@@ -39,7 +46,7 @@ const turtle = computed(() => serializeOffer(offer.value));
 
 /** The Offer's stable IRI, derived from the slug (the server stores it there). */
 function deriveIri(s: string): string {
-  return s.trim() ? `${apiBase()}/policies/${s.trim()}` : ":NewPolicy";
+  return s.trim() ? `${apiBase()}/fdp-api/policies/${s.trim()}` : ":NewPolicy";
 }
 function onSlug(v: string) {
   slug.value = v;
@@ -151,6 +158,15 @@ async function copyTurtle() {
         <template #rights><code class="mono">dct:rights</code></template>
       </i18n-t>
     </header>
+
+    <div v-if="openMode" class="notice notice--mode" role="status">
+      <i18n-t keypath="odrl.openModeNotice" tag="p" scope="global">
+        <template #settings>
+          <RouterLink v-if="auth.isAdmin" to="/admin/settings">{{ t("odrl.openModeNoticeLink") }}</RouterLink>
+          <span v-else>{{ t("odrl.openModeNoticeLink") }}</span>
+        </template>
+      </i18n-t>
+    </div>
 
     <div v-if="!auth.isAdmin" class="notice">
       <p>{{ t("odrl.adminOnlyNotice") }}</p>
@@ -357,6 +373,13 @@ input:disabled {
 .notice {
   color: var(--fair-text-muted);
   margin-bottom: 14px;
+}
+.notice--mode {
+  background: var(--fair-highlight);
+  color: var(--fair-text);
+}
+.notice--mode p {
+  margin: 0;
 }
 .error {
   border-color: var(--fair-danger);
