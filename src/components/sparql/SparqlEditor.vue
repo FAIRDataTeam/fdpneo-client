@@ -15,8 +15,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 // Import the slim editor API only — pulling in `monaco-editor` directly would
 // bundle every built-in language mode and the JSON/CSS/HTML/TS language
 // services (megabytes we don't use). We register just our SPARQL grammar.
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import * as monaco from "monaco-editor/editor/editor.api";
+import EditorWorker from "monaco-editor/editor/editor.worker?worker";
 import { useThemeStore } from "@/stores/theme";
 
 const props = withDefaults(
