@@ -10,6 +10,16 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-10-29
+
+### Fixed
+
+- **The first signed, multi-architecture images are published.** The 0.9.1
+  image builds failed, because image references must be lowercase and the
+  organisation name is not, so 0.9.1 was never published. 0.9.2 delivers
+  its signed `linux/amd64` and `linux/arm64` images. There are no code
+  changes.
+
 ## [0.9.1] — 2026-10-29
 
 ### Changed
