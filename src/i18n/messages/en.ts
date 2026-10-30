@@ -353,7 +353,7 @@ const en = {
     usernameLabel: "Username *",
     usernamePlaceholder: "jdoe",
     emailLabel: "Email",
-    emailPlaceholder: "jdoe@org.example",
+    emailPlaceholder: "jdoe{'@'}org.example",
     rolesColon: "Roles:",
     sendInvite: "Send invite email (set password + verify)",
     creating: "Creating…",

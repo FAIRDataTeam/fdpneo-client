@@ -359,7 +359,7 @@ const fr: Messages = {
     usernameLabel: "Nom d'utilisateur *",
     usernamePlaceholder: "jdoe",
     emailLabel: "E-mail",
-    emailPlaceholder: "jdoe@org.example",
+    emailPlaceholder: "jdoe{'@'}org.example",
     rolesColon: "Rôles :",
     sendInvite: "Envoyer un e-mail d'invitation (définir le mot de passe + vérifier)",
     creating: "Création…",
