@@ -358,7 +358,7 @@ const nl: Messages = {
     usernameLabel: "Gebruikersnaam *",
     usernamePlaceholder: "jdoe",
     emailLabel: "E-mail",
-    emailPlaceholder: "jdoe@org.example",
+    emailPlaceholder: "jdoe{'@'}org.example",
     rolesColon: "Rollen:",
     sendInvite: "Uitnodigingsmail sturen (wachtwoord instellen + verifiëren)",
     creating: "Aanmaken…",

@@ -10,6 +10,30 @@ pages carry the fuller notes.
 
 ## [Unreleased]
 
+## [0.9.3] — 2026-10-30
+
+### Fixed
+
+- **"+ New user" no longer crashes the Users page.** The create form's
+  email placeholder, `jdoe@org.example`, contained an unescaped `@`.
+  vue-i18n reads `@` as the start of a linked message, so it failed to
+  compile the message (error 10, invalid linked format) the first time the
+  form rendered. The placeholder is now escaped in all six locales.
+- **Saved searches keep the search text and filters.** The search page
+  saved `{"q", "facets"}`, but the server stores a saved search as a search
+  request, so it dropped both and kept an empty search. The client now
+  saves the same request the live search sends: `query`, `types` and
+  `license`. Opening a saved search maps it back, and older `{q, facets}`
+  entries still open. Searches saved by 0.9.2 and earlier never stored their
+  text: delete them and save them again. Server 0.21.2 rejects the old
+  format outright.
+
+### Added
+
+- **A unit test compiles every message in every locale.** A stray `@`, `{`,
+  `}` or `|` now fails CI instead of crashing a page at runtime. A component
+  test opens the create form on the Users page.
+
 ## [0.9.2] — 2026-10-29
 
 ### Fixed

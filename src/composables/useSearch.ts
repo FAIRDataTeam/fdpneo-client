@@ -13,7 +13,7 @@ import { useQuery, keepPreviousData } from "@tanstack/vue-query";
 import { computed, ref, type Ref } from "vue";
 import { queryKeys, type FacetSelection } from "@/api/queries";
 import { iriToId, licenseLabel, NS } from "@/api/rdf";
-import { runSearch, type FacetDimension, type SearchItem } from "@/api/search";
+import { runSearch, toSearchRequest, type FacetDimension, type SearchItem } from "@/api/search";
 import { useResourceTypes } from "@/composables/useResourceTypes";
 import type { RecordKind } from "@/types/record";
 import type { SearchResult } from "@/data/sampleRecord";
@@ -78,9 +78,7 @@ export function useSearch(
     ]),
     queryFn: async (): Promise<SearchView> => {
       const res = await runSearch({
-        query: queryText.value.trim() || null,
-        types: facets.value.type ?? [],
-        license: facets.value.license?.[0] ?? null,
+        ...toSearchRequest(queryText.value, facets.value),
         offset: offset.value,
         limit,
       });

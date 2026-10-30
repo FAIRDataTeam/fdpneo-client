@@ -357,7 +357,7 @@ const es: Messages = {
     usernameLabel: "Nombre de usuario *",
     usernamePlaceholder: "jdoe",
     emailLabel: "Correo",
-    emailPlaceholder: "jdoe@org.example",
+    emailPlaceholder: "jdoe{'@'}org.example",
     rolesColon: "Roles:",
     sendInvite: "Enviar correo de invitación (establecer contraseña + verificar)",
     creating: "Creando…",

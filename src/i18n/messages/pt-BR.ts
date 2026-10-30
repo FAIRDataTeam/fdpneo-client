@@ -358,7 +358,7 @@ const ptBR: Messages = {
     usernameLabel: "Nome de usuário *",
     usernamePlaceholder: "jdoe",
     emailLabel: "E-mail",
-    emailPlaceholder: "jdoe@org.example",
+    emailPlaceholder: "jdoe{'@'}org.example",
     rolesColon: "Funções:",
     sendInvite: "Enviar e-mail de convite (definir senha + verificar)",
     creating: "Criando…",
