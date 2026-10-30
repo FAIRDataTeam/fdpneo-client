@@ -18,6 +18,7 @@ import { useAuthStore } from "@/stores/auth";
 import { licenseLabel, shortLabel } from "@/api/rdf";
 import type { FacetSelection } from "@/api/queries";
 import type { SavedQueryView } from "@/api/savedQueries";
+import { fromSearchRequest, toSearchRequest } from "@/api/search";
 import RecordCard from "@/components/metadata/RecordCard.vue";
 import FacetSection from "@/components/metadata/FacetSection.vue";
 import type { FacetItem } from "@/types/facet";
@@ -138,16 +139,18 @@ const newName = ref("");
 function saveCurrent() {
   const name = newName.value.trim();
   if (!name) return;
+  // Store the same request the live search sends (the server validates it as
+  // a SearchRequest; client 0.9.2 sent { q, facets }, which it dropped).
   saved.create.mutate(
-    { name, query: { q: query.value, facets: facets.value } },
+    { name, query: toSearchRequest(query.value, facets.value) },
     { onSuccess: () => (newName.value = "") },
   );
 }
 
 function runSaved(sq: SavedQueryView) {
-  const stored = sq.query as { q?: string; facets?: FacetSelection };
-  query.value = stored.q ?? "";
-  facets.value = stored.facets ?? {};
+  const restored = fromSearchRequest(sq.query);
+  query.value = restored.text;
+  facets.value = restored.facets;
   pushUrl();
 }
 </script>

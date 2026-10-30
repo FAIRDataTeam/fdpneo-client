@@ -12,7 +12,10 @@ import { VueQueryPlugin } from "@tanstack/vue-query";
 
 // useSearch posts to /search (TASKS 10.2).
 const runSearch = vi.fn().mockResolvedValue({ items: [], total: 0, facets: {} });
-vi.mock("@/api/search", () => ({ runSearch: (req: unknown) => runSearch(req) }));
+vi.mock("@/api/search", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/search")>()),
+  runSearch: (req: unknown) => runSearch(req),
+}));
 
 // useTree now lists via the /page read-extension, not SPARQL (TASKS 10.9).
 const fetchChildrenPage = vi.fn();

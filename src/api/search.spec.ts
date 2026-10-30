@@ -9,7 +9,7 @@ vi.mock("@/api/http", () => ({
 }));
 
 import { http } from "@/api/http";
-import { runSearch } from "./search";
+import { fromSearchRequest, runSearch, toSearchRequest } from "./search";
 import {
   createSavedQuery,
   deleteSavedQuery,
@@ -62,5 +62,71 @@ describe("saved queries", () => {
     await deleteSavedQuery("abc");
     expect(mockPut).toHaveBeenCalledWith("/fdp-api/me/saved-queries/abc", { shared: true });
     expect(mockDelete).toHaveBeenCalledWith("/fdp-api/me/saved-queries/abc");
+  });
+});
+
+describe("saved-search mapping", () => {
+  it("builds the request the server validates (query, types, license)", () => {
+    expect(
+      toSearchRequest("  river temperature ", {
+        type: ["dcat:Dataset"],
+        license: ["cc-by"],
+        theme: ["x"],
+      }),
+    ).toEqual({
+      query: "river temperature",
+      types: ["dcat:Dataset"],
+      license: "cc-by",
+    });
+    expect(toSearchRequest("   ", {})).toEqual({
+      query: null,
+      types: [],
+      license: null,
+    });
+  });
+
+  it("restores text and facets from a stored request", () => {
+    const stored = {
+      query: "temperature",
+      types: ["dcat:Dataset"],
+      license: "cc-by",
+      offset: 0,
+      limit: null,
+    };
+    expect(fromSearchRequest(stored)).toEqual({
+      text: "temperature",
+      facets: { type: ["dcat:Dataset"], license: ["cc-by"] },
+    });
+  });
+
+  it("round-trips", () => {
+    const facets = { type: ["dcat:Catalog"], license: ["cc0"] };
+    expect(fromSearchRequest(toSearchRequest("soil", facets))).toEqual({
+      text: "soil",
+      facets,
+    });
+  });
+
+  it("reads the { q, facets } shape older clients sent", () => {
+    expect(
+      fromSearchRequest({ q: "river", facets: { type: ["dcat:Dataset"] } }),
+    ).toEqual({
+      text: "river",
+      facets: { type: ["dcat:Dataset"] },
+    });
+  });
+
+  it("treats a stored request with nothing in it as an empty search", () => {
+    const emptied = {
+      to: null,
+      from: null,
+      limit: null,
+      query: null,
+      types: [],
+      offset: 0,
+      license: null,
+      language: null,
+    };
+    expect(fromSearchRequest(emptied)).toEqual({ text: "", facets: {} });
   });
 });
